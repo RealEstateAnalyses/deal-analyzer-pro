@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Analyzer Pro 2.0</title>
+    <title>Deal Analyzer Pro 3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased p-4 md:p-8">
@@ -11,16 +11,29 @@
         
         <div class="mb-10 text-center">
             <h1 class="text-4xl font-bold text-emerald-400 mb-2">Deal Analyzer Pro</h1>
-            <p class="text-gray-400">Motore di Calcolo Finanziario Avanzato</p>
+            <p class="text-gray-400">Inserisci il link dell'annuncio o compila manualmente.</p>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-xl border border-blue-500 shadow-lg mb-8">
+            <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                Importa da Link (BETA)
+            </h3>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="url" id="urlAnnuncio" placeholder="Incolla qui il link di Immobiliare.it o Idealista..." class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                <button id="btnEstrai" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg whitespace-nowrap transition">
+                    Estrai Dati
+                </button>
+            </div>
+            <p id="msgEstrazione" class="text-sm text-gray-400 mt-2 hidden"></p>
         </div>
 
         <form id="dealForm" class="bg-gray-800 p-6 md:p-8 rounded-xl shadow-2xl border border-gray-700 mb-8">
-            
             <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">1. Dati Acquisizione</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Prezzo Richiesto (€)</label>
-                    <input type="number" id="prezzo" placeholder="Es. 85000" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    <input type="number" id="prezzo" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label>
@@ -28,7 +41,7 @@
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label>
-                    <input type="number" step="0.1" id="agenzia" value="4.0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    <input type="number" step="0.1" id="agenzia" value="4.0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
                 </div>
             </div>
 
@@ -36,19 +49,19 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
-                    <input type="number" id="mq" placeholder="Es. 80" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
-                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                         <option value="Ristrutturazione">Da Ristrutturare</option>
                         <option value="Rinfrescata">Da Rinfrescare</option>
                         <option value="Nuovo">Nuovo / Ottimo</option>
                     </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-sm text-gray-400 mb-2">Preventivo Lavori Esatto (€) - <span class="text-xs text-gray-500">Lascia 0 per stima IA</span></label>
-                    <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                    <label class="block text-sm text-gray-400 mb-2">Preventivo Lavori Esatto (€) (0 = stima IA)</label>
+                    <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                 </div>
             </div>
 
@@ -56,104 +69,116 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Spese Condominiali (€/mese)</label>
-                    <input type="number" id="condominio" placeholder="Es. 150" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    <input type="number" id="condominio" placeholder="Es. 150" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-2">Durata Operazione (Mesi)</label>
-                    <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    <label class="block text-sm text-gray-400 mb-2">Durata (Mesi)</label>
+                    <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
                 </div>
                 <div>
                     <label class="block text-sm text-emerald-400 font-bold mb-2">Stima Prezzo di Rivendita (€)</label>
-                    <input type="number" id="rivendita" placeholder="Es. 160000" class="w-full bg-emerald-900 border border-emerald-500 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-400" required>
+                    <input type="number" id="rivendita" placeholder="Es. 160000" class="w-full bg-emerald-900 border border-emerald-500 rounded-lg p-3 text-white" required>
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 rounded-lg transition shadow-lg">
-                Esegui Stress Test
-            </button>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 rounded-lg shadow-lg">Esegui Stress Test</button>
         </form>
 
-        <div id="risultati" class="hidden bg-gray-800 p-8 rounded-xl border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] mb-10">
+        <div id="risultati" class="hidden bg-gray-800 p-8 rounded-xl border-2 border-emerald-500 mb-10">
             <h2 class="text-3xl font-bold mb-6 border-b border-gray-700 pb-3 text-center">Business Plan Definitivo</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg">
-                
                 <div class="bg-gray-900 p-6 rounded-lg border border-gray-700">
-                    <h4 class="text-gray-400 text-sm font-bold uppercase mb-4 border-b border-gray-800 pb-2">Uscite Cassa (Capitale Necessario)</h4>
+                    <h4 class="text-gray-400 text-sm font-bold uppercase mb-4 border-b border-gray-800 pb-2">Uscite Cassa</h4>
                     <div class="flex justify-between mb-2"><span class="text-gray-400">Prezzo Immobile:</span> <span id="out_prezzo" class="font-bold"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Tasse di Stato + Notaio:</span> <span id="out_tasse" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Provvigione Agenzia:</span> <span id="out_agenzia" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Costi Ristrutturazione:</span> <span id="out_lavori" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Costi Gestione (<span id="out_mesi"></span> mesi):</span> <span id="out_mantenimento" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mt-4 pt-4 border-t border-gray-700 text-xl"><span class="text-gray-300">Totale Investimento:</span> <span id="out_investimento" class="font-bold text-white"></span></div>
+                    <div class="flex justify-between mb-2"><span class="text-gray-400">Tasse + Notaio:</span> <span id="out_tasse" class="font-bold text-orange-400"></span></div>
+                    <div class="flex justify-between mb-2"><span class="text-gray-400">Agenzia:</span> <span id="out_agenzia" class="font-bold text-orange-400"></span></div>
+                    <div class="flex justify-between mb-2"><span class="text-gray-400">Lavori:</span> <span id="out_lavori" class="font-bold text-orange-400"></span></div>
+                    <div class="flex justify-between mb-2"><span class="text-gray-400">Costi Gestione:</span> <span id="out_mantenimento" class="font-bold text-orange-400"></span></div>
+                    <div class="flex justify-between mt-4 pt-4 border-t border-gray-700 text-xl"><span class="text-gray-300">Totale:</span> <span id="out_investimento" class="font-bold text-white"></span></div>
                 </div>
-
                 <div class="bg-emerald-900 bg-opacity-20 p-6 rounded-lg border border-emerald-800 flex flex-col justify-center">
-                    <h4 class="text-emerald-500 text-sm font-bold uppercase mb-4 border-b border-emerald-800 pb-2 text-center">Rendimento Operazione</h4>
                     <div class="text-center mb-6">
                         <p class="text-gray-400 text-sm mb-1">Valore di Vendita Stimato</p>
                         <p id="out_rivendita" class="text-3xl font-bold text-white"></p>
                     </div>
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-300 font-bold text-xl">Utile Netto:</span> 
-                        <span id="out_utile" class="font-bold text-2xl text-emerald-400"></span>
-                    </div>
-                    <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg border border-gray-700">
-                        <span class="text-gray-300 font-bold text-xl">R.O.I.:</span> 
-                        <span id="out_roi" class="font-bold text-4xl text-emerald-500"></span>
-                    </div>
+                    <div class="flex justify-between items-center mb-4"><span class="text-gray-300 font-bold text-xl">Utile Netto:</span> <span id="out_utile" class="font-bold text-2xl text-emerald-400"></span></div>
+                    <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg border border-gray-700"><span class="text-gray-300 font-bold text-xl">R.O.I.:</span> <span id="out_roi" class="font-bold text-4xl text-emerald-500"></span></div>
                 </div>
-
             </div>
         </div>
-
     </div>
 
     <script>
+        // LOGICA ESTRAZIONE DATI
+        document.getElementById('btnEstrai').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('urlAnnuncio').value;
+            const msgBox = document.getElementById('msgEstrazione');
+            
+            if(!url) { alert("Inserisci un link!"); return; }
+
+            msgBox.classList.remove('hidden');
+            msgBox.textContent = "Scansione dell'annuncio in corso... 🕵️‍♂️";
+            msgBox.className = "text-sm text-yellow-400 mt-2";
+
+            try {
+                const response = await fetch('/api/estrai-dati', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if(data.successo && data.prezzo_estratto > 0) {
+                    // AUTOCOMPILIAMO I CAMPI!
+                    document.getElementById('prezzo').value = data.prezzo_estratto;
+                    if(data.mq_estratti > 0) document.getElementById('mq').value = data.mq_estratti;
+                    
+                    msgBox.textContent = "✅ Dati estratti con successo! Verifica i campi qui sotto.";
+                    msgBox.className = "text-sm text-emerald-400 mt-2 font-bold";
+                } else {
+                    msgBox.textContent = "⚠️ Impossibile leggere i dati (i siti immobiliari spesso bloccano i bot). Compila manualmente.";
+                    msgBox.className = "text-sm text-orange-400 mt-2";
+                }
+            } catch (error) {
+                msgBox.textContent = "❌ Errore di connessione al server.";
+                msgBox.className = "text-sm text-red-400 mt-2";
+            }
+        });
+
+        // LOGICA CALCOLO ROI (Uguale a prima)
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
             const payload = {
                 prezzo_acquisto: parseFloat(document.getElementById('prezzo').value),
                 rendita_catastale: parseFloat(document.getElementById('rendita').value),
                 mq: parseInt(document.getElementById('mq').value),
                 stato_immobile: document.getElementById('stato').value,
                 agenzia_percentuale: parseFloat(document.getElementById('agenzia').value),
-                preventivo_custom: parseFloat(document.getElementById('preventivo').value),
                 spese_condominio_mensili: parseFloat(document.getElementById('condominio').value),
                 mesi_operazione: parseInt(document.getElementById('mesi').value),
                 stima_rivendita: parseFloat(document.getElementById('rivendita').value),
-                costo_lavori_custom: parseFloat(document.getElementById('preventivo').value)
+                costo_lavori_custom: parseFloat(document.getElementById('preventivo').value) || 0
             };
 
             try {
-                const response = await fetch('/api/calcola-roi', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
+                const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await response.json();
 
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
                 document.getElementById('out_lavori').textContent = "€ " + data.costo_lavori.toLocaleString();
-                document.getElementById('out_mesi').textContent = payload.mesi_operazione;
                 document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
-                
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
                 document.getElementById('out_rivendita').textContent = "€ " + data.stima_rivendita.toLocaleString();
                 document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
                 document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-
-                document.getElementById('risultati').classList.remove('hidden');
                 
-                // Scorri la pagina in basso verso i risultati
+                document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-
-            } catch (error) {
-                alert("Errore di connessione!");
-            }
+            } catch (error) { alert("Errore di calcolo!"); }
         });
     </script>
 </body>
