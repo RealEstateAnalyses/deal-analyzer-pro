@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Analyzer Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans antialiased p-8">
+    <div class="max-w-4xl mx-auto">
+        
+        <div class="mb-10 text-center">
+            <h1 class="text-4xl font-bold text-emerald-400 mb-2">Deal Analyzer Pro</h1>
+            <p class="text-gray-400">Calcolo finanziario avanzato dell'operazione</p>
+        </div>
+
+        <form id="dealForm" class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Prezzo di Acquisto (€)</label>
+                    <input type="number" id="prezzo" placeholder="Es. 85000" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label>
+                    <input type="number" id="rendita" placeholder="Es. 600" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
+                    <input type="number" id="mq" placeholder="Es. 80" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
+                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                        <option value="Ristrutturazione">Da Ristrutturare (Heavy)</option>
+                        <option value="Rinfrescata">Da Rinfrescare (Light)</option>
+                        <option value="Nuovo">Nuovo / Ottimo</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg py-4 rounded-lg">
+                Analizza Deal
+            </button>
+        </form>
+
+        <div id="risultati" class="hidden bg-gray-800 p-8 rounded-xl border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+            <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Verdetto dell'Algoritmo</h2>
+            <div class="grid grid-cols-2 gap-4 text-lg">
+                <p class="text-gray-400">Investimento Totale:</p> <p id="out_investimento" class="font-bold text-right"></p>
+                <p class="text-gray-400">Di cui Lavori:</p> <p id="out_lavori" class="font-bold text-right"></p>
+                <p class="text-gray-400">Tasse + Notaio:</p> <p id="out_tasse" class="font-bold text-right text-red-400"></p>
+                <p class="text-gray-400">Rivendita Stimata:</p> <p id="out_rivendita" class="font-bold text-right text-blue-400"></p>
+                <div class="col-span-2 border-t border-gray-700 my-2"></div>
+                <p class="text-gray-300 font-bold text-xl">Utile Netto:</p> <p id="out_utile" class="font-bold text-xl text-right text-emerald-400"></p>
+                <p class="text-gray-300 font-bold text-xl">R.O.I.:</p> <p id="out_roi" class="font-bold text-2xl text-right text-emerald-500"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById('dealForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evita che la pagina si ricarichi
+
+            // 1. Raccogliamo i dati scritti dall'utente
+            const payload = {
+                prezzo_acquisto: parseFloat(document.getElementById('prezzo').value),
+                rendita_catastale: parseFloat(document.getElementById('rendita').value),
+                mq: parseInt(document.getElementById('mq').value),
+                stato_immobile: document.getElementById('stato').value
+            };
+
+            try {
+                // 2. Bussiamo alla porta del server Python
+                const response = await fetch('/api/calcola-roi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // 3. Stampiamo i risultati a schermo
+                document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
+                document.getElementById('out_lavori').textContent = "€ " + data.costo_lavori.toLocaleString();
+                document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
+                document.getElementById('out_rivendita').textContent = "€ " + data.stima_rivendita.toLocaleString();
+                document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
+
+                // Mostriamo il pannello nascosto
+                document.getElementById('risultati').classList.remove('hidden');
+
+            } catch (error) {
+                alert("Errore di connessione! Assicurati che il server Python sia acceso nel terminale.");
+            }
+        });
+    </script>
+</body>
+</html>
