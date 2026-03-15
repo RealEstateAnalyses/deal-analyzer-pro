@@ -47,7 +47,14 @@ def estrai_dati_annuncio(dati: InputURL):
     
     try:
         # Scarichiamo la pagina web dell'annuncio
-        risposta = requests.get(dati.url, headers=headers, timeout=10)
+        # NUOVO CODICE: IL MERCENARIO SCRAPERAPI
+        api_key = "79717745f6ba10896c6ccc8f26e0d847"
+        
+        # Diciamo a ScraperAPI di fare il lavoro sporco per noi
+        scraper_url = f"http://api.scraperapi.com?api_key={api_key}&url={dati.url}"
+        
+        # Facciamo la richiesta al mercenario (ci mette qualche secondo in più perché deve aggirare i blocchi)
+        risposta = requests.get(scraper_url, timeout=30)
         soup = BeautifulSoup(risposta.text, 'html.parser')
         
         # Estraiamo tutto il testo dalla pagina per cercare i numeri chiave
