@@ -109,6 +109,11 @@
     </div>
 
     <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has('prezzo')) document.getElementById('prezzo').value = urlParams.get('prezzo');
+            if(urlParams.has('mq')) document.getElementById('mq').value = urlParams.get('mq');
+        };
         // LOGICA ESTRAZIONE DATI
         document.getElementById('btnEstrai').addEventListener('click', async function(e) {
             e.preventDefault();
