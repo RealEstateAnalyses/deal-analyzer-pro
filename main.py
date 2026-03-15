@@ -51,7 +51,7 @@ def estrai_dati_annuncio(dati: InputURL):
         api_key = "79717745f6ba10896c6ccc8f26e0d847"
         
         # Diciamo a ScraperAPI di fare il lavoro sporco per noi
-        scraper_url = f"http://api.scraperapi.com?api_key={api_key}&url={dati.url}"
+        scraper_url = f"http://api.scraperapi.com?api_key={api_key}&url={dati.url}&premium=true&render=true"
         
         # Facciamo la richiesta al mercenario (ci mette qualche secondo in più perché deve aggirare i blocchi)
         risposta = requests.get(scraper_url, timeout=30)
