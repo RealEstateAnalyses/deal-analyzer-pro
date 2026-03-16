@@ -369,7 +369,7 @@
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + (data.tasse_e_notaio || 0).toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + (data.agenzia || 0).toLocaleString();
-                document.getElementById('out_lavori').textContent = "€ " + (data.costo_lavori || costoLavori).toLocaleString() + (payload.spese_extra > 0 ? ` (+ €${payload.spese_extra} extra)` : "");
+                document.getElementById('out_lavori').textContent = "€ " + data.costo_lavori.toLocaleString();
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
 
                 const paybackLabel = document.getElementById('out_payback');
