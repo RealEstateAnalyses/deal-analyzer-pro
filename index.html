@@ -120,22 +120,31 @@
 
     <script>
         // RICEVITORE DATI DALL'ESTENSIONE
+        // RICEVITORE DATI DALL'ESTENSIONE
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Se arriva il prezzo dall'URL, lo inserisce e lo evidenzia di verde!
-            if(urlParams.has('prezzo')) {
-                const inputPrezzo = document.getElementById('prezzo');
-                inputPrezzo.value = urlParams.get('prezzo');
-                inputPrezzo.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-900', 'bg-opacity-20');
+            function popolaCampo(id, parametro) {
+                if(urlParams.has(parametro)) {
+                    const input = document.getElementById(id);
+                    let valore = urlParams.get(parametro);
+                    
+                    if(valore === "Non trovato") {
+                        input.value = "";
+                        input.placeholder = "⚠️ DATO NON TROVATO - Inserire";
+                        input.classList.add('ring-2', 'ring-red-500', 'bg-red-900', 'bg-opacity-20');
+                    } else {
+                        input.value = valore;
+                        input.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-900', 'bg-opacity-20');
+                    }
+                }
             }
-            
-            // Se arrivano i mq, li inserisce
-            if(urlParams.has('mq') && urlParams.get('mq') !== "0") {
-                const inputMq = document.getElementById('mq');
-                inputMq.value = urlParams.get('mq');
-                inputMq.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-900', 'bg-opacity-20');
-            }
+
+            popolaCampo('prezzo', 'prezzo');
+            popolaCampo('mq', 'mq');
+            popolaCampo('condominio', 'condominio'); // Assicurati di avere l'id "condominio" nella sezione 3
+            popolaCampo('piano', 'piano');
+            popolaCampo('extra', 'extra');
         });
         // LOGICA ESTRAZIONE DATI
         document.getElementById('btnEstrai').addEventListener('click', async function(e) {
