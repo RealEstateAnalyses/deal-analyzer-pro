@@ -157,14 +157,14 @@
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Tasse e Notaio: <strong id="out_tasse" class="text-white"></strong></p>
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Provvigioni Agenzia: <strong id="out_agenzia" class="text-white"></strong></p>
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Costo Lavori: <strong id="out_lavori" class="text-orange-400"></strong></p>
-                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Costi Mantenimento: <strong id="out_mantenimento" class="text-white"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span id="label_mantenimento">Costi Mantenimento:</span> <strong id="out_mantenimento" class="text-white"></strong></p>
                     <p class="flex justify-between text-lg text-white font-bold border-b border-gray-700 pb-2 mt-4 pt-4">INVESTIMENTO TOTALE: <strong id="out_investimento" class="text-blue-400"></strong></p>
                     
-                    <p class="flex justify-between text-gray-400 pt-4">Rivendita Stimata: <strong id="out_rivendita" class="text-emerald-400 text-xl font-bold"></strong></p>
-                    <p class="flex justify-between text-gray-400">Utile Netto Stimato: <strong id="out_utile" class="text-white text-xl"></strong></p>
+                    <p class="flex justify-between text-gray-400 pt-4"><span id="label_rivendita">Rivendita Stimata:</span> <strong id="out_rivendita" class="text-emerald-400 text-xl font-bold"></strong></p>
+                    <p class="flex justify-between text-gray-400"><span id="label_utile">Utile Netto Stimato:</span> <strong id="out_utile" class="text-white text-xl"></strong></p>
                 </div>
                 <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-700">
-                    <p class="text-gray-400 mb-2 uppercase tracking-wide text-sm font-bold">R.O.I. Operazione</p>
+                    <p id="label_roi_text" class="text-gray-400 mb-2 uppercase tracking-wide text-sm font-bold">R.O.I. Operazione</p>
                     <p id="out_roi" class="text-4xl md:text-5xl font-black text-emerald-400"></p>
                 </div>
 
@@ -185,7 +185,6 @@
         let ultimoDealCalcolato = null;
         let usaPreventivoDettagliato = false;
 
-        // 1. RICEVITORE DATI DALL'ESTENSIONE
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             function popolaCampo(id, parametro) {
@@ -212,7 +211,6 @@
             document.getElementById('rivendita').required = true;
         });
 
-        // 2. TOGGLE PREVENTIVO
         function toggleDettagliLavori() {
             const pannello = document.getElementById('pannelloLavoriDettagliato');
             const forfait = document.getElementById('preventivo');
@@ -228,7 +226,6 @@
             }
         }
 
-        // 3. CAMBIO STRATEGIA
         function cambiaStrategia() {
             const strat = document.getElementById('strategia').value;
             if(strat === 'Vendita') {
@@ -242,7 +239,6 @@
             }
         }
 
-        // 4. NAVIGAZIONE PAGINE
         function mostraCalcolatore() {
             document.getElementById('vistaCalcolatore').classList.remove('hidden');
             document.getElementById('vistaDashboard').classList.add('hidden');
@@ -255,15 +251,13 @@
             caricaDeals();
         }
 
-        // 5. CALCOLO ROI CORAZZATO
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // LETTORE NUMERI BLINDATO: Se c'è un errore o un campo vuoto, restituisce 0 senza far esplodere tutto
             const getVal = (id) => { 
                 const el = document.getElementById(id); 
                 if(!el || !el.value) return 0;
-                const numero = parseFloat(el.value.replace(',', '.')); // Corregge anche le virgole italiane!
+                const numero = parseFloat(el.value.replace(',', '.'));
                 return isNaN(numero) ? 0 : numero;
             };
             
@@ -286,12 +280,7 @@
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 
-                // SISTEMA DI DIAGNOSTICA: Se il server rifiuta, ci dice esattamente il perché!
-                if(!response.ok) {
-                    const erroreServer = await response.text();
-                    alert("⚠️ Il Server ha rifiutato i dati! Codice errore:\n" + erroreServer);
-                    return; // Ferma il programma qui
-                }
+                if(!response.ok) throw new Error("Server rifiuta");
 
                 const data = await response.json();
 
@@ -309,23 +298,24 @@
                 document.getElementById('out_lavori').textContent = txtLavori;
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
 
+                // IL FIX DEFINITIVO: Ora usa gli ID esatti per cambiare i testi senza crashare!
                 if(data.strategia === "Vendita") {
-                    document.getElementById('out_mantenimento').previousElementSibling.textContent = "Costi Mantenimento (Condominio x Mesi):";
+                    document.getElementById('label_mantenimento').textContent = "Costi Mantenimento (Condominio x Mesi):";
                     document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
-                    document.getElementById('out_rivendita').previousElementSibling.textContent = "Rivendita Stimata:";
+                    document.getElementById('label_rivendita').textContent = "Rivendita Stimata:";
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                    document.getElementById('out_utile').previousElementSibling.textContent = "Utile Netto Stimato:";
+                    document.getElementById('label_utile').textContent = "Utile Netto Stimato:";
                     document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                    document.getElementById('out_roi').previousElementSibling.textContent = "R.O.I. Operazione:";
+                    document.getElementById('label_roi_text').textContent = "R.O.I. Operazione";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                 } else {
-                    document.getElementById('out_mantenimento').previousElementSibling.textContent = "Spese Fisse Annue (Condominio + IMU):";
+                    document.getElementById('label_mantenimento').textContent = "Spese Fisse Annue (Condominio + IMU):";
                     document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
-                    document.getElementById('out_rivendita').previousElementSibling.textContent = "Incasso Lordo Annuo:";
+                    document.getElementById('label_rivendita').textContent = "Incasso Lordo Annuo:";
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                    document.getElementById('out_utile').previousElementSibling.textContent = "Cashflow Netto Annuo:";
+                    document.getElementById('label_utile').textContent = "Cashflow Netto Annuo:";
                     document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                    document.getElementById('out_roi').previousElementSibling.textContent = "Rendimento Annuo Netto:";
+                    document.getElementById('label_roi_text').textContent = "Rendimento Annuo Netto";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                 }
                 
@@ -340,12 +330,11 @@
                 }
 
             } catch (error) { 
-                alert("Errore tecnico! Il server potrebbe essere offline o bloccato. Riprova tra poco."); 
+                alert("Errore tecnico di rete. Aggiorna la pagina e riprova!"); 
                 console.error(error); 
             }
         });
 
-        // 6. SALVA NEL DATABASE E 7. CARICA DEALS NELLA DASHBOARD
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
             if(!ultimoDealCalcolato) return;
             this.textContent = "⏳ Salvataggio...";
