@@ -133,3 +133,23 @@ def salva_deal(deal: DealDaSalvare):
     conn.commit()
     conn.close()
     return {"successo": True, "messaggio": "Deal salvato nel Garage con successo!"}
+# --- NUOVO ENDPOINT: LEGGI TUTTI I DEAL ---
+@app.get("/api/get-deals")
+def get_deals():
+    conn = sqlite3.connect('deals.db')
+    conn.row_factory = sqlite3.Row # Ci permette di leggere le righe come dizionari
+    c = conn.cursor()
+    c.execute("SELECT * FROM deals ORDER BY id DESC") # Dal più recente al più vecchio
+    deals = [dict(row) for row in c.fetchall()]
+    conn.close()
+    return {"success": True, "deals": deals}
+
+# --- NUOVO ENDPOINT: ELIMINA UN DEAL ---
+@app.delete("/api/delete-deal/{deal_id}")
+def delete_deal(deal_id: int):
+    conn = sqlite3.connect('deals.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM deals WHERE id = ?", (deal_id,))
+    conn.commit()
+    conn.close()
+    return {"success": True}
