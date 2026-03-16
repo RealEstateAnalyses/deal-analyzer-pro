@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro", version="5.0")
+app = FastAPI(title="Deal Analyzer Pro", version="6.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,36 +40,26 @@ def mostra_sito():
     html_content = pathlib.Path("index.html").read_text(encoding="utf-8")
     return HTMLResponse(content=html_content)
 
-# --- MODELLI DATI ---
-# ... (lascia intatto l'inizio del file e l'init_db()) ...
 
+# --- MODELLI DATI (Il "Buttafuori" aggiornato con i nuovi campi) ---
 class InputDeal(BaseModel):
-    prezzo_acquisto: float
-    rendita_catastale: float
-    mq: int
-    stato_immobile: str
-    agenzia_percentuale: float
-    spese_condominio_mensili: float
-    mesi_operazione: int
-    stima_rivendita: float
+    prezzo_acquisto: float = 0.0
+    mq: int = 0
     strategia: str = "Vendita"
-    canone_mensile: float = 0.0
-    imu_annua: float = 0.0
-    cedolare_secca_perc: float = 21.0
-    usa_preventivo_dettagliato: bool = False
-    costo_demolizioni: float = 0.0
-    costo_elettrico: float = 0.0
-    costo_idrico: float = 0.0
-    costo_murarie: float = 0.0
-    costo_pavimenti: float = 0.0
-    costo_infissi: float = 0.0
+    rendita_catastale: float = 0.0
+    agenzia_percentuale: float = 3.0
+    notaio: float = 2500.0
+    spese_condominio_mensili: float = 0.0
+    spese_extra: float = 0.0
+    costo_lavori_totale: float = 0.0
     imprevisti_perc: float = 10.0
-    costo_lavori_custom: float = 0.0
-    
-    # NOVITÀ SPRINT 4: Costi Occulti
-    costo_allacci_utenze: float = 0.0
-    tari_cantiere: float = 0.0
-    riscaldamento_vuoto: float = 0.0
+    mesi_operazione: float = 6.0
+    stima_rivendita: float = 0.0
+    canone_mensile: float = 0.0
+    cedolare_secca_perc: float = 21.0
+    costo_wifi: float = 0.0
+    gestione_property_perc: float = 0.0
+    imu_annua: float = 0.0 # Paracadute nel caso servisse l'IMU
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -79,57 +69,86 @@ class DealDaSalvare(BaseModel):
     utile_netto: float
     roi_percentuale: float
 
+
+# --- IL MOTORE MATEMATICO ---
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
-    valore_catastale = dati.rendita_catastale * 1.05 * 120
-    imposta_registro = max(1000, valore_catastale * 0.09)
-    tasse_totali = imposta_registro + 100
-    notaio = 1200 + (dati.prezzo_acquisto * 0.004) * 1.22
-    agenzia = dati.prezzo_acquisto * (dati.agenzia_percentuale / 100) * 1.22
     
-    if dati.usa_preventivo_dettagliato:
-        subtotale = sum([dati.costo_demolizioni, dati.costo_elettrico, dati.costo_idrico, dati.costo_murarie, dati.costo_pavimenti, dati.costo_infissi])
-        fondo_imprevisti = subtotale * (dati.imprevisti_perc / 100)
-        costo_lavori = subtotale + fondo_imprevisti
-    elif dati.costo_lavori_custom > 0:
-        costo_lavori = dati.costo_lavori_custom
-        fondo_imprevisti = 0
-    else:
-        costo_lavori = dati.mq * {"Nuovo": 0, "Rinfrescata": 300, "Ristrutturazione": 700}.get(dati.stato_immobile, 0)
-        fondo_imprevisti = 0
+    # 1. ACQUISTO E TASSE
+    agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
+    
+    # Calcolo Tasse (Stima 9% come seconda casa sulla rendita catastale)
+    # Se la rendita catastale è 0, calcola le tasse sul prezzo di acquisto (come per gli immobili commerciali/aste)
+    valore_catastale = (dati.rendita_catastale * 126) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
+    imposte_stato = valore_catastale * 0.09
+    tasse_e_notaio = imposte_stato + dati.notaio
 
-    # NOVITÀ: Somma dei costi occulti inseriti dall'utente
-    costi_occulti_totali = dati.costo_allacci_utenze + dati.tari_cantiere + dati.riscaldamento_vuoto
-    
+    # 2. LAVORI E IMPREVISTI
+    fondo_imprevisti = (dati.costo_lavori_totale * dati.imprevisti_perc) / 100
+    costo_lavori = dati.costo_lavori_totale + fondo_imprevisti + dati.spese_extra
+
+    # 3. VARIABILI GLOBALI
+    costi_mantenimento = 0
+    investimento_totale = 0
+    metrica_lorda = 0
+    utile_netto = 0
+    roi_percentuale = 0
+
+    # ==========================================
+    # STRATEGIA 1: FLIPPING (Vendita)
+    # ==========================================
     if dati.strategia == "Vendita":
-        costi_mantenimento = (dati.mesi_operazione * dati.spese_condominio_mensili) + costi_occulti_totali
-        investimento_totale = dati.prezzo_acquisto + tasse_totali + notaio + agenzia + costo_lavori + costi_mantenimento
-        utile_netto = dati.stima_rivendita - investimento_totale
-        roi = 0 if investimento_totale == 0 else (utile_netto / investimento_totale) * 100
+        # Spese di mantenimento in cantiere
+        costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_operazione
         
-        return {
-            "strategia": "Vendita", "investimento_totale": round(investimento_totale, 2), "costo_lavori": round(costo_lavori, 2),
-            "fondo_imprevisti": round(fondo_imprevisti, 2), "tasse_e_notaio": round(tasse_totali + notaio, 2),
-            "agenzia": round(agenzia, 2), "costi_mantenimento": round(costi_mantenimento, 2),
-            "metrica_lorda": round(dati.stima_rivendita, 2), "utile_netto": round(utile_netto, 2), "roi_percentuale": round(roi, 2)
-        }
+        investimento_totale = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori + costi_mantenimento
+        metrica_lorda = dati.stima_rivendita
+        utile_netto = metrica_lorda - investimento_totale
+        
+        if investimento_totale > 0:
+            roi_percentuale = (utile_netto / investimento_totale) * 100
+
+    # ==========================================
+    # STRATEGIA 2: AFFITTO
+    # ==========================================
     else:
-        investimento_totale = dati.prezzo_acquisto + tasse_totali + notaio + agenzia + costo_lavori + costi_occulti_totali
-        incasso_lordo_annuo = dati.canone_mensile * 12
-        spese_fisse_annue = (dati.spese_condominio_mensili * 12) + dati.imu_annua
-        cashflow_netto_annuo = incasso_lordo_annuo - (incasso_lordo_annuo * (dati.cedolare_secca_perc / 100)) - spese_fisse_annue
-        roi_annuo = 0 if investimento_totale == 0 else (cashflow_netto_annuo / investimento_totale) * 100
+        # Investimento iniziale puro
+        investimento_totale = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
         
-        return {
-            "strategia": "Affitto", "investimento_totale": round(investimento_totale, 2), "costo_lavori": round(costo_lavori, 2),
-            "fondo_imprevisti": round(fondo_imprevisti, 2), "tasse_e_notaio": round(tasse_totali + notaio, 2),
-            "agenzia": round(agenzia, 2), "costi_mantenimento": round(spese_fisse_annue, 2),
-            "metrica_lorda": round(incasso_lordo_annuo, 2), "utile_netto": round(cashflow_netto_annuo, 2), "roi_percentuale": round(roi_annuo, 2)
-        }
+        # Incasso Lordo Annuo
+        metrica_lorda = dati.canone_mensile * 12 
 
-# ... (lascia intatto il resto del file con i def salva_deal e get_deals) ...
+        # Spese fisse annue
+        costo_wifi_annuo = dati.costo_wifi * 12
+        costo_condominio_annuo = dati.spese_condominio_mensili * 12
+        costo_gestione_property = (metrica_lorda * dati.gestione_property_perc) / 100
+        
+        costi_mantenimento = costo_condominio_annuo + costo_wifi_annuo + costo_gestione_property + dati.imu_annua
 
-# --- NUOVO ENDPOINT: SALVA IL DEAL ---
+        # Tasse sull'incasso
+        tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
+        
+        # Utile Netto Annuo (Cashflow)
+        utile_netto = metrica_lorda - costi_mantenimento - tasse_affitto
+
+        if investimento_totale > 0:
+            roi_percentuale = (utile_netto / investimento_totale) * 100
+
+    # 4. RISPOSTA AL SITO
+    return {
+        "strategia": dati.strategia,
+        "tasse_e_notaio": round(tasse_e_notaio, 2),
+        "agenzia": round(agenzia, 2),
+        "costo_lavori": round(costo_lavori, 2),
+        "fondo_imprevisti": round(fondo_imprevisti, 2),
+        "costi_mantenimento": round(costi_mantenimento, 2),
+        "investimento_totale": round(investimento_totale, 2),
+        "metrica_lorda": round(metrica_lorda, 2),
+        "utile_netto": round(utile_netto, 2),
+        "roi_percentuale": round(roi_percentuale, 2)
+    }
+
+# --- ENDPOINT: SALVA IL DEAL ---
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
     conn = sqlite3.connect('deals.db')
@@ -142,18 +161,19 @@ def salva_deal(deal: DealDaSalvare):
     conn.commit()
     conn.close()
     return {"successo": True, "messaggio": "Deal salvato nel Garage con successo!"}
-# --- NUOVO ENDPOINT: LEGGI TUTTI I DEAL ---
+
+# --- ENDPOINT: LEGGI TUTTI I DEAL ---
 @app.get("/api/get-deals")
 def get_deals():
     conn = sqlite3.connect('deals.db')
-    conn.row_factory = sqlite3.Row # Ci permette di leggere le righe come dizionari
+    conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute("SELECT * FROM deals ORDER BY id DESC") # Dal più recente al più vecchio
+    c.execute("SELECT * FROM deals ORDER BY id DESC")
     deals = [dict(row) for row in c.fetchall()]
     conn.close()
     return {"success": True, "deals": deals}
 
-# --- NUOVO ENDPOINT: ELIMINA UN DEAL ---
+# --- ENDPOINT: ELIMINA UN DEAL ---
 @app.delete("/api/delete-deal/{deal_id}")
 def delete_deal(deal_id: int):
     conn = sqlite3.connect('deals.db')
