@@ -153,19 +153,17 @@
     </div>
 
     <script>
-        // RICEVITORE DATI DALL'ESTENSIONE
-        // RICEVITORE DATI DALL'ESTENSIONE
+        // 1. RICEVITORE DATI DALL'ESTENSIONE
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
-            
             function popolaCampo(id, parametro) {
                 if(urlParams.has(parametro)) {
                     const input = document.getElementById(id);
+                    if(!input) return; // Sistema di sicurezza anti-crash
                     let valore = urlParams.get(parametro);
-                    
                     if(valore === "Non trovato") {
                         input.value = "";
-                        input.placeholder = "⚠️ DATO NON TROVATO - Inserire";
+                        input.placeholder = "⚠️ DATO NON TROVATO";
                         input.classList.add('ring-2', 'ring-red-500', 'bg-red-900', 'bg-opacity-20');
                     } else {
                         input.value = valore;
@@ -173,59 +171,19 @@
                     }
                 }
             }
-
             popolaCampo('prezzo', 'prezzo');
             popolaCampo('mq', 'mq');
-            popolaCampo('condominio', 'condominio'); // Assicurati di avere l'id "condominio" nella sezione 3
+            popolaCampo('condominio', 'condominio'); 
             popolaCampo('piano', 'piano');
             popolaCampo('extra', 'extra');
         });
-        // LOGICA ESTRAZIONE DATI
-        document.getElementById('btnEstrai').addEventListener('click', async function(e) {
-            e.preventDefault();
-            const url = document.getElementById('urlAnnuncio').value;
-            const msgBox = document.getElementById('msgEstrazione');
-            
-            if(!url) { alert("Inserisci un link!"); return; }
 
-            msgBox.classList.remove('hidden');
-            msgBox.textContent = "Scansione dell'annuncio in corso... 🕵️‍♂️";
-            msgBox.className = "text-sm text-yellow-400 mt-2";
-
-            try {
-                const response = await fetch('/api/estrai-dati', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-
-                const data = await response.json();
-
-                if(data.successo && data.prezzo_estratto > 0) {
-                    // AUTOCOMPILIAMO I CAMPI!
-                    document.getElementById('prezzo').value = data.prezzo_estratto;
-                    if(data.mq_estratti > 0) document.getElementById('mq').value = data.mq_estratti;
-                    
-                    msgBox.textContent = "✅ Dati estratti con successo! Verifica i campi qui sotto.";
-                    msgBox.className = "text-sm text-emerald-400 mt-2 font-bold";
-                } else {
-                    msgBox.textContent = "⚠️ Impossibile leggere i dati (i siti immobiliari spesso bloccano i bot). Compila manualmente.";
-                    msgBox.className = "text-sm text-orange-400 mt-2";
-                }
-            } catch (error) {
-                msgBox.textContent = "❌ Errore di connessione al server.";
-                msgBox.className = "text-sm text-red-400 mt-2";
-            }
-        });
-
-        // LOGICA CALCOLO ROI (Uguale a prima)
-        // FUNZIONE PER MOSTRARE/NASCONDERE IL PREVENTIVO DETTAGLIATO
+        // 2. TOGGLE PREVENTIVO DETTAGLIATO (Il nuovo bottone!)
         let usaPreventivoDettagliato = false;
         function toggleDettagliLavori() {
             const pannello = document.getElementById('pannelloLavoriDettagliato');
             const forfait = document.getElementById('preventivo');
             usaPreventivoDettagliato = !usaPreventivoDettagliato;
-            
             if(usaPreventivoDettagliato) {
                 pannello.classList.remove('hidden');
                 forfait.disabled = true;
@@ -237,42 +195,84 @@
             }
         }
 
-        // LOGICA CALCOLO ROI
+        // 3. LOGICA ESTRAZIONE DATI MANUALE (Per chi non usa l'estensione)
+        document.getElementById('btnEstrai').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('urlAnnuncio').value;
+            const msgBox = document.getElementById('msgEstrazione');
+            if(!url) { alert("Inserisci un link!"); return; }
+            msgBox.classList.remove('hidden');
+            msgBox.textContent = "Scansione dell'annuncio in corso... 🕵️‍♂️";
+            msgBox.className = "text-sm text-yellow-400 mt-2";
+            try {
+                const response = await fetch('/api/estrai-dati', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await response.json();
+                if(data.successo && data.prezzo_estratto > 0) {
+                    document.getElementById('prezzo').value = data.prezzo_estratto;
+                    if(data.mq_estratti > 0) document.getElementById('mq').value = data.mq_estratti;
+                    msgBox.textContent = "✅ Dati estratti!";
+                    msgBox.className = "text-sm text-emerald-400 mt-2 font-bold";
+                } else {
+                    msgBox.textContent = "⚠️ Impossibile leggere i dati. Compila a mano.";
+                    msgBox.className = "text-sm text-orange-400 mt-2";
+                }
+            } catch (error) {
+                msgBox.textContent = "❌ Errore di connessione.";
+                msgBox.className = "text-sm text-red-400 mt-2";
+            }
+        });
+
+        // 4. LOGICA CALCOLO ROI
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Impacchettiamo tutti i dati vecchi e nuovi
+            // Nuovo estrattore dati corazzato anti-crash
+            const getVal = (id) => {
+                const el = document.getElementById(id);
+                return el && el.value ? parseFloat(el.value) : 0;
+            };
+
             const payload = {
-                prezzo_acquisto: parseFloat(document.getElementById('prezzo').value),
-                rendita_catastale: parseFloat(document.getElementById('rendita').value) || 0,
-                mq: parseInt(document.getElementById('mq').value),
-                stato_immobile: document.getElementById('stato').value,
-                agenzia_percentuale: parseFloat(document.getElementById('agenzia').value),
-                spese_condominio_mensili: parseFloat(document.getElementById('condominio').value) || 0,
-                mesi_operazione: parseInt(document.getElementById('mesi').value),
-                stima_rivendita: parseFloat(document.getElementById('rivendita').value),
-                costo_lavori_custom: parseFloat(document.getElementById('preventivo').value) || 0,
+                prezzo_acquisto: getVal('prezzo'),
+                rendita_catastale: getVal('rendita'),
+                mq: getVal('mq'),
+                stato_immobile: document.getElementById('stato') ? document.getElementById('stato').value : "Ristrutturazione",
+                agenzia_percentuale: getVal('agenzia'),
+                spese_condominio_mensili: getVal('condominio'),
+                mesi_operazione: getVal('mesi') || 6,
+                stima_rivendita: getVal('rivendita'),
+                costo_lavori_custom: getVal('preventivo'),
                 
-                // I NUOVI DATI DELLO SPRINT 2
                 usa_preventivo_dettagliato: usaPreventivoDettagliato,
-                costo_demolizioni: parseFloat(document.getElementById('costo_demolizioni').value) || 0,
-                costo_elettrico: parseFloat(document.getElementById('costo_elettrico').value) || 0,
-                costo_idrico: parseFloat(document.getElementById('costo_idrico').value) || 0,
-                costo_murarie: parseFloat(document.getElementById('costo_murarie').value) || 0,
-                costo_pavimenti: parseFloat(document.getElementById('costo_pavimenti').value) || 0,
-                costo_infissi: parseFloat(document.getElementById('costo_infissi').value) || 0,
-                imprevisti_perc: parseFloat(document.getElementById('imprevisti_perc').value) || 10
+                costo_demolizioni: getVal('costo_demolizioni'),
+                costo_elettrico: getVal('costo_elettrico'),
+                costo_idrico: getVal('costo_idrico'),
+                costo_murarie: getVal('costo_murarie'),
+                costo_pavimenti: getVal('costo_pavimenti'),
+                costo_infissi: getVal('costo_infissi'),
+                imprevisti_perc: getVal('imprevisti_perc') || 10
             };
 
             try {
-                const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const response = await fetch('/api/calcola-roi', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                if (!response.ok) throw new Error("Errore 500 dal server");
+                
                 const data = await response.json();
 
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
                 
-                // Mostra i lavori e aggiunge un bannerino per gli imprevisti se presenti
+                // Formatta i lavori scrivendo anche gli imprevisti
                 let txtLavori = "€ " + data.costo_lavori.toLocaleString();
                 if(data.fondo_imprevisti > 0) txtLavori += ` (di cui € ${data.fondo_imprevisti.toLocaleString()} imprevisti)`;
                 document.getElementById('out_lavori').textContent = txtLavori;
@@ -285,26 +285,10 @@
                 
                 document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-            } catch (error) { alert("Errore di calcolo col server!"); }
-        });
-
-            try {
-                const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const data = await response.json();
-
-                document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
-                document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
-                document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
-                document.getElementById('out_lavori').textContent = "€ " + data.costo_lavori.toLocaleString();
-                document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
-                document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
-                document.getElementById('out_rivendita').textContent = "€ " + data.stima_rivendita.toLocaleString();
-                document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-                
-                document.getElementById('risultati').classList.remove('hidden');
-                document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-            } catch (error) { alert("Errore di calcolo!"); }
+            } catch (error) { 
+                alert("Errore di calcolo! Controlla di aver aggiornato anche il file main.py su GitHub."); 
+                console.error(error);
+            }
         });
     </script>
 </body>
