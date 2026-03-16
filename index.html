@@ -251,69 +251,85 @@
             }
         });
 
-        // 4. LOGICA CALCOLO ROI
+        // FUNZIONE CAMBIO STRATEGIA (Mostra/Nasconde i pannelli)
+        function cambiaStrategia() {
+            const strat = document.getElementById('strategia').value;
+            if(strat === 'Vendita') {
+                document.getElementById('pannelloVendita').classList.remove('hidden');
+                document.getElementById('rivendita').required = true;
+                document.getElementById('pannelloAffitto').classList.add('hidden');
+            } else {
+                document.getElementById('pannelloVendita').classList.add('hidden');
+                document.getElementById('rivendita').required = false;
+                document.getElementById('pannelloAffitto').classList.remove('hidden');
+            }
+        }
+
+        // LOGICA CALCOLO ROI (Aggiornata per supportare entrambi)
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Nuovo estrattore dati corazzato anti-crash
-            const getVal = (id) => {
-                const el = document.getElementById(id);
-                return el && el.value ? parseFloat(el.value) : 0;
-            };
+            const getVal = (id) => { const el = document.getElementById(id); return el && el.value ? parseFloat(el.value) : 0; };
+            const strat = document.getElementById('strategia').value;
 
             const payload = {
-                prezzo_acquisto: getVal('prezzo'),
-                rendita_catastale: getVal('rendita'),
-                mq: getVal('mq'),
+                prezzo_acquisto: getVal('prezzo'), rendita_catastale: getVal('rendita'), mq: getVal('mq'),
                 stato_immobile: document.getElementById('stato') ? document.getElementById('stato').value : "Ristrutturazione",
-                agenzia_percentuale: getVal('agenzia'),
-                spese_condominio_mensili: getVal('condominio'),
-                mesi_operazione: getVal('mesi') || 6,
-                stima_rivendita: getVal('rivendita'),
-                costo_lavori_custom: getVal('preventivo'),
+                agenzia_percentuale: getVal('agenzia'), spese_condominio_mensili: getVal('condominio'),
                 
-                usa_preventivo_dettagliato: usaPreventivoDettagliato,
-                costo_demolizioni: getVal('costo_demolizioni'),
-                costo_elettrico: getVal('costo_elettrico'),
-                costo_idrico: getVal('costo_idrico'),
-                costo_murarie: getVal('costo_murarie'),
-                costo_pavimenti: getVal('costo_pavimenti'),
-                costo_infissi: getVal('costo_infissi'),
+                // Dati Vendita
+                mesi_operazione: getVal('mesi'), stima_rivendita: getVal('rivendita'),
+                
+                // Dati Affitto
+                strategia: strat, canone_mensile: getVal('canone_mensile'),
+                imu_annua: getVal('imu'), cedolare_secca_perc: getVal('cedolare'),
+                
+                // Lavori
+                costo_lavori_custom: getVal('preventivo'), usa_preventivo_dettagliato: usaPreventivoDettagliato,
+                costo_demolizioni: getVal('costo_demolizioni'), costo_elettrico: getVal('costo_elettrico'),
+                costo_idrico: getVal('costo_idrico'), costo_murarie: getVal('costo_murarie'),
+                costo_pavimenti: getVal('costo_pavimenti'), costo_infissi: getVal('costo_infissi'),
                 imprevisti_perc: getVal('imprevisti_perc') || 10
             };
 
             try {
-                const response = await fetch('/api/calcola-roi', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload) 
-                });
-                
-                if (!response.ok) throw new Error("Errore 500 dal server");
-                
+                const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await response.json();
 
+                // Aggiorna Interfaccia Risultati in base alla strategia
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
                 
-                // Formatta i lavori scrivendo anche gli imprevisti
                 let txtLavori = "€ " + data.costo_lavori.toLocaleString();
                 if(data.fondo_imprevisti > 0) txtLavori += ` (di cui € ${data.fondo_imprevisti.toLocaleString()} imprevisti)`;
                 document.getElementById('out_lavori').textContent = txtLavori;
-                
-                document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
-                document.getElementById('out_rivendita').textContent = "€ " + data.stima_rivendita.toLocaleString();
-                document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
+
+                // Nomi dinamici nella tabella risultati
+                if(data.strategia === "Vendita") {
+                    document.getElementById('out_mantenimento').previousElementSibling.textContent = "Costi Mantenimento (Condominio x Mesi):";
+                    document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
+                    document.getElementById('out_rivendita').previousElementSibling.textContent = "Rivendita Stimata:";
+                    document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                    document.getElementById('out_utile').previousElementSibling.textContent = "Utile Netto Stimato:";
+                    document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                    document.getElementById('out_roi').previousElementSibling.textContent = "R.O.I. Operazione:";
+                    document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
+                } else {
+                    document.getElementById('out_mantenimento').previousElementSibling.textContent = "Spese Fisse Annue (Condominio + IMU):";
+                    document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
+                    document.getElementById('out_rivendita').previousElementSibling.textContent = "Incasso Lordo Annuo:";
+                    document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                    document.getElementById('out_utile').previousElementSibling.textContent = "Cashflow Netto Annuo:";
+                    document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                    document.getElementById('out_roi').previousElementSibling.textContent = "Rendimento Annuo Netto (Cash on Cash):";
+                    document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
+                }
                 
                 document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-            } catch (error) { 
-                alert("Errore di calcolo! Controlla di aver aggiornato anche il file main.py su GitHub."); 
-                console.error(error);
-            }
+            } catch (error) { alert("Errore di calcolo! Controlla i dati."); console.error(error); }
         });
     </script>
 </body>
