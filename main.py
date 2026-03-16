@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro", version="6.0")
+app = FastAPI(title="Deal Analyzer Pro", version="7.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +20,6 @@ app.add_middleware(
 def init_db():
     conn = sqlite3.connect('deals.db')
     c = conn.cursor()
-    # Crea la tabella se non esiste
     c.execute('''CREATE TABLE IF NOT EXISTS deals
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   data_salvataggio TEXT,
@@ -33,15 +32,14 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db() # Avvia il database all'accensione del server
+init_db()
 
 @app.get("/", response_class=HTMLResponse)
 def mostra_sito():
     html_content = pathlib.Path("index.html").read_text(encoding="utf-8")
     return HTMLResponse(content=html_content)
 
-
-# --- MODELLI DATI (Il "Buttafuori" aggiornato con i nuovi campi) ---
+# --- MODELLI DATI (Il "Buttafuori" aggiornato con Luce, Gas, ecc.) ---
 class InputDeal(BaseModel):
     prezzo_acquisto: float = 0.0
     mq: int = 0
@@ -55,11 +53,19 @@ class InputDeal(BaseModel):
     imprevisti_perc: float = 10.0
     mesi_operazione: float = 6.0
     stima_rivendita: float = 0.0
+    
+    # Dati Affitto
     canone_mensile: float = 0.0
     cedolare_secca_perc: float = 21.0
-    costo_wifi: float = 0.0
+    imu_annua: float = 0.0 
     gestione_property_perc: float = 0.0
-    imu_annua: float = 0.0 # Paracadute nel caso servisse l'IMU
+    
+    # Utenze e Spese Proprietario (Affitti Brevi/Studenti)
+    costo_wifi: float = 0.0
+    costo_luce: float = 0.0
+    costo_gas: float = 0.0
+    costo_acqua_tari: float = 0.0
+    assicurazione_annua: float = 0.0
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -69,16 +75,12 @@ class DealDaSalvare(BaseModel):
     utile_netto: float
     roi_percentuale: float
 
-
 # --- IL MOTORE MATEMATICO ---
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     
     # 1. ACQUISTO E TASSE
     agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
-    
-    # Calcolo Tasse (Stima 9% come seconda casa sulla rendita catastale)
-    # Se la rendita catastale è 0, calcola le tasse sul prezzo di acquisto (come per gli immobili commerciali/aste)
     valore_catastale = (dati.rendita_catastale * 126) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
     imposte_stato = valore_catastale * 0.09
     tasse_e_notaio = imposte_stato + dati.notaio
@@ -87,7 +89,7 @@ def calcola_roi(dati: InputDeal):
     fondo_imprevisti = (dati.costo_lavori_totale * dati.imprevisti_perc) / 100
     costo_lavori = dati.costo_lavori_totale + fondo_imprevisti + dati.spese_extra
 
-    # 3. VARIABILI GLOBALI
+    # Variabili Globali
     costi_mantenimento = 0
     investimento_totale = 0
     metrica_lorda = 0
@@ -98,9 +100,7 @@ def calcola_roi(dati: InputDeal):
     # STRATEGIA 1: FLIPPING (Vendita)
     # ==========================================
     if dati.strategia == "Vendita":
-        # Spese di mantenimento in cantiere
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_operazione
-        
         investimento_totale = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori + costi_mantenimento
         metrica_lorda = dati.stima_rivendita
         utile_netto = metrica_lorda - investimento_totale
@@ -109,32 +109,36 @@ def calcola_roi(dati: InputDeal):
             roi_percentuale = (utile_netto / investimento_totale) * 100
 
     # ==========================================
-    # STRATEGIA 2: AFFITTO
+    # STRATEGIA 2: AFFITTO (Cashflow Avanzato)
     # ==========================================
     else:
-        # Investimento iniziale puro
         investimento_totale = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
-        
-        # Incasso Lordo Annuo
-        metrica_lorda = dati.canone_mensile * 12 
+        metrica_lorda = dati.canone_mensile * 12 # Incasso Lordo Annuo
 
-        # Spese fisse annue
+        # Spese Fisse Annue (Moltiplico per 12 i costi mensili)
         costo_wifi_annuo = dati.costo_wifi * 12
+        costo_luce_annuo = dati.costo_luce * 12
+        costo_gas_annuo = dati.costo_gas * 12
+        costo_acqua_annuo = dati.costo_acqua_tari * 12
         costo_condominio_annuo = dati.spese_condominio_mensili * 12
+        
+        # Commissioni Property Manager
         costo_gestione_property = (metrica_lorda * dati.gestione_property_perc) / 100
         
-        costi_mantenimento = costo_condominio_annuo + costo_wifi_annuo + costo_gestione_property + dati.imu_annua
+        # Totale Mantenimento
+        costi_mantenimento = (costo_condominio_annuo + costo_wifi_annuo + costo_luce_annuo + 
+                              costo_gas_annuo + costo_acqua_annuo + costo_gestione_property + 
+                              dati.imu_annua + dati.assicurazione_annua)
 
         # Tasse sull'incasso
         tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
         
-        # Utile Netto Annuo (Cashflow)
+        # Utile Netto Annuo
         utile_netto = metrica_lorda - costi_mantenimento - tasse_affitto
 
         if investimento_totale > 0:
             roi_percentuale = (utile_netto / investimento_totale) * 100
 
-    # 4. RISPOSTA AL SITO
     return {
         "strategia": dati.strategia,
         "tasse_e_notaio": round(tasse_e_notaio, 2),
@@ -148,21 +152,18 @@ def calcola_roi(dati: InputDeal):
         "roi_percentuale": round(roi_percentuale, 2)
     }
 
-# --- ENDPOINT: SALVA IL DEAL ---
+# --- ENDPOINT DATABASE ---
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
     conn = sqlite3.connect('deals.db')
     c = conn.cursor()
     data_odierna = datetime.now().strftime("%d/%m/%Y %H:%M")
-    
     c.execute("INSERT INTO deals (data_salvataggio, strategia, prezzo_acquisto, mq, investimento_totale, utile_netto, roi_percentuale) VALUES (?, ?, ?, ?, ?, ?, ?)",
               (data_odierna, deal.strategia, deal.prezzo_acquisto, deal.mq, deal.investimento_totale, deal.utile_netto, deal.roi_percentuale))
-    
     conn.commit()
     conn.close()
-    return {"successo": True, "messaggio": "Deal salvato nel Garage con successo!"}
+    return {"successo": True, "messaggio": "Deal salvato nel Garage!"}
 
-# --- ENDPOINT: LEGGI TUTTI I DEAL ---
 @app.get("/api/get-deals")
 def get_deals():
     conn = sqlite3.connect('deals.db')
@@ -173,7 +174,6 @@ def get_deals():
     conn.close()
     return {"success": True, "deals": deals}
 
-# --- ENDPOINT: ELIMINA UN DEAL ---
 @app.delete("/api/delete-deal/{deal_id}")
 def delete_deal(deal_id: int):
     conn = sqlite3.connect('deals.db')
