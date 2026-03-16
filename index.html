@@ -109,23 +109,48 @@
                     </div>
                 </div>
             </div>
-            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Tempistiche e Rivendita</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Strategia e Uscita</h3>
+            
+            <div class="mb-6 bg-gray-800 p-4 rounded-lg border border-gray-600">
+                <label class="block text-sm font-bold text-white mb-2">Qual è il tuo piano per questo immobile?</label>
+                <select id="strategia" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold text-lg" onchange="cambiaStrategia()">
+                    <option value="Vendita">🔄 Flipping (Ristruttura e Vendi)</option>
+                    <option value="Affitto">💰 Messa a Reddito (Affitta)</option>
+                </select>
+            </div>
+
+            <div id="pannelloVendita" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                    <label class="block text-sm text-gray-400 mb-2">Spese Condominiali (€/mese)</label>
-                    <input type="number" id="condominio" placeholder="Es. 150" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <label class="block text-sm text-gray-400 mb-2">Mesi stimati (Cantiere + Vendita)</label>
+                    <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-2">Durata (Mesi)</label>
-                    <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-emerald-400 font-bold mb-2">Stima Prezzo di Rivendita (€)</label>
-                    <input type="number" id="rivendita" placeholder="Es. 160000" class="w-full bg-emerald-900 border border-emerald-500 rounded-lg p-3 text-white" required>
+                    <label class="block text-sm text-gray-400 mb-2 font-bold text-emerald-400">Stima Prezzo di Rivendita (€)</label>
+                    <input type="number" id="rivendita" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 rounded-lg shadow-lg">Esegui Stress Test</button>
+            <div id="pannelloAffitto" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-blue-900 bg-opacity-20 p-4 rounded-lg border border-blue-500">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2 font-bold text-blue-400">Canone Affitto Mensile (€)</label>
+                    <input type="number" id="canone_mensile" value="0" class="w-full bg-gray-900 border border-blue-500 rounded-lg p-3 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Tasse Affitto (Cedolare Secca %)</label>
+                    <select id="cedolare" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                        <option value="21">21% (Contratto Libero / Airbnb)</option>
+                        <option value="10">10% (Canone Concordato / Studenti)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">IMU Annua Stimata (€)</label>
+                    <input type="number" id="imu" value="500" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 text-lg">
+                🚀 Esegui Stress Test
+            </button>
         </form>
 
         <div id="risultati" class="hidden bg-gray-800 p-8 rounded-xl border-2 border-emerald-500 mb-10">
