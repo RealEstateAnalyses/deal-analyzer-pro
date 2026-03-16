@@ -41,6 +41,8 @@ def mostra_sito():
     return HTMLResponse(content=html_content)
 
 # --- MODELLI DATI ---
+# ... (lascia intatto l'inizio del file e l'init_db()) ...
+
 class InputDeal(BaseModel):
     prezzo_acquisto: float
     rendita_catastale: float
@@ -63,6 +65,11 @@ class InputDeal(BaseModel):
     costo_infissi: float = 0.0
     imprevisti_perc: float = 10.0
     costo_lavori_custom: float = 0.0
+    
+    # NOVITÀ SPRINT 4: Costi Occulti
+    costo_allacci_utenze: float = 0.0
+    tari_cantiere: float = 0.0
+    riscaldamento_vuoto: float = 0.0
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -72,7 +79,6 @@ class DealDaSalvare(BaseModel):
     utile_netto: float
     roi_percentuale: float
 
-# --- ENDPOINT CALCOLO ROI (Lo stesso che avevamo) ---
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     valore_catastale = dati.rendita_catastale * 1.05 * 120
@@ -89,12 +95,14 @@ def calcola_roi(dati: InputDeal):
         costo_lavori = dati.costo_lavori_custom
         fondo_imprevisti = 0
     else:
-        costi_mq = {"Nuovo": 0, "Rinfrescata": 300, "Ristrutturazione": 700}
-        costo_lavori = dati.mq * costi_mq.get(dati.stato_immobile, 0)
+        costo_lavori = dati.mq * {"Nuovo": 0, "Rinfrescata": 300, "Ristrutturazione": 700}.get(dati.stato_immobile, 0)
         fondo_imprevisti = 0
+
+    # NOVITÀ: Somma dei costi occulti inseriti dall'utente
+    costi_occulti_totali = dati.costo_allacci_utenze + dati.tari_cantiere + dati.riscaldamento_vuoto
     
     if dati.strategia == "Vendita":
-        costi_mantenimento = dati.mesi_operazione * dati.spese_condominio_mensili
+        costi_mantenimento = (dati.mesi_operazione * dati.spese_condominio_mensili) + costi_occulti_totali
         investimento_totale = dati.prezzo_acquisto + tasse_totali + notaio + agenzia + costo_lavori + costi_mantenimento
         utile_netto = dati.stima_rivendita - investimento_totale
         roi = 0 if investimento_totale == 0 else (utile_netto / investimento_totale) * 100
@@ -106,11 +114,10 @@ def calcola_roi(dati: InputDeal):
             "metrica_lorda": round(dati.stima_rivendita, 2), "utile_netto": round(utile_netto, 2), "roi_percentuale": round(roi, 2)
         }
     else:
-        investimento_totale = dati.prezzo_acquisto + tasse_totali + notaio + agenzia + costo_lavori
+        investimento_totale = dati.prezzo_acquisto + tasse_totali + notaio + agenzia + costo_lavori + costi_occulti_totali
         incasso_lordo_annuo = dati.canone_mensile * 12
-        tasse_affitto_annue = incasso_lordo_annuo * (dati.cedolare_secca_perc / 100)
         spese_fisse_annue = (dati.spese_condominio_mensili * 12) + dati.imu_annua
-        cashflow_netto_annuo = incasso_lordo_annuo - tasse_affitto_annue - spese_fisse_annue
+        cashflow_netto_annuo = incasso_lordo_annuo - (incasso_lordo_annuo * (dati.cedolare_secca_perc / 100)) - spese_fisse_annue
         roi_annuo = 0 if investimento_totale == 0 else (cashflow_netto_annuo / investimento_totale) * 100
         
         return {
@@ -119,6 +126,8 @@ def calcola_roi(dati: InputDeal):
             "agenzia": round(agenzia, 2), "costi_mantenimento": round(spese_fisse_annue, 2),
             "metrica_lorda": round(incasso_lordo_annuo, 2), "utile_netto": round(cashflow_netto_annuo, 2), "roi_percentuale": round(roi_annuo, 2)
         }
+
+# ... (lascia intatto il resto del file con i def salva_deal e get_deals) ...
 
 # --- NUOVO ENDPOINT: SALVA IL DEAL ---
 @app.post("/api/salva-deal")
