@@ -219,19 +219,74 @@
         });
 
         // LOGICA CALCOLO ROI (Uguale a prima)
+        // FUNZIONE PER MOSTRARE/NASCONDERE IL PREVENTIVO DETTAGLIATO
+        let usaPreventivoDettagliato = false;
+        function toggleDettagliLavori() {
+            const pannello = document.getElementById('pannelloLavoriDettagliato');
+            const forfait = document.getElementById('preventivo');
+            usaPreventivoDettagliato = !usaPreventivoDettagliato;
+            
+            if(usaPreventivoDettagliato) {
+                pannello.classList.remove('hidden');
+                forfait.disabled = true;
+                forfait.classList.add('opacity-50');
+            } else {
+                pannello.classList.add('hidden');
+                forfait.disabled = false;
+                forfait.classList.remove('opacity-50');
+            }
+        }
+
+        // LOGICA CALCOLO ROI
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Impacchettiamo tutti i dati vecchi e nuovi
             const payload = {
                 prezzo_acquisto: parseFloat(document.getElementById('prezzo').value),
-                rendita_catastale: parseFloat(document.getElementById('rendita').value),
+                rendita_catastale: parseFloat(document.getElementById('rendita').value) || 0,
                 mq: parseInt(document.getElementById('mq').value),
                 stato_immobile: document.getElementById('stato').value,
                 agenzia_percentuale: parseFloat(document.getElementById('agenzia').value),
-                spese_condominio_mensili: parseFloat(document.getElementById('condominio').value),
+                spese_condominio_mensili: parseFloat(document.getElementById('condominio').value) || 0,
                 mesi_operazione: parseInt(document.getElementById('mesi').value),
                 stima_rivendita: parseFloat(document.getElementById('rivendita').value),
-                costo_lavori_custom: parseFloat(document.getElementById('preventivo').value) || 0
+                costo_lavori_custom: parseFloat(document.getElementById('preventivo').value) || 0,
+                
+                // I NUOVI DATI DELLO SPRINT 2
+                usa_preventivo_dettagliato: usaPreventivoDettagliato,
+                costo_demolizioni: parseFloat(document.getElementById('costo_demolizioni').value) || 0,
+                costo_elettrico: parseFloat(document.getElementById('costo_elettrico').value) || 0,
+                costo_idrico: parseFloat(document.getElementById('costo_idrico').value) || 0,
+                costo_murarie: parseFloat(document.getElementById('costo_murarie').value) || 0,
+                costo_pavimenti: parseFloat(document.getElementById('costo_pavimenti').value) || 0,
+                costo_infissi: parseFloat(document.getElementById('costo_infissi').value) || 0,
+                imprevisti_perc: parseFloat(document.getElementById('imprevisti_perc').value) || 10
             };
+
+            try {
+                const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await response.json();
+
+                document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
+                document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
+                document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
+                
+                // Mostra i lavori e aggiunge un bannerino per gli imprevisti se presenti
+                let txtLavori = "€ " + data.costo_lavori.toLocaleString();
+                if(data.fondo_imprevisti > 0) txtLavori += ` (di cui € ${data.fondo_imprevisti.toLocaleString()} imprevisti)`;
+                document.getElementById('out_lavori').textContent = txtLavori;
+                
+                document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
+                document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
+                document.getElementById('out_rivendita').textContent = "€ " + data.stima_rivendita.toLocaleString();
+                document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
+                
+                document.getElementById('risultati').classList.remove('hidden');
+                document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) { alert("Errore di calcolo col server!"); }
+        });
 
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
