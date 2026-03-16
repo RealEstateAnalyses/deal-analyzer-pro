@@ -182,7 +182,6 @@
     </div>
 
     <script>
-        // Variabili Globali
         let ultimoDealCalcolato = null;
         let usaPreventivoDettagliato = false;
 
@@ -210,7 +209,6 @@
             popolaCampo('piano', 'piano');
             popolaCampo('extra', 'extra');
             
-            // Imposta required di default sulla rivendita
             document.getElementById('rivendita').required = true;
         });
 
@@ -257,11 +255,18 @@
             caricaDeals();
         }
 
-        // 5. CALCOLO ROI E SALVATAGGIO IN MEMORIA
+        // 5. CALCOLO ROI CORAZZATO
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const getVal = (id) => { const el = document.getElementById(id); return el && el.value ? parseFloat(el.value) : 0; };
+            // LETTORE NUMERI BLINDATO: Se c'è un errore o un campo vuoto, restituisce 0 senza far esplodere tutto
+            const getVal = (id) => { 
+                const el = document.getElementById(id); 
+                if(!el || !el.value) return 0;
+                const numero = parseFloat(el.value.replace(',', '.')); // Corregge anche le virgole italiane!
+                return isNaN(numero) ? 0 : numero;
+            };
+            
             const strat = document.getElementById('strategia').value;
 
             const payload = {
@@ -280,6 +285,14 @@
 
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                
+                // SISTEMA DI DIAGNOSTICA: Se il server rifiuta, ci dice esattamente il perché!
+                if(!response.ok) {
+                    const erroreServer = await response.text();
+                    alert("⚠️ Il Server ha rifiutato i dati! Codice errore:\n" + erroreServer);
+                    return; // Ferma il programma qui
+                }
+
                 const data = await response.json();
 
                 ultimoDealCalcolato = {
@@ -290,6 +303,7 @@
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
+                
                 let txtLavori = "€ " + data.costo_lavori.toLocaleString();
                 if(data.fondo_imprevisti > 0) txtLavori += ` (di cui € ${data.fondo_imprevisti.toLocaleString()} imprevisti)`;
                 document.getElementById('out_lavori').textContent = txtLavori;
@@ -319,14 +333,19 @@
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
                 
                 const btnSalva = document.getElementById('btnSalvaDeal');
-                btnSalva.disabled = false;
-                btnSalva.textContent = "💾 Salva questo Deal nel Garage";
-                btnSalva.className = "mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300";
+                if(btnSalva) {
+                    btnSalva.disabled = false;
+                    btnSalva.textContent = "💾 Salva questo Deal nel Garage";
+                    btnSalva.className = "mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300";
+                }
 
-            } catch (error) { alert("Errore di calcolo!"); console.error(error); }
+            } catch (error) { 
+                alert("Errore tecnico! Il server potrebbe essere offline o bloccato. Riprova tra poco."); 
+                console.error(error); 
+            }
         });
 
-        // 6. SALVA NEL DATABASE
+        // 6. SALVA NEL DATABASE E 7. CARICA DEALS NELLA DASHBOARD
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
             if(!ultimoDealCalcolato) return;
             this.textContent = "⏳ Salvataggio...";
@@ -342,7 +361,6 @@
             } catch (error) { this.textContent = "❌ Errore Database"; }
         });
 
-        // 7. CARICA DEALS NELLA DASHBOARD
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
             contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database...</p>';
