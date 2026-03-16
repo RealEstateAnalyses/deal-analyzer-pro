@@ -175,6 +175,9 @@
                 </div>
             </div>
         </div>
+        <button id="btnSalvaDeal" class="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300">
+                💾 Salva questo Deal nel Garage
+            </button>
     </div>
 
     <script>
@@ -330,6 +333,47 @@
                 document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
             } catch (error) { alert("Errore di calcolo! Controlla i dati."); console.error(error); }
+        });
+        // 5. LOGICA SALVATAGGIO NEL DATABASE
+        let ultimoDealCalcolato = null; // Memoria temporanea
+
+        // Modifica la LOGICA CALCOLO ROI (la fetch esistente) per salvare i dati in questa memoria:
+        // Cerca la riga: const data = await response.json(); e AGGIUNGI subito sotto:
+        /*
+           ultimoDealCalcolato = {
+               strategia: data.strategia,
+               prezzo_acquisto: payload.prezzo_acquisto,
+               mq: payload.mq,
+               investimento_totale: data.investimento_totale,
+               utile_netto: data.utile_netto,
+               roi_percentuale: data.roi_percentuale
+           };
+        */
+
+        // Il click sul bottone Salva
+        document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
+            if(!ultimoDealCalcolato) return;
+            
+            this.textContent = "⏳ Salvataggio in corso...";
+            
+            try {
+                const response = await fetch('/api/salva-deal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ultimoDealCalcolato)
+                });
+                const data = await response.json();
+                
+                if(data.successo) {
+                    this.textContent = "✅ " + data.messaggio;
+                    this.classList.replace('bg-blue-600', 'bg-emerald-600');
+                    this.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
+                    this.disabled = true; // Impedisce di salvarlo due volte
+                }
+            } catch (error) {
+                this.textContent = "❌ Errore nel salvataggio";
+                this.classList.replace('bg-blue-600', 'bg-red-600');
+            }
         });
     </script>
 </body>
