@@ -45,7 +45,7 @@
                 </div>
             </div>
             <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
                     <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
@@ -68,11 +68,47 @@
                     </select>
                 </div>
                 <div class="md:col-span-3">
-                    <label class="block text-sm text-gray-400 mb-2">Preventivo Lavori Esatto (€) (0 = stima IA)</label>
+                    <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer" onclick="toggleDettagliLavori()">⚙️ Attiva Preventivo Dettagliato</span></label>
                     <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                 </div>
             </div>
 
+            <div id="pannelloLavoriDettagliato" class="hidden bg-gray-900 p-5 rounded-lg border border-blue-500 mb-8 mt-2 shadow-inner">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
+                    <h4 class="font-bold text-blue-400">Modulo Capex (Spacca-Centesimi)</h4>
+                    <span class="text-xs text-gray-400">Sovrascrive il preventivo a forfait</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Demolizioni e Smaltimento (€)</label>
+                        <input type="number" id="costo_demolizioni" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Impianto Elettrico (€)</label>
+                        <input type="number" id="costo_elettrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Impianto Idrico/Gas (€)</label>
+                        <input type="number" id="costo_idrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Opere Murarie (€)</label>
+                        <input type="number" id="costo_murarie" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Pavimenti e Rivestimenti (€)</label>
+                        <input type="number" id="costo_pavimenti" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Infissi e Porte (€)</label>
+                        <input type="number" id="costo_infissi" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div class="md:col-span-3 mt-2 pt-2 border-t border-gray-700">
+                        <label class="block text-xs text-orange-400 font-bold mb-1">Margine Imprevisti (%)</label>
+                        <input type="number" id="imprevisti_perc" value="10" class="w-full md:w-1/3 bg-gray-800 border border-orange-500 rounded p-2 text-white">
+                    </div>
+                </div>
+            </div>
             <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Tempistiche e Rivendita</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div>
