@@ -8,7 +8,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .hidden { display: none !important; }
-        /* Stile personalizzato per le checkbox */
         input[type="checkbox"] { accent-color: #10b981; width: 1.25rem; height: 1.25rem; cursor: pointer; }
     </style>
 </head>
@@ -17,12 +16,8 @@
     <nav class="bg-gray-900 border-b border-emerald-500 p-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-                    DA
-                </div>
-                <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">
-                    Deal Analyzer
-                </h1>
+                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)]">DA</div>
+                <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">Deal Analyzer</h1>
             </div>
             <div>
                 <button onclick="mostraCalcolatore()" class="text-white hover:text-emerald-400 font-bold px-2 md:px-4 transition">Nuova Analisi</button>
@@ -76,29 +71,54 @@
                         </div>
                     </div>
 
-                    <div id="pannelloAffitto" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-700">
-                        <div>
-                            <label class="block text-sm font-bold text-blue-400 mb-2">Canone Affitto Mensile (€)</label>
-                            <input type="number" id="canone_mensile" value="0" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-3 text-blue-400 font-bold">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Tasse Affitto (Cedolare)</label>
-                            <select id="cedolare" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
-                                <option value="21">21% (Libero/Airbnb)</option>
-                                <option value="10">10% (Canone Concordato/Studenti)</option>
-                            </select>
+                    <div id="pannelloAffitto" class="hidden mt-6 pt-6 border-t border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-bold text-blue-400 mb-2">Incasso Mensile Lordo (€)</label>
+                                <input type="number" id="canone_mensile" value="0" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-3 text-blue-400 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Tasse (Cedolare Secca)</label>
+                                <select id="cedolare" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                                    <option value="21">21% (Airbnb/Libero)</option>
+                                    <option value="10">10% (Studenti/Concordato)</option>
+                                    <option value="0">0% (Lordo)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">IMU Annua (€)</label>
+                                <input type="number" id="imu" value="500" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
                         </div>
                         
-                        <div class="md:col-span-2 bg-gray-800 p-4 rounded-lg border border-gray-700">
-                            <h4 class="text-sm font-bold text-gray-300 mb-3">Servizi Inclusi nel Canone (a tue spese):</h4>
-                            <div class="flex flex-col gap-3">
-                                <div class="flex items-center justify-between">
-                                    <label class="flex items-center gap-2 text-gray-400"><input type="checkbox" id="chk_wifi" onchange="toggleInput('val_wifi', 'chk_wifi')"> Linea Wi-Fi</label>
-                                    <div class="flex items-center gap-2"><input type="number" id="val_wifi" value="25" class="w-20 bg-gray-900 border border-gray-600 rounded p-1 text-center text-gray-500" disabled><span class="text-xs text-gray-500">€/mese</span></div>
+                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                            <h4 class="text-sm font-bold text-gray-300 mb-4 uppercase tracking-wide">⚡ Utenze e Servizi a carico del proprietario</h4>
+                            <p class="text-xs text-gray-500 mb-3">Seleziona le utenze che pagherai tu (fondamentale per affitti brevi o studenti).</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_luce" onchange="toggleInput('val_luce', 'chk_luce')"> Energia Elettrica</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_luce" value="40" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/mese</span></div>
                                 </div>
-                                <div class="flex items-center justify-between">
-                                    <label class="flex items-center gap-2 text-gray-400"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Property Manager (Airbnb)</label>
-                                    <div class="flex items-center gap-2"><input type="number" id="val_gestione" value="20" class="w-20 bg-gray-900 border border-gray-600 rounded p-1 text-center text-gray-500" disabled><span class="text-xs text-gray-500">% incasso</span></div>
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas / Riscaldamento</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_gas" value="50" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/mese</span></div>
+                                </div>
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_acqua" onchange="toggleInput('val_acqua', 'chk_acqua')"> Acqua e TARI</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_acqua" value="30" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/mese</span></div>
+                                </div>
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_wifi" onchange="toggleInput('val_wifi', 'chk_wifi')"> Linea Wi-Fi</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_wifi" value="25" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/mese</span></div>
+                                </div>
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_assicurazione" onchange="toggleInput('val_assicurazione', 'chk_assicurazione')"> Assicurazione Immobile</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_assicurazione" value="200" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/ANNO</span></div>
+                                </div>
+                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700">
+                                    <label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Property Manager (Airbnb)</label>
+                                    <div class="flex items-center gap-2"><input type="number" id="val_gestione" value="20" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">% Incasso</span></div>
                                 </div>
                             </div>
                         </div>
@@ -107,26 +127,23 @@
 
                 <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Lavori di Ristrutturazione</h3>
                 <div class="mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
-                    <p class="text-xs text-gray-400 mb-4">Seleziona i lavori necessari. Verrà calcolato un costo medio, ma puoi modificarlo manualmente.</p>
+                    <p class="text-xs text-gray-400 mb-4">Seleziona i lavori necessari. Verrà calcolato un costo medio, ma puoi modificarlo.</p>
                     
                     <div class="space-y-3">
                         <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
                             <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_demolizioni" onchange="calcolaStimaLavoro('demolizioni', 40)"> Demolizioni e Smaltimento</label>
                             <div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_demolizioni" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div>
                         </div>
-                        
                         <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
                             <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_impianti" onchange="calcolaStimaLavoro('impianti', 100)"> Rifacimento Impianti (Idrico/Elettrico)</label>
                             <div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_impianti" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div>
                         </div>
-
                         <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
-                            <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_pavimenti" onchange="calcolaStimaLavoro('pavimenti', 60)"> Posa Pavimenti e Rivestimenti</label>
+                            <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_pavimenti" onchange="calcolaStimaLavoro('pavimenti', 60)"> Posa Pavimenti/Rivestimenti</label>
                             <div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_pavimenti" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div>
                         </div>
-
                         <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
-                            <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_infissi" onchange="calcolaStimaFissa('infissi', 6500)"> Sostituzione Infissi e Porte</label>
+                            <label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_infissi" onchange="calcolaStimaFissa('infissi', 6500)"> Sostituzione Infissi/Porte</label>
                             <div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_infissi" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div>
                         </div>
                     </div>
@@ -140,7 +157,7 @@
                 <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">4. Burocrazia e Spese Fisse</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
                     <div>
-                        <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€) <span class="text-xs text-gray-500">- Per calcolo tasse</span></label>
+                        <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€) <span class="text-xs text-gray-500">- Per stima tasse</span></label>
                         <input type="number" id="rendita" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
                     </div>
                     <div>
@@ -156,7 +173,7 @@
                         <input type="number" id="condominio" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm text-gray-400 mb-2">Spese Extra Impreviste (€) <span class="text-xs text-gray-500">- Es. Sanatorie, architetto, sgombero</span></label>
+                        <label class="block text-sm text-gray-400 mb-2">Spese Extra Impreviste (€) <span class="text-xs text-gray-500">- Es. Sanatorie, sgombero</span></label>
                         <input type="number" id="spese_extra" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
                     </div>
                 </div>
@@ -242,7 +259,7 @@
             setTimeout(calcolaPrezzoMq, 300); 
         });
 
-        // LOGICA SMART CHECKBOX LAVORI/WIFI
+        // LOGICA CHECKBOX
         function toggleInput(inputId, checkId) {
             const input = document.getElementById(inputId);
             const isChecked = document.getElementById(checkId).checked;
@@ -253,33 +270,26 @@
                 input.classList.add('text-white', 'bg-gray-800', 'focus:ring-2', 'focus:ring-emerald-500');
             } else {
                 input.disabled = true;
-                input.value = input.getAttribute('data-default') || 0; // Azzera
+                input.value = input.getAttribute('value') || 0; 
                 input.classList.add('text-gray-500', 'bg-gray-900');
                 input.classList.remove('text-white', 'bg-gray-800', 'focus:ring-2', 'focus:ring-emerald-500');
             }
         }
 
-        // Stima costo per MQ
         function calcolaStimaLavoro(tipo, costoAlMq) {
             toggleInput(`val_${tipo}`, `chk_${tipo}`);
             const input = document.getElementById(`val_${tipo}`);
             if(document.getElementById(`chk_${tipo}`).checked) {
                 const mq = parseFloat(document.getElementById('mq').value) || 0;
                 input.value = mq * costoAlMq;
-            } else {
-                input.value = 0;
-            }
+            } else { input.value = 0; }
         }
 
-        // Stima a costo fisso (es. Infissi)
         function calcolaStimaFissa(tipo, costoFisso) {
             toggleInput(`val_${tipo}`, `chk_${tipo}`);
             const input = document.getElementById(`val_${tipo}`);
-            if(document.getElementById(`chk_${tipo}`).checked) {
-                input.value = costoFisso;
-            } else {
-                input.value = 0;
-            }
+            if(document.getElementById(`chk_${tipo}`).checked) { input.value = costoFisso; } 
+            else { input.value = 0; }
         }
 
         function cambiaStrategia() {
@@ -318,38 +328,34 @@
             };
             
             const strat = document.getElementById('strategia').value;
-            
-            // Somma Lavori Smart
             const costoLavori = getVal('val_demolizioni') + getVal('val_impianti') + getVal('val_pavimenti') + getVal('val_infissi');
 
             const payload = {
-                // Essenziali
                 prezzo_acquisto: getVal('prezzo'), 
                 mq: getVal('mq'),
                 strategia: strat, 
-                
-                // Costi Fondo Pagina
                 rendita_catastale: getVal('rendita'), 
                 agenzia_percentuale: getVal('agenzia'), 
-                notaio: getVal('notaio'), // NUOVO CAMPO DA AGGIUNGERE AL TUO BACKEND
+                notaio: getVal('notaio'), 
                 spese_condominio_mensili: getVal('condominio'),
-                spese_extra: getVal('spese_extra'), // NUOVO CAMPO DA AGGIUNGERE AL TUO BACKEND
-                
-                // Lavori
-                costo_lavori_totale: costoLavori, // Somma passata al backend
+                spese_extra: getVal('spese_extra'), 
+                costo_lavori_totale: costoLavori, 
                 imprevisti_perc: getVal('imprevisti_perc') || 10,
-                
-                // Affitto / Vendita
                 mesi_operazione: getVal('mesi') || 6, 
                 stima_rivendita: getVal('rivendita'),
                 canone_mensile: getVal('canone_mensile'),
                 cedolare_secca_perc: getVal('cedolare'),
-                costo_wifi: getVal('val_wifi'), // NUOVO CAMPO
-                gestione_property_perc: getVal('val_gestione') // NUOVO CAMPO
+                imu_annua: getVal('imu'),
+                
+                // NUOVE SPESE AFFITTO
+                costo_wifi: getVal('val_wifi'), 
+                costo_luce: getVal('val_luce'),
+                costo_gas: getVal('val_gas'),
+                costo_acqua_tari: getVal('val_acqua'),
+                assicurazione_annua: getVal('val_assicurazione'),
+                gestione_property_perc: getVal('val_gestione') 
             };
 
-            // ---- ATTENZIONE AL BACKEND ----
-            // Invia i dati alla tua API (dovrai aggiornare script.js/server.js per accettare wifi, spese extra, ecc.)
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if(!response.ok) throw new Error("Server rifiuta");
@@ -360,7 +366,6 @@
                     investimento_totale: data.investimento_totale, utile_netto: data.utile_netto, roi_percentuale: data.roi_percentuale
                 };
 
-                // Aggiornamento Grafica Risultati
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + (data.tasse_e_notaio || 0).toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + (data.agenzia || 0).toLocaleString();
@@ -378,9 +383,9 @@
                     document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
                     document.getElementById('label_roi_text').textContent = "R.O.I. Operazione";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-                    paybackLabel.classList.add('hidden'); // Nascondi Payback nel flipping
+                    paybackLabel.classList.add('hidden');
                 } else {
-                    document.getElementById('label_mantenimento').textContent = "Spese Fisse Annue (Condom, Wifi, Tasse):";
+                    document.getElementById('label_mantenimento').textContent = "Spese Fisse Annue (Condom, Utenze, Tasse):";
                     document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
                     document.getElementById('label_rivendita').textContent = "Incasso Lordo Annuo:";
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
@@ -389,7 +394,6 @@
                     document.getElementById('label_roi_text').textContent = "Rendimento Annuo Netto";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                     
-                    // CALCOLO PAYBACK PERIOD (In quanti anni rientro dell'investimento totale)
                     if(data.utile_netto > 0) {
                         let anniRientro = (data.investimento_totale / data.utile_netto).toFixed(1);
                         paybackLabel.textContent = `⏱️ Rientro dell'investimento in ${anniRientro} anni`;
@@ -408,7 +412,65 @@
             }
         });
 
-        // (Le funzioni del Garage rimangono uguali al codice precedente...)
+        async function caricaDeals() {
+            const contenitore = document.getElementById('tabellaDeals');
+            contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database...</p>';
+            try {
+                const res = await fetch('/api/get-deals');
+                const data = await res.json();
+                
+                if(data.success && data.deals.length > 0) {
+                    contenitore.innerHTML = '';
+                    data.deals.forEach(deal => {
+                        const isVendita = deal.strategia === 'Vendita';
+                        const stratColor = isVendita ? 'text-emerald-400' : 'text-blue-400';
+                        const icona = isVendita ? '🔄' : '💰';
+                        const roiColor = deal.roi_percentuale >= 15 ? 'text-emerald-400' : (deal.roi_percentuale > 0 ? 'text-yellow-400' : 'text-red-500');
+
+                        contenitore.innerHTML += `
+                            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl relative hover:border-gray-500 transition duration-300">
+                                <button onclick="eliminaDeal(${deal.id})" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl transition" title="Elimina">🗑️</button>
+                                <div class="text-xs text-gray-400 mb-3"><span>📅 ${deal.data_salvataggio}</span></div>
+                                <h3 class="text-2xl font-black ${stratColor} mb-4 border-b border-gray-700 pb-2">${icona} ${deal.strategia}</h3>
+                                <div class="space-y-2 mb-4">
+                                    <p class="text-gray-400 flex justify-between">Acquisto: <b class="text-white">€ ${deal.prezzo_acquisto.toLocaleString()}</b></p>
+                                    <p class="text-gray-400 flex justify-between">Grandezza: <b class="text-white">${deal.mq} mq</b></p>
+                                    <p class="text-gray-400 flex justify-between">Invest. Tot: <b class="text-white">€ ${deal.investimento_totale.toLocaleString()}</b></p>
+                                </div>
+                                <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                                    <p class="text-gray-300 flex justify-between items-center mb-1">${isVendita ? 'Utile Netto:' : 'Cashflow Annuo:'} <b class="text-xl text-white">€ ${deal.utile_netto.toLocaleString()}</b></p>
+                                    <p class="text-gray-300 flex justify-between items-center">R.O.I.: <b class="text-2xl font-black ${roiColor}">${deal.roi_percentuale}%</b></p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    contenitore.innerHTML = `<div class="col-span-full text-center py-12 bg-gray-800 rounded-lg border border-dashed border-gray-600"><p class="text-gray-400 text-lg mb-2">Il tuo garage è ancora vuoto.</p></div>`;
+                }
+            } catch (error) { contenitore.innerHTML = '<p class="text-red-500">❌ Errore Database.</p>'; }
+        }
+
+        async function eliminaDeal(id) {
+            if(confirm("Sei sicuro di eliminare questa operazione?")) {
+                await fetch('/api/delete-deal/' + id, { method: 'DELETE' });
+                caricaDeals();
+            }
+        }
+        
+        document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
+            if(!ultimoDealCalcolato) return;
+            this.textContent = "⏳ Salvataggio...";
+            try {
+                const response = await fetch('/api/salva-deal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ultimoDealCalcolato) });
+                const data = await response.json();
+                if(data.successo) {
+                    this.textContent = "✅ " + data.messaggio;
+                    this.classList.replace('bg-blue-600', 'bg-emerald-600');
+                    this.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
+                    this.disabled = true;
+                }
+            } catch (error) { this.textContent = "❌ Errore Database"; }
+        });
     </script>
 </body>
 </html>
