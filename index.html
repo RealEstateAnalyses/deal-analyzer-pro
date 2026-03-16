@@ -239,11 +239,35 @@
             popolaCampo('mq', 'mq');
             popolaCampo('condominio', 'condominio'); 
             popolaCampo('piano', 'piano');
-            popolaCampo('occupazione', 'occupazione');
             popolaCampo('extra', 'extra');
+            popolaCampo('occupazione', 'occupazione');
             popolaCampo('stato', 'stato');
             
+            // I NUOVI CAMPI SPRINT 4
+            popolaCampo('tipologia', 'tipologia');
+            popolaCampo('classe_en', 'classe_en');
+            
             document.getElementById('rivendita').required = true;
+
+            // IL MOTORE LIVE DEL PREZZO AL MQ
+            function calcolaPrezzoMq() {
+                const prezzo = parseFloat(document.getElementById('prezzo').value) || 0;
+                const mq = parseFloat(document.getElementById('mq').value) || 0;
+                const label = document.getElementById('live_prezzo_mq');
+                if (prezzo > 0 && mq > 0) {
+                    const prezzoMq = Math.round(prezzo / mq);
+                    label.textContent = `⚡ ${prezzoMq.toLocaleString()} € / mq`;
+                } else {
+                    label.textContent = "0 € / mq";
+                }
+            }
+            
+            // Ascolta ogni volta che digiti qualcosa in Prezzo o Mq
+            document.getElementById('prezzo').addEventListener('input', calcolaPrezzoMq);
+            document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
+            
+            // Calcola subito all'apertura se i dati arrivano dall'estensione
+            setTimeout(calcolaPrezzoMq, 300); 
         });
 
         function toggleDettagliLavori() {
