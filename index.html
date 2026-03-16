@@ -180,14 +180,17 @@
             </button>
     </div>
 
-    <script>
-        // 1. RICEVITORE DATI DALL'ESTENSIONE
+  <script>
+        // 1. Variabile globale per la memoria del salvataggio
+        let ultimoDealCalcolato = null;
+
+        // 2. RICEVITORE DATI DALL'ESTENSIONE
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             function popolaCampo(id, parametro) {
                 if(urlParams.has(parametro)) {
                     const input = document.getElementById(id);
-                    if(!input) return; // Sistema di sicurezza anti-crash
+                    if(!input) return;
                     let valore = urlParams.get(parametro);
                     if(valore === "Non trovato") {
                         input.value = "";
@@ -206,7 +209,7 @@
             popolaCampo('extra', 'extra');
         });
 
-        // 2. TOGGLE PREVENTIVO DETTAGLIATO (Il nuovo bottone!)
+        // 3. TOGGLE PREVENTIVO DETTAGLIATO
         let usaPreventivoDettagliato = false;
         function toggleDettagliLavori() {
             const pannello = document.getElementById('pannelloLavoriDettagliato');
@@ -223,7 +226,21 @@
             }
         }
 
-        // 3. LOGICA ESTRAZIONE DATI MANUALE (Per chi non usa l'estensione)
+        // 4. CAMBIO STRATEGIA (Vendita vs Affitto)
+        function cambiaStrategia() {
+            const strat = document.getElementById('strategia').value;
+            if(strat === 'Vendita') {
+                document.getElementById('pannelloVendita').classList.remove('hidden');
+                document.getElementById('rivendita').required = true;
+                document.getElementById('pannelloAffitto').classList.add('hidden');
+            } else {
+                document.getElementById('pannelloVendita').classList.add('hidden');
+                document.getElementById('rivendita').required = false;
+                document.getElementById('pannelloAffitto').classList.remove('hidden');
+            }
+        }
+
+        // 5. ESTRAZIONE MANUALE (Per i link copiati a mano)
         document.getElementById('btnEstrai').addEventListener('click', async function(e) {
             e.preventDefault();
             const url = document.getElementById('urlAnnuncio').value;
@@ -254,21 +271,7 @@
             }
         });
 
-        // FUNZIONE CAMBIO STRATEGIA (Mostra/Nasconde i pannelli)
-        function cambiaStrategia() {
-            const strat = document.getElementById('strategia').value;
-            if(strat === 'Vendita') {
-                document.getElementById('pannelloVendita').classList.remove('hidden');
-                document.getElementById('rivendita').required = true;
-                document.getElementById('pannelloAffitto').classList.add('hidden');
-            } else {
-                document.getElementById('pannelloVendita').classList.add('hidden');
-                document.getElementById('rivendita').required = false;
-                document.getElementById('pannelloAffitto').classList.remove('hidden');
-            }
-        }
-
-        // LOGICA CALCOLO ROI (Aggiornata per supportare entrambi)
+        // 6. CALCOLO ROI E SALVATAGGIO IN MEMORIA
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -279,15 +282,9 @@
                 prezzo_acquisto: getVal('prezzo'), rendita_catastale: getVal('rendita'), mq: getVal('mq'),
                 stato_immobile: document.getElementById('stato') ? document.getElementById('stato').value : "Ristrutturazione",
                 agenzia_percentuale: getVal('agenzia'), spese_condominio_mensili: getVal('condominio'),
-                
-                // Dati Vendita
-                mesi_operazione: getVal('mesi'), stima_rivendita: getVal('rivendita'),
-                
-                // Dati Affitto
+                mesi_operazione: getVal('mesi') || 6, stima_rivendita: getVal('rivendita'),
                 strategia: strat, canone_mensile: getVal('canone_mensile'),
                 imu_annua: getVal('imu'), cedolare_secca_perc: getVal('cedolare'),
-                
-                // Lavori
                 costo_lavori_custom: getVal('preventivo'), usa_preventivo_dettagliato: usaPreventivoDettagliato,
                 costo_demolizioni: getVal('costo_demolizioni'), costo_elettrico: getVal('costo_elettrico'),
                 costo_idrico: getVal('costo_idrico'), costo_murarie: getVal('costo_murarie'),
@@ -299,7 +296,16 @@
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await response.json();
 
-                // Aggiorna Interfaccia Risultati in base alla strategia
+                // --- ECCO LA MAGIA RIPARATA: Salviamo il deal calcolato in memoria ---
+                ultimoDealCalcolato = {
+                    strategia: data.strategia,
+                    prezzo_acquisto: payload.prezzo_acquisto,
+                    mq: payload.mq,
+                    investimento_totale: data.investimento_totale,
+                    utile_netto: data.utile_netto,
+                    roi_percentuale: data.roi_percentuale
+                };
+
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
@@ -309,7 +315,6 @@
                 document.getElementById('out_lavori').textContent = txtLavori;
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
 
-                // Nomi dinamici nella tabella risultati
                 if(data.strategia === "Vendita") {
                     document.getElementById('out_mantenimento').previousElementSibling.textContent = "Costi Mantenimento (Condominio x Mesi):";
                     document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
@@ -326,35 +331,32 @@
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
                     document.getElementById('out_utile').previousElementSibling.textContent = "Cashflow Netto Annuo:";
                     document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                    document.getElementById('out_roi').previousElementSibling.textContent = "Rendimento Annuo Netto (Cash on Cash):";
+                    document.getElementById('out_roi').previousElementSibling.textContent = "Rendimento Annuo Netto:";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
+                
+                // Ripristina il bottone di salvataggio per un nuovo calcolo
+                const btnSalva = document.getElementById('btnSalvaDeal');
+                if(btnSalva) {
+                    btnSalva.disabled = false;
+                    btnSalva.textContent = "💾 Salva questo Deal nel Garage";
+                    btnSalva.className = "mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300";
+                }
+
             } catch (error) { alert("Errore di calcolo! Controlla i dati."); console.error(error); }
         });
-        // 5. LOGICA SALVATAGGIO NEL DATABASE
-        let ultimoDealCalcolato = null; // Memoria temporanea
 
-        // Modifica la LOGICA CALCOLO ROI (la fetch esistente) per salvare i dati in questa memoria:
-        // Cerca la riga: const data = await response.json(); e AGGIUNGI subito sotto:
-        /*
-           ultimoDealCalcolato = {
-               strategia: data.strategia,
-               prezzo_acquisto: payload.prezzo_acquisto,
-               mq: payload.mq,
-               investimento_totale: data.investimento_totale,
-               utile_netto: data.utile_netto,
-               roi_percentuale: data.roi_percentuale
-           };
-        */
-
-        // Il click sul bottone Salva
+        // 7. INVIO DEFINITIVO AL DATABASE PYTHON
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
-            if(!ultimoDealCalcolato) return;
+            if(!ultimoDealCalcolato) {
+                alert("Devi prima calcolare il ROI premendo 'Esegui Stress Test'!");
+                return;
+            }
             
-            this.textContent = "⏳ Salvataggio in corso...";
+            this.textContent = "⏳ Salvataggio nel Database...";
             
             try {
                 const response = await fetch('/api/salva-deal', {
@@ -368,10 +370,10 @@
                     this.textContent = "✅ " + data.messaggio;
                     this.classList.replace('bg-blue-600', 'bg-emerald-600');
                     this.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
-                    this.disabled = true; // Impedisce di salvarlo due volte
+                    this.disabled = true;
                 }
             } catch (error) {
-                this.textContent = "❌ Errore nel salvataggio";
+                this.textContent = "❌ Errore di connessione al Database";
                 this.classList.replace('bg-blue-600', 'bg-red-600');
             }
         });
