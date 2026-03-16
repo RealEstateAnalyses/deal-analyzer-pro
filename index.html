@@ -46,20 +46,30 @@
             </div>
 
             <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
+            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
                     <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
                 </div>
                 <div>
+                    <label class="block text-sm text-gray-400 mb-2">Piano</label>
+                    <input type="text" id="piano" placeholder="Es. 2" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm text-gray-400 mb-2">Box / Cantina / Note</label>
+                    <input type="text" id="extra" placeholder="Es. Nessuno" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div>
                     <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
-                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
                         <option value="Ristrutturazione">Da Ristrutturare</option>
                         <option value="Rinfrescata">Da Rinfrescare</option>
                         <option value="Nuovo">Nuovo / Ottimo</option>
                     </select>
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-3">
                     <label class="block text-sm text-gray-400 mb-2">Preventivo Lavori Esatto (€) (0 = stima IA)</label>
                     <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                 </div>
