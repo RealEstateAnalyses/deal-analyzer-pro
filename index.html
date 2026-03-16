@@ -287,6 +287,9 @@
             const strat = document.getElementById('strategia').value;
 
             const payload = {
+                costo_allacci_utenze: getVal('costo_allacci'),
+                tari_cantiere: getVal('tari_cantiere'),
+                riscaldamento_vuoto: getVal('riscaldamento_vuoto'),
                 prezzo_acquisto: getVal('prezzo'), rendita_catastale: getVal('rendita'), mq: getVal('mq'),
                 stato_immobile: document.getElementById('stato') ? document.getElementById('stato').value : "Ristrutturazione",
                 agenzia_percentuale: getVal('agenzia'), spese_condominio_mensili: getVal('condominio'),
