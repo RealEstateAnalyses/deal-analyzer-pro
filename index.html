@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Analyzer Pro 3.0</title>
+    <title>Deal Analyzer Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans antialiased p-4 md:p-8">
+<body>
+
     <nav class="bg-gray-900 border-b border-emerald-500 p-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl md:text-2xl font-bold text-emerald-400">Deal Analyzer Pro 🎯</h1>
@@ -17,14 +22,157 @@
         </div>
     </nav>
 
-    <div id="vistaCalcolatore">
-        ```
+    <div id="vistaCalcolatore" class="max-w-4xl mx-auto p-4 md:p-8 mt-6">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
+            
+            <h2 class="text-3xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500 mb-8">
+                Valutazione Immobile Avanzata
+            </h2>
 
-**B. Chiudiamo il Calcolatore e aggiungiamo il Garage**
-Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
-**Esattamente PRIMA di `<script>`, incolla questo codice:**
+            <form id="dealForm">
+                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">1. Importa Dati</h3>
+                <div class="mb-8 bg-gray-900 p-4 rounded-lg border border-gray-600">
+                    <label class="block text-sm font-bold text-emerald-400 mb-2">Link Annuncio (Immobiliare/Idealista)</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="urlAnnuncio" placeholder="Incolla il link qui..." class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                        <button id="btnEstrai" class="bg-emerald-600 hover:bg-emerald-500 px-6 font-bold rounded-lg transition">Estrai</button>
+                    </div>
+                    <p id="msgEstrazione" class="hidden text-sm mt-2"></p>
+                </div>
 
-```html
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Prezzo di Acquisto (€)</label>
+                        <input type="number" id="prezzo" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label>
+                        <input type="number" id="rendita" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label>
+                        <input type="number" id="agenzia" value="3" step="0.1" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
+                        <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Piano</label>
+                        <input type="text" id="piano" placeholder="Es. 2" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-gray-400 mb-2">Box / Cantina / Note</label>
+                        <input type="text" id="extra" placeholder="Es. Nessuno" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
+                        <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                            <option value="Ristrutturazione">Da Ristrutturare</option>
+                            <option value="Rinfrescata">Da Rinfrescare</option>
+                            <option value="Nuovo">Nuovo / Ottimo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Condominio Mensile (€)</label>
+                        <input type="number" id="condominio" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer" onclick="toggleDettagliLavori()">⚙️ Attiva Modulo Avanzato</span></label>
+                        <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                </div>
+
+                <div id="pannelloLavoriDettagliato" class="hidden bg-gray-900 p-5 rounded-lg border border-blue-500 mb-8 mt-2 shadow-inner">
+                    <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
+                        <h4 class="font-bold text-blue-400">Modulo Capex (Spacca-Centesimi)</h4>
+                        <span class="text-xs text-gray-400">Sovrascrive il preventivo a forfait</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">Demolizioni e Smaltimento (€)</label><input type="number" id="costo_demolizioni" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Impianto Elettrico (€)</label><input type="number" id="costo_elettrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Impianto Idrico/Gas (€)</label><input type="number" id="costo_idrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Opere Murarie (€)</label><input type="number" id="costo_murarie" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Pavimenti e Rivestimenti (€)</label><input type="number" id="costo_pavimenti" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">Infissi e Porte (€)</label><input type="number" id="costo_infissi" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white"></div>
+                        <div class="md:col-span-3 mt-2 pt-2 border-t border-gray-700">
+                            <label class="block text-xs text-orange-400 font-bold mb-1">Margine Imprevisti (%)</label>
+                            <input type="number" id="imprevisti_perc" value="10" class="w-full md:w-1/3 bg-gray-800 border border-orange-500 rounded p-2 text-white">
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Strategia e Uscita</h3>
+                <div class="mb-6 bg-gray-800 p-4 rounded-lg border border-gray-600">
+                    <label class="block text-sm font-bold text-white mb-2">Qual è il tuo piano per questo immobile?</label>
+                    <select id="strategia" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold text-lg" onchange="cambiaStrategia()">
+                        <option value="Vendita">🔄 Flipping (Ristruttura e Vendi)</option>
+                        <option value="Affitto">💰 Messa a Reddito (Affitta)</option>
+                    </select>
+                </div>
+
+                <div id="pannelloVendita" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Mesi stimati (Cantiere + Vendita)</label>
+                        <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2 font-bold text-emerald-400">Stima Prezzo di Rivendita (€)</label>
+                        <input type="number" id="rivendita" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <div id="pannelloAffitto" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-blue-900 bg-opacity-20 p-4 rounded-lg border border-blue-500">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2 font-bold text-blue-400">Canone Affitto Mensile (€)</label>
+                        <input type="number" id="canone_mensile" value="0" class="w-full bg-gray-900 border border-blue-500 rounded-lg p-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Tasse Affitto (Cedolare %)</label>
+                        <select id="cedolare" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                            <option value="21">21% (Libero/Airbnb)</option>
+                            <option value="10">10% (Studenti)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">IMU Annua Stimata (€)</label>
+                        <input type="number" id="imu" value="500" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 text-lg">
+                    🚀 Esegui Stress Test
+                </button>
+            </form>
+
+            <div id="risultati" class="hidden mt-12 bg-gray-900 border border-gray-600 rounded-xl p-6 md:p-8">
+                <h3 class="text-2xl font-black text-white border-b border-gray-700 pb-4 mb-6">Business Plan</h3>
+                <div class="space-y-4 mb-8">
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Prezzo Acquisto: <strong id="out_prezzo" class="text-white"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Tasse e Notaio: <strong id="out_tasse" class="text-white"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Provvigioni Agenzia: <strong id="out_agenzia" class="text-white"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Costo Lavori: <strong id="out_lavori" class="text-orange-400"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Costi Mantenimento: <strong id="out_mantenimento" class="text-white"></strong></p>
+                    <p class="flex justify-between text-lg text-white font-bold border-b border-gray-700 pb-2 mt-4 pt-4">INVESTIMENTO TOTALE: <strong id="out_investimento" class="text-blue-400"></strong></p>
+                    
+                    <p class="flex justify-between text-gray-400 pt-4">Rivendita Stimata: <strong id="out_rivendita" class="text-emerald-400 text-xl font-bold"></strong></p>
+                    <p class="flex justify-between text-gray-400">Utile Netto Stimato: <strong id="out_utile" class="text-white text-xl"></strong></p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-700">
+                    <p class="text-gray-400 mb-2 uppercase tracking-wide text-sm font-bold">R.O.I. Operazione</p>
+                    <p id="out_roi" class="text-4xl md:text-5xl font-black text-emerald-400"></p>
+                </div>
+
+                <button id="btnSalvaDeal" class="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300">
+                    💾 Salva questo Deal nel Garage
+                </button>
+            </div>
+        </div>
     </div> <div id="vistaDashboard" class="hidden max-w-6xl mx-auto p-4 md:p-8 mt-6">
         <h2 class="text-3xl font-bold text-white mb-2">Il Mio Garage 🚘</h2>
         <p class="text-gray-400 mb-8">Qui trovi tutte le tue analisi salvate, ordinate dalla più recente.</p>
@@ -32,184 +180,13 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             </div>
     </div>
-    <div class="max-w-5xl mx-auto">
-        
-        <div class="mb-10 text-center">
-            <h1 class="text-4xl font-bold text-emerald-400 mb-2">Deal Analyzer Pro</h1>
-            <p class="text-gray-400">Inserisci il link dell'annuncio o compila manualmente.</p>
-        </div>
 
-        <div class="bg-gray-800 p-6 rounded-xl border border-blue-500 shadow-lg mb-8">
-            <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                Importa da Link (BETA)
-            </h3>
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="url" id="urlAnnuncio" placeholder="Incolla qui il link di Immobiliare.it o Idealista..." class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
-                <button id="btnEstrai" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg whitespace-nowrap transition">
-                    Estrai Dati
-                </button>
-            </div>
-            <p id="msgEstrazione" class="text-sm text-gray-400 mt-2 hidden"></p>
-        </div>
-
-        <form id="dealForm" class="bg-gray-800 p-6 md:p-8 rounded-xl shadow-2xl border border-gray-700 mb-8">
-            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">1. Dati Acquisizione</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Prezzo Richiesto (€)</label>
-                    <input type="number" id="prezzo" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label>
-                    <input type="number" id="rendita" placeholder="Es. 600" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label>
-                    <input type="number" step="0.1" id="agenzia" value="4.0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white" required>
-                </div>
-            </div>
-            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Metri Quadri</label>
-                    <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Piano</label>
-                    <input type="text" id="piano" placeholder="Es. 2" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm text-gray-400 mb-2">Box / Cantina / Note</label>
-                    <input type="text" id="extra" placeholder="Es. Nessuno" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
-                    <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
-                        <option value="Ristrutturazione">Da Ristrutturare</option>
-                        <option value="Rinfrescata">Da Rinfrescare</option>
-                        <option value="Nuovo">Nuovo / Ottimo</option>
-                    </select>
-                </div>
-                <div class="md:col-span-3">
-                    <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer" onclick="toggleDettagliLavori()">⚙️ Attiva Preventivo Dettagliato</span></label>
-                    <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
-                </div>
-            </div>
-
-            <div id="pannelloLavoriDettagliato" class="hidden bg-gray-900 p-5 rounded-lg border border-blue-500 mb-8 mt-2 shadow-inner">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
-                    <h4 class="font-bold text-blue-400">Modulo Capex (Spacca-Centesimi)</h4>
-                    <span class="text-xs text-gray-400">Sovrascrive il preventivo a forfait</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Demolizioni e Smaltimento (€)</label>
-                        <input type="number" id="costo_demolizioni" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Impianto Elettrico (€)</label>
-                        <input type="number" id="costo_elettrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Impianto Idrico/Gas (€)</label>
-                        <input type="number" id="costo_idrico" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Opere Murarie (€)</label>
-                        <input type="number" id="costo_murarie" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Pavimenti e Rivestimenti (€)</label>
-                        <input type="number" id="costo_pavimenti" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Infissi e Porte (€)</label>
-                        <input type="number" id="costo_infissi" value="0" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                    </div>
-                    <div class="md:col-span-3 mt-2 pt-2 border-t border-gray-700">
-                        <label class="block text-xs text-orange-400 font-bold mb-1">Margine Imprevisti (%)</label>
-                        <input type="number" id="imprevisti_perc" value="10" class="w-full md:w-1/3 bg-gray-800 border border-orange-500 rounded p-2 text-white">
-                    </div>
-                </div>
-            </div>
-            <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Strategia e Uscita</h3>
-            
-            <div class="mb-6 bg-gray-800 p-4 rounded-lg border border-gray-600">
-                <label class="block text-sm font-bold text-white mb-2">Qual è il tuo piano per questo immobile?</label>
-                <select id="strategia" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold text-lg" onchange="cambiaStrategia()">
-                    <option value="Vendita">🔄 Flipping (Ristruttura e Vendi)</option>
-                    <option value="Affitto">💰 Messa a Reddito (Affitta)</option>
-                </select>
-            </div>
-
-            <div id="pannelloVendita" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Mesi stimati (Cantiere + Vendita)</label>
-                    <input type="number" id="mesi" value="6" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2 font-bold text-emerald-400">Stima Prezzo di Rivendita (€)</label>
-                    <input type="number" id="rivendita" class="w-full bg-gray-900 border border-emerald-500 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-            </div>
-
-            <div id="pannelloAffitto" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-blue-900 bg-opacity-20 p-4 rounded-lg border border-blue-500">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2 font-bold text-blue-400">Canone Affitto Mensile (€)</label>
-                    <input type="number" id="canone_mensile" value="0" class="w-full bg-gray-900 border border-blue-500 rounded-lg p-3 text-white">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Tasse Affitto (Cedolare Secca %)</label>
-                    <select id="cedolare" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
-                        <option value="21">21% (Contratto Libero / Airbnb)</option>
-                        <option value="10">10% (Canone Concordato / Studenti)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">IMU Annua Stimata (€)</label>
-                    <input type="number" id="imu" value="500" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 text-lg">
-                🚀 Esegui Stress Test
-            </button>
-        </form>
-
-        <div id="risultati" class="hidden bg-gray-800 p-8 rounded-xl border-2 border-emerald-500 mb-10">
-            <h2 class="text-3xl font-bold mb-6 border-b border-gray-700 pb-3 text-center">Business Plan Definitivo</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg">
-                <div class="bg-gray-900 p-6 rounded-lg border border-gray-700">
-                    <h4 class="text-gray-400 text-sm font-bold uppercase mb-4 border-b border-gray-800 pb-2">Uscite Cassa</h4>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Prezzo Immobile:</span> <span id="out_prezzo" class="font-bold"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Tasse + Notaio:</span> <span id="out_tasse" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Agenzia:</span> <span id="out_agenzia" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Lavori:</span> <span id="out_lavori" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mb-2"><span class="text-gray-400">Costi Gestione:</span> <span id="out_mantenimento" class="font-bold text-orange-400"></span></div>
-                    <div class="flex justify-between mt-4 pt-4 border-t border-gray-700 text-xl"><span class="text-gray-300">Totale:</span> <span id="out_investimento" class="font-bold text-white"></span></div>
-                </div>
-                <div class="bg-emerald-900 bg-opacity-20 p-6 rounded-lg border border-emerald-800 flex flex-col justify-center">
-                    <div class="text-center mb-6">
-                        <p class="text-gray-400 text-sm mb-1">Valore di Vendita Stimato</p>
-                        <p id="out_rivendita" class="text-3xl font-bold text-white"></p>
-                    </div>
-                    <div class="flex justify-between items-center mb-4"><span class="text-gray-300 font-bold text-xl">Utile Netto:</span> <span id="out_utile" class="font-bold text-2xl text-emerald-400"></span></div>
-                    <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg border border-gray-700"><span class="text-gray-300 font-bold text-xl">R.O.I.:</span> <span id="out_roi" class="font-bold text-4xl text-emerald-500"></span></div>
-                </div>
-            </div>
-        </div>
-        <button id="btnSalvaDeal" class="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300">
-                💾 Salva questo Deal nel Garage
-            </button>
-    </div>
-
-  <script>
-        // 1. Variabile globale per la memoria del salvataggio
+    <script>
+        // Variabili Globali
         let ultimoDealCalcolato = null;
+        let usaPreventivoDettagliato = false;
 
-        // 2. RICEVITORE DATI DALL'ESTENSIONE
+        // 1. RICEVITORE DATI DALL'ESTENSIONE
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             function popolaCampo(id, parametro) {
@@ -232,10 +209,12 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
             popolaCampo('condominio', 'condominio'); 
             popolaCampo('piano', 'piano');
             popolaCampo('extra', 'extra');
+            
+            // Imposta required di default sulla rivendita
+            document.getElementById('rivendita').required = true;
         });
 
-        // 3. TOGGLE PREVENTIVO DETTAGLIATO
-        let usaPreventivoDettagliato = false;
+        // 2. TOGGLE PREVENTIVO
         function toggleDettagliLavori() {
             const pannello = document.getElementById('pannelloLavoriDettagliato');
             const forfait = document.getElementById('preventivo');
@@ -251,7 +230,7 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
             }
         }
 
-        // 4. CAMBIO STRATEGIA (Vendita vs Affitto)
+        // 3. CAMBIO STRATEGIA
         function cambiaStrategia() {
             const strat = document.getElementById('strategia').value;
             if(strat === 'Vendita') {
@@ -265,38 +244,20 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
             }
         }
 
-        // 5. ESTRAZIONE MANUALE (Per i link copiati a mano)
-        document.getElementById('btnEstrai').addEventListener('click', async function(e) {
-            e.preventDefault();
-            const url = document.getElementById('urlAnnuncio').value;
-            const msgBox = document.getElementById('msgEstrazione');
-            if(!url) { alert("Inserisci un link!"); return; }
-            msgBox.classList.remove('hidden');
-            msgBox.textContent = "Scansione dell'annuncio in corso... 🕵️‍♂️";
-            msgBox.className = "text-sm text-yellow-400 mt-2";
-            try {
-                const response = await fetch('/api/estrai-dati', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-                const data = await response.json();
-                if(data.successo && data.prezzo_estratto > 0) {
-                    document.getElementById('prezzo').value = data.prezzo_estratto;
-                    if(data.mq_estratti > 0) document.getElementById('mq').value = data.mq_estratti;
-                    msgBox.textContent = "✅ Dati estratti!";
-                    msgBox.className = "text-sm text-emerald-400 mt-2 font-bold";
-                } else {
-                    msgBox.textContent = "⚠️ Impossibile leggere i dati. Compila a mano.";
-                    msgBox.className = "text-sm text-orange-400 mt-2";
-                }
-            } catch (error) {
-                msgBox.textContent = "❌ Errore di connessione.";
-                msgBox.className = "text-sm text-red-400 mt-2";
-            }
-        });
+        // 4. NAVIGAZIONE PAGINE
+        function mostraCalcolatore() {
+            document.getElementById('vistaCalcolatore').classList.remove('hidden');
+            document.getElementById('vistaDashboard').classList.add('hidden');
+        }
 
-        // 6. CALCOLO ROI E SALVATAGGIO IN MEMORIA
+        async function mostraDashboard() {
+            document.getElementById('vistaCalcolatore').classList.add('hidden');
+            document.getElementById('vistaDashboard').classList.remove('hidden');
+            window.scrollTo(0, 0);
+            caricaDeals();
+        }
+
+        // 5. CALCOLO ROI E SALVATAGGIO IN MEMORIA
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -321,20 +282,14 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const data = await response.json();
 
-                // --- ECCO LA MAGIA RIPARATA: Salviamo il deal calcolato in memoria ---
                 ultimoDealCalcolato = {
-                    strategia: data.strategia,
-                    prezzo_acquisto: payload.prezzo_acquisto,
-                    mq: payload.mq,
-                    investimento_totale: data.investimento_totale,
-                    utile_netto: data.utile_netto,
-                    roi_percentuale: data.roi_percentuale
+                    strategia: data.strategia, prezzo_acquisto: payload.prezzo_acquisto, mq: payload.mq,
+                    investimento_totale: data.investimento_totale, utile_netto: data.utile_netto, roi_percentuale: data.roi_percentuale
                 };
 
                 document.getElementById('out_prezzo').textContent = "€ " + payload.prezzo_acquisto.toLocaleString();
                 document.getElementById('out_tasse').textContent = "€ " + data.tasse_e_notaio.toLocaleString();
                 document.getElementById('out_agenzia').textContent = "€ " + data.agenzia.toLocaleString();
-                
                 let txtLavori = "€ " + data.costo_lavori.toLocaleString();
                 if(data.fondo_imprevisti > 0) txtLavori += ` (di cui € ${data.fondo_imprevisti.toLocaleString()} imprevisti)`;
                 document.getElementById('out_lavori').textContent = txtLavori;
@@ -363,122 +318,73 @@ Scorri giù, finché non trovi l'inizio dei tuoi script: `<script>`.
                 document.getElementById('risultati').classList.remove('hidden');
                 document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
                 
-                // Ripristina il bottone di salvataggio per un nuovo calcolo
                 const btnSalva = document.getElementById('btnSalvaDeal');
-                if(btnSalva) {
-                    btnSalva.disabled = false;
-                    btnSalva.textContent = "💾 Salva questo Deal nel Garage";
-                    btnSalva.className = "mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300";
-                }
+                btnSalva.disabled = false;
+                btnSalva.textContent = "💾 Salva questo Deal nel Garage";
+                btnSalva.className = "mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300";
 
-            } catch (error) { alert("Errore di calcolo! Controlla i dati."); console.error(error); }
+            } catch (error) { alert("Errore di calcolo!"); console.error(error); }
         });
 
-        // 7. INVIO DEFINITIVO AL DATABASE PYTHON
+        // 6. SALVA NEL DATABASE
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
-            if(!ultimoDealCalcolato) {
-                alert("Devi prima calcolare il ROI premendo 'Esegui Stress Test'!");
-                return;
-            }
-            
-            this.textContent = "⏳ Salvataggio nel Database...";
-            
+            if(!ultimoDealCalcolato) return;
+            this.textContent = "⏳ Salvataggio...";
             try {
-                const response = await fetch('/api/salva-deal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(ultimoDealCalcolato)
-                });
+                const response = await fetch('/api/salva-deal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ultimoDealCalcolato) });
                 const data = await response.json();
-                
                 if(data.successo) {
                     this.textContent = "✅ " + data.messaggio;
                     this.classList.replace('bg-blue-600', 'bg-emerald-600');
                     this.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
                     this.disabled = true;
                 }
-            } catch (error) {
-                this.textContent = "❌ Errore di connessione al Database";
-                this.classList.replace('bg-blue-600', 'bg-red-600');
-            }
+            } catch (error) { this.textContent = "❌ Errore Database"; }
         });
-    // 8. LOGICA DI NAVIGAZIONE E DASHBOARD
-        function mostraCalcolatore() {
-            document.getElementById('vistaCalcolatore').classList.remove('hidden');
-            document.getElementById('vistaDashboard').classList.add('hidden');
-        }
 
-        async function mostraDashboard() {
-            document.getElementById('vistaCalcolatore').classList.add('hidden');
-            document.getElementById('vistaDashboard').classList.remove('hidden');
-            window.scrollTo(0, 0); // Riporta su la pagina
-            caricaDeals(); // Avvia il download dal database
-        }
-
+        // 7. CARICA DEALS NELLA DASHBOARD
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
-            contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database in corso...</p>';
-            
+            contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database...</p>';
             try {
                 const res = await fetch('/api/get-deals');
                 const data = await res.json();
                 
                 if(data.success && data.deals.length > 0) {
-                    contenitore.innerHTML = ''; // Pulisce il caricamento
-                    
+                    contenitore.innerHTML = '';
                     data.deals.forEach(deal => {
-                        // Colora diversamente se è Affitto o Vendita
                         const isVendita = deal.strategia === 'Vendita';
                         const stratColor = isVendita ? 'text-emerald-400' : 'text-blue-400';
                         const icona = isVendita ? '🔄' : '💰';
                         const roiColor = deal.roi_percentuale >= 15 ? 'text-emerald-400' : (deal.roi_percentuale > 0 ? 'text-yellow-400' : 'text-red-500');
 
-                        const card = `
+                        contenitore.innerHTML += `
                             <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl relative hover:border-gray-500 transition duration-300">
                                 <button onclick="eliminaDeal(${deal.id})" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl transition" title="Elimina">🗑️</button>
-                                
-                                <div class="text-xs text-gray-400 mb-3 flex items-center gap-2">
-                                    <span>📅 ${deal.data_salvataggio}</span>
-                                </div>
-                                
+                                <div class="text-xs text-gray-400 mb-3"><span>📅 ${deal.data_salvataggio}</span></div>
                                 <h3 class="text-2xl font-black ${stratColor} mb-4 border-b border-gray-700 pb-2">${icona} ${deal.strategia}</h3>
-                                
                                 <div class="space-y-2 mb-4">
                                     <p class="text-gray-400 flex justify-between">Acquisto: <b class="text-white">€ ${deal.prezzo_acquisto.toLocaleString()}</b></p>
                                     <p class="text-gray-400 flex justify-between">Grandezza: <b class="text-white">${deal.mq} mq</b></p>
                                     <p class="text-gray-400 flex justify-between">Invest. Tot: <b class="text-white">€ ${deal.investimento_totale.toLocaleString()}</b></p>
                                 </div>
-                                
                                 <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
-                                    <p class="text-gray-300 flex justify-between items-center mb-1">
-                                        ${isVendita ? 'Utile Netto:' : 'Cashflow Annuo:'} 
-                                        <b class="text-xl text-white">€ ${deal.utile_netto.toLocaleString()}</b>
-                                    </p>
-                                    <p class="text-gray-300 flex justify-between items-center">
-                                        R.O.I.: 
-                                        <b class="text-2xl font-black ${roiColor}">${deal.roi_percentuale}%</b>
-                                    </p>
+                                    <p class="text-gray-300 flex justify-between items-center mb-1">${isVendita ? 'Utile Netto:' : 'Cashflow Annuo:'} <b class="text-xl text-white">€ ${deal.utile_netto.toLocaleString()}</b></p>
+                                    <p class="text-gray-300 flex justify-between items-center">R.O.I.: <b class="text-2xl font-black ${roiColor}">${deal.roi_percentuale}%</b></p>
                                 </div>
                             </div>
                         `;
-                        contenitore.innerHTML += card;
                     });
                 } else {
-                    contenitore.innerHTML = `
-                        <div class="col-span-full text-center py-12 bg-gray-800 rounded-lg border border-dashed border-gray-600">
-                            <p class="text-gray-400 text-lg mb-2">Il tuo garage è ancora vuoto.</p>
-                            <p class="text-gray-500 text-sm">Torna al calcolatore e salva la tua prima operazione!</p>
-                        </div>`;
+                    contenitore.innerHTML = `<div class="col-span-full text-center py-12 bg-gray-800 rounded-lg border border-dashed border-gray-600"><p class="text-gray-400 text-lg mb-2">Il tuo garage è ancora vuoto.</p></div>`;
                 }
-            } catch (error) {
-                contenitore.innerHTML = '<p class="text-red-500 bg-red-900 bg-opacity-20 p-4 rounded">❌ Errore di connessione al Database.</p>';
-            }
+            } catch (error) { contenitore.innerHTML = '<p class="text-red-500">❌ Errore Database.</p>'; }
         }
 
         async function eliminaDeal(id) {
-            if(confirm("Sei sicuro di voler eliminare per sempre questa operazione dal Garage?")) {
+            if(confirm("Sei sicuro di eliminare questa operazione?")) {
                 await fetch('/api/delete-deal/' + id, { method: 'DELETE' });
-                caricaDeals(); // Ricarica la lista per far sparire la card
+                caricaDeals();
             }
         }
     </script>
