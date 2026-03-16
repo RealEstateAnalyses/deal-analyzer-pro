@@ -62,16 +62,20 @@
                         <input type="number" id="mq" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500" required>
                     </div>
                     <div>
-                        <label class="block text-sm text-gray-400 mb-2">Piano</label>
-                        <input type="text" id="piano" placeholder="Es. 2" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm text-gray-400 mb-2">Piano / Totali</label>
+                        <input type="text" id="piano" placeholder="Es. 2 di 5" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm text-gray-400 mb-2">Box / Cantina / Note</label>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Stato Occupazione</label>
+                        <input type="text" id="occupazione" placeholder="Es. Libero" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Box/Cantina/Ascensore</label>
                         <input type="text" id="extra" placeholder="Es. Nessuno" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
                     </div>
                     
                     <div>
-                        <label class="block text-sm text-gray-400 mb-2">Stato Immobile</label>
+                        <label class="block text-sm text-gray-400 mb-2">Stato Manutenzione</label>
                         <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
                             <option value="Ristrutturazione">Da Ristrutturare</option>
                             <option value="Rinfrescata">Da Rinfrescare</option>
@@ -85,6 +89,24 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer" onclick="toggleDettagliLavori()">⚙️ Attiva Modulo Avanzato</span></label>
                         <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-4 rounded-lg border border-orange-500 border-opacity-50 mb-8 mt-2 shadow-inner">
+                    <h4 class="font-bold text-orange-400 mb-3 text-sm uppercase tracking-wide">🕵️ Costi Occulti di Cantiere</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Volture / Allaccio Utenze (€)</label>
+                            <input type="number" id="costo_allacci" value="300" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">TARI durante i lavori (€)</label>
+                            <input type="number" id="tari_cantiere" value="150" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Riscaldamento a vuoto (€)</label>
+                            <input type="number" id="riscaldamento_vuoto" value="200" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
+                        </div>
                     </div>
                 </div>
 
