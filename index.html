@@ -54,9 +54,10 @@
                         <input type="number" id="agenzia" value="3" step="0.1" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                     </div>
                 </div>
-               <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
+
+                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Dati Immobile e Lavori</h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                     <div>
                         <label class="block text-sm text-gray-400 mb-2">Tipologia / Locali</label>
                         <input type="text" id="tipologia" placeholder="Es. Appartamento (3 loc.)" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
@@ -70,60 +71,44 @@
                         <label class="block text-sm text-gray-400 mb-2">Piano / Totali</label>
                         <input type="text" id="piano" placeholder="Es. 2 di 5" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Classe Energetica</label>
-                        <input type="text" id="classe_en" placeholder="Es. G" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-orange-500 font-bold uppercase">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Stato Occupazione</label>
-                        <input type="text" id="occupazione" placeholder="Es. Libero" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Box/Cantina/Ascensore</label>
-                        <input type="text" id="extra" placeholder="Es. Nessuno" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Stato Manutenzione</label>
-                        <select id="stato" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
-                            <option value="Ristrutturazione">Da Ristrutturare</option>
-                            <option value="Rinfrescata">Da Rinfrescare</option>
-                            <option value="Nuovo">Nuovo / Ottimo</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Condominio Mensile (€)</label>
-                        <input type="number" id="condominio" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
-                    </div>
-                    <div class="md:col-span-4 mt-2">
-                        <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer" onclick="toggleDettagliLavori()">⚙️ Attiva Modulo Avanzato</span></label>
+                    
+                    <div class="md:col-span-3 mt-2">
+                        <label class="block text-sm text-gray-400 mb-2">Preventivo a forfait (€) <span class="text-xs text-blue-400 ml-2 cursor-pointer font-bold" onclick="toggleDettagliLavori()">⚙️ Attiva Modulo Capex</span></label>
                         <input type="number" id="preventivo" value="0" class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white">
                     </div>
                 </div>
 
-                <div class="bg-gray-800 p-4 rounded-lg border border-orange-500 border-opacity-50 mb-8 mt-2 shadow-inner">
-                    <h4 class="font-bold text-orange-400 mb-3 text-sm uppercase tracking-wide">🕵️ Costi Occulti di Cantiere</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Volture / Allaccio Utenze (€)</label>
-                            <input type="number" id="costo_allacci" value="300" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
+                <div class="bg-gray-800 p-5 rounded-lg border border-orange-500 border-opacity-50 mb-8 mt-4 shadow-inner">
+                    <h4 class="font-bold text-orange-400 mb-4 text-sm uppercase tracking-wide">🕵️ Costi Occulti di Cantiere (Gestione Avanzata)</h4>
+                    <div class="space-y-4">
+                        
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" id="check_luce" class="form-checkbox h-5 w-5 text-orange-500 rounded bg-gray-900 border-gray-600 cursor-pointer">
+                            <span class="text-sm text-gray-300 group-hover:text-white transition">Attiva Voltura Luce Cantiere <span class="text-gray-500 ml-1 text-xs">(Stima 70€ Allaccio + 25€/mese)</span></span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" id="check_tari" class="form-checkbox h-5 w-5 text-emerald-500 rounded bg-gray-900 border-gray-600 cursor-pointer" checked>
+                            <span class="text-sm text-gray-300 group-hover:text-white transition">Immobile già libero e vuoto <span class="text-emerald-400 font-bold ml-1 text-xs">(Esente TARI)</span></span>
+                        </label>
+                        
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <label class="flex items-center space-x-3 cursor-pointer group">
+                                <input type="checkbox" id="check_condominio" class="form-checkbox h-5 w-5 text-blue-500 rounded bg-gray-900 border-gray-600 cursor-pointer" onchange="toggleCondominioInput()">
+                                <span class="text-sm text-gray-300 group-hover:text-white transition">Calcola spese condominiali durante il cantiere</span>
+                            </label>
+                            <div id="box_condominio" class="hidden flex items-center gap-2 ml-8 sm:ml-0">
+                                <span class="text-xs text-gray-400 font-bold">€ / mese:</span>
+                                <input type="number" id="condominio_input" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-1.5 text-white text-sm focus:ring-2 focus:ring-blue-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">TARI durante i lavori (€)</label>
-                            <input type="number" id="tari_cantiere" value="150" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Riscaldamento a vuoto (€)</label>
-                            <input type="number" id="riscaldamento_vuoto" value="200" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
-                        </div>
+
                     </div>
                 </div>
 
-                <div id="pannelloLavoriDettagliato" class="hidden bg-gray-900 p-5 rounded-lg border border-blue-500 mb-8 mt-2 shadow-inner">
+                <div id="pannelloLavoriDettagliato" class="hidden bg-gray-900 p-5 rounded-lg border border-blue-500 mb-8 shadow-inner">
                     <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
-                        <h4 class="font-bold text-blue-400">Modulo Capex (Spacca-Centesimi)</h4>
+                        <h4 class="font-bold text-blue-400">Modulo Capex Dettagliato</h4>
                         <span class="text-xs text-gray-400">Sovrascrive il preventivo a forfait</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -178,25 +163,25 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 text-lg">
-                    🚀 Esegui Stress Test
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition duration-300 text-lg tracking-wide">
+                    🚀 Esegui Analisi Finanziaria
                 </button>
             </form>
 
             <div id="risultati" class="hidden mt-12 bg-gray-900 border border-gray-600 rounded-xl p-6 md:p-8">
-                <h3 class="text-2xl font-black text-white border-b border-gray-700 pb-4 mb-6">Business Plan</h3>
+                <h3 class="text-2xl font-black text-white border-b border-gray-700 pb-4 mb-6">Business Plan Definitivo</h3>
                 <div class="space-y-4 mb-8">
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Prezzo Acquisto: <strong id="out_prezzo" class="text-white"></strong></p>
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Tasse e Notaio: <strong id="out_tasse" class="text-white"></strong></p>
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Provvigioni Agenzia: <strong id="out_agenzia" class="text-white"></strong></p>
                     <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2">Costo Lavori: <strong id="out_lavori" class="text-orange-400"></strong></p>
-                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span id="label_mantenimento">Costi Mantenimento:</span> <strong id="out_mantenimento" class="text-white"></strong></p>
+                    <p class="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span id="label_mantenimento">Costi Mantenimento & Utenze:</span> <strong id="out_mantenimento" class="text-white"></strong></p>
                     <p class="flex justify-between text-lg text-white font-bold border-b border-gray-700 pb-2 mt-4 pt-4">INVESTIMENTO TOTALE: <strong id="out_investimento" class="text-blue-400"></strong></p>
                     
                     <p class="flex justify-between text-gray-400 pt-4"><span id="label_rivendita">Rivendita Stimata:</span> <strong id="out_rivendita" class="text-emerald-400 text-xl font-bold"></strong></p>
                     <p class="flex justify-between text-gray-400"><span id="label_utile">Utile Netto Stimato:</span> <strong id="out_utile" class="text-white text-xl"></strong></p>
                 </div>
-                <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-700">
+                <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-700 shadow-inner">
                     <p id="label_roi_text" class="text-gray-400 mb-2 uppercase tracking-wide text-sm font-bold">R.O.I. Operazione</p>
                     <p id="out_roi" class="text-4xl md:text-5xl font-black text-emerald-400"></p>
                 </div>
@@ -206,12 +191,14 @@
                 </button>
             </div>
         </div>
-    </div> <div id="vistaDashboard" class="hidden max-w-6xl mx-auto p-4 md:p-8 mt-6">
+    </div> 
+
+    <div id="vistaDashboard" class="hidden max-w-6xl mx-auto p-4 md:p-8 mt-6">
         <h2 class="text-3xl font-bold text-white mb-2">Il Mio Garage 🚘</h2>
         <p class="text-gray-400 mb-8">Qui trovi tutte le tue analisi salvate, ordinate dalla più recente.</p>
         
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
+        </div>
     </div>
 
     <script>
@@ -220,6 +207,8 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Popolamento dei soli campi rimasti vitali
             function popolaCampo(id, parametro) {
                 if(urlParams.has(parametro)) {
                     const input = document.getElementById(id);
@@ -237,20 +226,11 @@
             }
             popolaCampo('prezzo', 'prezzo');
             popolaCampo('mq', 'mq');
-            popolaCampo('condominio', 'condominio'); 
             popolaCampo('piano', 'piano');
-            popolaCampo('extra', 'extra');
-            popolaCampo('occupazione', 'occupazione');
-            popolaCampo('stato', 'stato');
-            
-            // I NUOVI CAMPI SPRINT 4
             popolaCampo('tipologia', 'tipologia');
-            popolaCampo('classe_en', 'classe_en');
-            popolaCampo('riscaldamento_vuoto', 'riscaldamento');
             
             document.getElementById('rivendita').required = true;
 
-            // IL MOTORE LIVE DEL PREZZO AL MQ
             function calcolaPrezzoMq() {
                 const prezzo = parseFloat(document.getElementById('prezzo').value) || 0;
                 const mq = parseFloat(document.getElementById('mq').value) || 0;
@@ -263,13 +243,21 @@
                 }
             }
             
-            // Ascolta ogni volta che digiti qualcosa in Prezzo o Mq
             document.getElementById('prezzo').addEventListener('input', calcolaPrezzoMq);
             document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
             
-            // Calcola subito all'apertura se i dati arrivano dall'estensione
             setTimeout(calcolaPrezzoMq, 300); 
         });
+
+        // Gestisce la visibilità dell'input condominio
+        function toggleCondominioInput() {
+            const box = document.getElementById('box_condominio');
+            if(document.getElementById('check_condominio').checked) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
 
         function toggleDettagliLavori() {
             const pannello = document.getElementById('pannelloLavoriDettagliato');
@@ -322,21 +310,49 @@
             };
             
             const strat = document.getElementById('strategia').value;
+            const mesi = getVal('mesi') || 6;
+
+            // LOGICA DEI NUOVI COSTI OCCULTI
+            const checkLuce = document.getElementById('check_luce').checked;
+            const costo_allacci = checkLuce ? (70 + (25 * mesi)) : 0;
+
+            const checkTari = document.getElementById('check_tari').checked; // Se true, è esente = 0
+            const tari_calcolata = checkTari ? 0 : 150; // Quota base forfait se si deve pagare
+
+            const checkCondominio = document.getElementById('check_condominio').checked;
+            const condominio_mensile = checkCondominio ? getVal('condominio_input') : 0;
 
             const payload = {
-                costo_allacci_utenze: getVal('costo_allacci'),
-                tari_cantiere: getVal('tari_cantiere'),
-                riscaldamento_vuoto: getVal('riscaldamento_vuoto'),
-                prezzo_acquisto: getVal('prezzo'), rendita_catastale: getVal('rendita'), mq: getVal('mq'),
-                stato_immobile: document.getElementById('stato') ? document.getElementById('stato').value : "Ristrutturazione",
-                agenzia_percentuale: getVal('agenzia'), spese_condominio_mensili: getVal('condominio'),
-                mesi_operazione: getVal('mesi') || 6, stima_rivendita: getVal('rivendita'),
-                strategia: strat, canone_mensile: getVal('canone_mensile'),
-                imu_annua: getVal('imu'), cedolare_secca_perc: getVal('cedolare'),
-                costo_lavori_custom: getVal('preventivo'), usa_preventivo_dettagliato: usaPreventivoDettagliato,
-                costo_demolizioni: getVal('costo_demolizioni'), costo_elettrico: getVal('costo_elettrico'),
-                costo_idrico: getVal('costo_idrico'), costo_murarie: getVal('costo_murarie'),
-                costo_pavimenti: getVal('costo_pavimenti'), costo_infissi: getVal('costo_infissi'),
+                // I costi ricalcolati passati al backend
+                costo_allacci_utenze: costo_allacci,
+                tari_cantiere: tari_calcolata,
+                riscaldamento_vuoto: 0, // Annullato dal backend
+                spese_condominio_mensili: condominio_mensile,
+                
+                // Dati Immobile base
+                prezzo_acquisto: getVal('prezzo'), 
+                rendita_catastale: getVal('rendita'), 
+                mq: getVal('mq'),
+                stato_immobile: "Ristrutturazione", // Fisso per il backend
+                agenzia_percentuale: getVal('agenzia'), 
+                
+                // Tempistiche e Uscita
+                mesi_operazione: mesi, 
+                stima_rivendita: getVal('rivendita'),
+                strategia: strat, 
+                canone_mensile: getVal('canone_mensile'),
+                imu_annua: getVal('imu'), 
+                cedolare_secca_perc: getVal('cedolare'),
+                
+                // Capex
+                costo_lavori_custom: getVal('preventivo'), 
+                usa_preventivo_dettagliato: usaPreventivoDettagliato,
+                costo_demolizioni: getVal('costo_demolizioni'), 
+                costo_elettrico: getVal('costo_elettrico'),
+                costo_idrico: getVal('costo_idrico'), 
+                costo_murarie: getVal('costo_murarie'),
+                costo_pavimenti: getVal('costo_pavimenti'), 
+                costo_infissi: getVal('costo_infissi'),
                 imprevisti_perc: getVal('imprevisti_perc') || 10
             };
 
@@ -344,7 +360,6 @@
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 
                 if(!response.ok) throw new Error("Server rifiuta");
-
                 const data = await response.json();
 
                 ultimoDealCalcolato = {
@@ -361,9 +376,8 @@
                 document.getElementById('out_lavori').textContent = txtLavori;
                 document.getElementById('out_investimento').textContent = "€ " + data.investimento_totale.toLocaleString();
 
-                // IL FIX DEFINITIVO: Ora usa gli ID esatti per cambiare i testi senza crashare!
                 if(data.strategia === "Vendita") {
-                    document.getElementById('label_mantenimento').textContent = "Costi Mantenimento (Condominio x Mesi):";
+                    document.getElementById('label_mantenimento').textContent = "Costi Mantenimento & Utenze:";
                     document.getElementById('out_mantenimento').textContent = "€ " + data.costi_mantenimento.toLocaleString();
                     document.getElementById('label_rivendita').textContent = "Rivendita Stimata:";
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
