@@ -31,7 +31,6 @@
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
 
             <form id="dealForm">
-                
                 <div class="mb-8 flex gap-2">
                     <input type="url" id="urlAnnuncio" placeholder="Incolla il link di Immobiliare/Idealista per autocompilare..." class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
                     <button id="btnEstrai" type="button" class="bg-emerald-600 hover:bg-emerald-500 px-6 font-bold rounded-lg transition">Estrai</button>
@@ -173,14 +172,21 @@
                     </div>
                 </div>
 
-                <div id="box_grafici" class="hidden mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
-                        <h4 class="text-lg font-bold text-blue-400 mb-4 text-center">📈 Crescita Valore vs Debito</h4>
-                        <canvas id="graficoAmmortamento"></canvas>
+                <div id="box_grafici" class="hidden mb-8 flex flex-col gap-8">
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner w-full">
+                        <h4 class="text-2xl font-black text-emerald-400 mb-2 text-center">💶 Radiografia del Mese</h4>
+                        <p class="text-gray-400 text-sm text-center mb-6">Cosa succede esattamente ogni 30 del mese sul tuo conto corrente</p>
+                        <div class="relative h-[350px] w-full">
+                            <canvas id="graficoCashflow"></canvas>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
-                        <h4 class="text-lg font-bold text-emerald-400 mb-4 text-center">💶 Bilancio Mensile in Tasca</h4>
-                        <canvas id="graficoCashflow"></canvas>
+                    
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner w-full">
+                        <h4 class="text-2xl font-black text-blue-400 mb-2 text-center">📈 Proiezione a Lungo Termine</h4>
+                        <p class="text-gray-400 text-sm text-center mb-6">Come cresce il tuo patrimonio netto negli anni pagando il mutuo</p>
+                        <div class="relative h-[400px] w-full">
+                            <canvas id="graficoAmmortamento"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -263,8 +269,8 @@
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        // --- GRAFICO 1: LINEA (Valore vs Debito) ---
-        function disegnaGraficoAmmortamento(dati) {
+        // --- GRAFICO 1: LINEA (Valore vs Debito) - ORA GIGANTE ---
+        function disegnaGraficoAmmortamento(datiProgetto) {
             const ctx = document.getElementById('graficoAmmortamento').getContext('2d');
             if (chartLineInstance) chartLineInstance.destroy();
 
@@ -272,9 +278,9 @@
             let valoreImmobileData = [];
             let debitoMutuoData = [];
             
-            let valoreAttuale = dati.valore_mercato_iniziale;
-            let debitoAttuale = dati.importo_mutuo || 0;
-            let tassoMensile = (dati.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
+            let valoreAttuale = datiProgetto.valore_mercato_iniziale;
+            let debitoAttuale = datiProgetto.importo_mutuo || 0;
+            let tassoMensile = (datiProgetto.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
             let anniRappresentati = debitoAttuale > 0 ? parseInt(document.getElementById('anni_mutuo').value) : 15;
 
             for(let a=0; a<=anniRappresentati; a++) {
@@ -282,12 +288,12 @@
                 valoreImmobileData.push(Math.round(valoreAttuale));
                 debitoMutuoData.push(Math.round(debitoAttuale > 0 ? debitoAttuale : 0));
 
-                valoreAttuale = valoreAttuale * (1 + (dati.apprezzamento_annuo / 100)); 
+                valoreAttuale = valoreAttuale * (1 + (datiProgetto.apprezzamento_annuo / 100)); 
                 
                 if(debitoAttuale > 0) {
                     for(let m=0; m<12; m++) {
                         let quotaInteressi = debitoAttuale * tassoMensile;
-                        let quotaCapitale = dati.rata_mensile_mutuo - quotaInteressi;
+                        let quotaCapitale = datiProgetto.rata_mensile_mutuo - quotaInteressi;
                         debitoAttuale -= quotaCapitale;
                     }
                 }
@@ -298,25 +304,31 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: `Valore Immobile (+${dati.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
-                        { label: 'Debito Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
+                        { label: `Valore Immobile (+${datiProgetto.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'Debito Residuo Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, // Serve per fargli riempire tutto lo spazio verticale che gli diamo
+                    plugins: { legend: { labels: { color: '#cbd5e1', font: {size: 14} } } }, 
+                    scales: { 
+                        y: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } }, 
+                        x: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } } 
+                    } 
+                }
             });
         }
 
-        // --- GRAFICO 2: BARRE (CASHFLOW WATERFALL MENSILE) ---
+        // --- GRAFICO 2: BARRE (CASHFLOW MENSILE) - NUOVO E GIGANTE ---
         function disegnaGraficoCashflow(dati) {
             const ctx = document.getElementById('graficoCashflow').getContext('2d');
             if (chartBarInstance) chartBarInstance.destroy();
 
-            // Calcolo importi mensili dal lordo
-            let incassoMensile = dati.metrica_lorda / 12; // Se è affitto puro, metrica_lorda = incasso annuo
+            let incassoMensile = dati.metrica_lorda / 12; 
             if (dati.strategia === 'Mista') incassoMensile = (parseFloat(document.getElementById('canone_mensile').value) || 0);
 
             let rataBanca = dati.rata_mensile_mutuo || 0;
-            
             let cashflowAnnuo = (dati.strategia === 'Mista') ? dati.cashflow_annuo : dati.utile_netto;
             let cashflowMensile = cashflowAnnuo / 12;
 
@@ -326,25 +338,29 @@
             chartBarInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Affitto', 'Rata Mutuo', 'Spese Fisse', 'NETTO TASCA'],
+                    labels: ['Incasso Affitto', 'Rata Banca', 'Tasse e Utenze', 'NETTO IN TASCA'],
                     datasets: [{
                         label: 'Euro (€)',
                         data: [incassoMensile, -rataBanca, -altreSpese, cashflowMensile],
                         backgroundColor: [
-                            'rgba(16, 185, 129, 0.8)', // Verde (Entrata)
-                            'rgba(239, 68, 68, 0.8)',  // Rosso (Uscita mutuo)
-                            'rgba(249, 115, 22, 0.8)', // Arancio (Uscite varie)
-                            cashflowMensile >= 0 ? 'rgba(59, 130, 246, 0.9)' : 'rgba(220, 38, 38, 0.9)' // Netto: Blu se +, Rosso scuro se -
+                            'rgba(16, 185, 129, 0.9)', // Verde
+                            'rgba(239, 68, 68, 0.9)',  // Rosso
+                            'rgba(249, 115, 22, 0.9)', // Arancio
+                            cashflowMensile >= 0 ? 'rgba(59, 130, 246, 0.9)' : 'rgba(220, 38, 38, 0.9)' // Netto: Blu o Rosso Scuro
                         ],
-                        borderRadius: 4
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false, // Fondamentale per renderlo grande
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) { return '€ ' + context.parsed.y.toFixed(2); } } }
+                    },
                     scales: { 
-                        y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }, 
-                        x: { ticks: { color: '#cbd5e1', font: {weight: 'bold'} }, grid: { display: false } } 
+                        y: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } }, 
+                        x: { ticks: { color: '#cbd5e1', font: {weight: 'bold', size: 14} }, grid: { display: false } } 
                     }
                 }
             });
@@ -399,7 +415,7 @@
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                     document.getElementById('out_payback').classList.add('hidden');
                     
-                    document.getElementById('box_grafici').classList.add('hidden'); // No grafici nel flipping
+                    document.getElementById('box_grafici').classList.add('hidden'); // Nasconde i grafici per la vendita veloce
                 } else {
                     if (data.strategia === "Affitto") {
                         document.getElementById('label_rivendita').textContent = "Incasso Lordo Annuo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
@@ -417,10 +433,10 @@
                         document.getElementById('out_payback').textContent = `📈 Rendimento Medio: ${data.roi_annuo_medio} % Annuo`; document.getElementById('out_payback').classList.remove('hidden');
                     }
                     
-                    // DISEGNA I DUE GRAFICI AFFIANCATI
+                    // Disegna i grafici giganteschi e li mostra
                     document.getElementById('box_grafici').classList.remove('hidden');
-                    disegnaGraficoAmmortamento(data);
-                    disegnaGraficoCashflow(data);
+                    disegnaGraficoCashflow(data); // Prima il mensile
+                    disegnaGraficoAmmortamento(data); // Poi quello negli anni
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
@@ -431,6 +447,7 @@
             } catch (e) { alert("Errore di calcolo dal server. Controlla di aver compilato bene i dati."); console.error(e); }
         });
 
+        // (CARICA E ELIMINA DEALS - Codice Invariato)
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
             contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database...</p>';
@@ -488,7 +505,7 @@
                     this.textContent = "✅ " + data.messaggio;
                     this.className = "w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
                     this.disabled = true;
-                    caricaDeals();
+                    caricaDeals(); 
                 } else {
                     this.textContent = "❌ Errore: " + data.errore;
                     this.className = "w-full bg-red-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
