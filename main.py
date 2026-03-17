@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro", version="9.0")
+app = FastAPI(title="Deal Analyzer Pro", version="10.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +24,7 @@ def init_db():
                   data_salvataggio TEXT,
                   strategia TEXT,
                   prezzo_acquisto REAL,
-                  mq INTEGER,
+                  mq REAL,
                   investimento_totale REAL,
                   utile_netto REAL,
                   roi_percentuale REAL)''')
@@ -40,8 +40,12 @@ def mostra_sito():
 
 class InputDeal(BaseModel):
     prezzo_acquisto: float = 0.0
-    mq: int = 0
+    mq: float = 0.0 # Messo Float per evitare blocchi del server
     strategia: str = "Vendita"
+    
+    # NOVITA': Profilo Fiscale per Investitori
+    profilo_fiscale: str = "privato_seconda"
+    
     rendita_catastale: float = 0.0
     agenzia_percentuale: float = 3.0
     notaio: float = 2500.0
@@ -50,9 +54,10 @@ class InputDeal(BaseModel):
     costo_lavori_totale: float = 0.0
     imprevisti_perc: float = 10.0
     
-    # Vendita pura
+    # Vendita e Valutazione
     mesi_operazione: float = 6.0
-    stima_rivendita: float = 0.0
+    stima_rivendita: float = 0.0 # Ora usato come "Valore di Mercato" per tutte le strategie
+    apprezzamento_annuo: float = 2.0 # % di crescita del mercato
     
     # Affitto
     canone_mensile: float = 0.0
@@ -64,20 +69,19 @@ class InputDeal(BaseModel):
     costo_gas: float = 0.0
     costo_acqua_tari: float = 0.0
     assicurazione_annua: float = 0.0
-
-    # Strategia Mista (Affitto + Vendita)
-    anni_messa_a_reddito: int = 5
+    anni_messa_a_reddito: float = 5.0
 
     # Mutuo
     usa_mutuo: bool = False
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
-    anni_mutuo: int = 20
+    anni_mutuo: float = 20.0
 
+# Modello Database corretto con Float per evitare crash
 class DealDaSalvare(BaseModel):
     strategia: str
     prezzo_acquisto: float
-    mq: int
+    mq: float
     investimento_totale: float
     utile_netto: float
     roi_percentuale: float
@@ -85,19 +89,31 @@ class DealDaSalvare(BaseModel):
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     
-    # 1. ACQUISTO E LAVORI
+    # 1. AGENZIA E TASSE (Logica Fiscale Istituzionale)
     agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
-    valore_catastale = (dati.rendita_catastale * 126) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
-    imposte_stato = valore_catastale * 0.09
+    
+    imposte_stato = 0
+    if dati.profilo_fiscale == "privato_prima":
+        base_imponibile = (dati.rendita_catastale * 115.5) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
+        imposte_stato = max(1000, base_imponibile * 0.02)
+    elif dati.profilo_fiscale == "privato_seconda":
+        base_imponibile = (dati.rendita_catastale * 126) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
+        imposte_stato = max(1000, base_imponibile * 0.09)
+    elif dati.profilo_fiscale == "societa_asta":
+        imposte_stato = max(1000, dati.prezzo_acquisto * 0.09)
+    elif dati.profilo_fiscale == "societa_trading":
+        imposte_stato = 600 # 3 imposte fisse: Registro, Ipotecaria, Catastale
+        
     tasse_e_notaio = imposte_stato + dati.notaio
 
+    # 2. LAVORI E COSTO TOTALE
     fondo_imprevisti = (dati.costo_lavori_totale * dati.imprevisti_perc) / 100
     costo_lavori = dati.costo_lavori_totale + fondo_imprevisti + dati.spese_extra
 
     costo_totale_progetto = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
     capitale_investito_reale = costo_totale_progetto
 
-    # Variabili Mutuo
+    # 3. MUTUO E LEVA (A prova di Tasso Zero)
     importo_mutuo = 0
     rata_mensile_mutuo = 0
     debito_residuo = 0
@@ -110,10 +126,13 @@ def calcola_roi(dati: InputDeal):
             r = (dati.tasso_mutuo / 100) / 12
             n = dati.anni_mutuo * 12
             rata_mensile_mutuo = importo_mutuo * (r * (1 + r)**n) / ((1 + r)**n - 1)
-        elif dati.anni_mutuo > 0:
+        elif dati.tasso_mutuo == 0 and dati.anni_mutuo > 0:
             rata_mensile_mutuo = importo_mutuo / (dati.anni_mutuo * 12)
 
-    # OUTPUT VARS
+    # VALORE DI MERCATO INIZIALE (Per i grafici e vendite)
+    valore_mercato_iniziale = dati.stima_rivendita if dati.stima_rivendita > 0 else costo_totale_progetto
+
+    # OUTPUT BASE
     risultato = {
         "strategia": dati.strategia,
         "tasse_e_notaio": round(tasse_e_notaio, 2),
@@ -123,7 +142,9 @@ def calcola_roi(dati: InputDeal):
         "usa_mutuo": dati.usa_mutuo,
         "importo_mutuo": round(importo_mutuo, 2),
         "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
-        "capitale_proprio": round(capitale_investito_reale, 2)
+        "capitale_proprio": round(capitale_investito_reale, 2),
+        "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
+        "apprezzamento_annuo": dati.apprezzamento_annuo
     }
 
     # ==========================================
@@ -131,15 +152,15 @@ def calcola_roi(dati: InputDeal):
     # ==========================================
     if dati.strategia == "Vendita":
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_operazione
-        if dati.usa_mutuo:
+        if dati.usa_mutuo and dati.tasso_mutuo > 0:
             interessi_cantiere = importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_operazione / 12)
             costi_mantenimento += interessi_cantiere
 
-        utile_netto = dati.stima_rivendita - (costo_totale_progetto + costi_mantenimento)
+        utile_netto = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento)
         
         risultato.update({
             "costi_mantenimento": round(costi_mantenimento, 2),
-            "metrica_lorda": round(dati.stima_rivendita, 2),
+            "metrica_lorda": round(valore_mercato_iniziale, 2),
             "utile_netto": round(utile_netto, 2),
             "roi_percentuale": round((utile_netto / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0
         })
@@ -163,7 +184,6 @@ def calcola_roi(dati: InputDeal):
         tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
         cashflow_annuo_netto = metrica_lorda - costi_mantenimento_annui - tasse_affitto
 
-        # Se è solo AFFITTO PURO
         if dati.strategia == "Affitto":
             risultato.update({
                 "costi_mantenimento": round(costi_mantenimento_annui, 2),
@@ -172,24 +192,26 @@ def calcola_roi(dati: InputDeal):
                 "roi_percentuale": round((cashflow_annuo_netto / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0
             })
 
-        # Se è STRATEGIA MISTA (Affitto per X anni + Vendita)
         elif dati.strategia == "Mista":
             totale_cashflow_accumulato = cashflow_annuo_netto * dati.anni_messa_a_reddito
             
-            # Calcolo Debito Residuo Mutuo
+            # Valore Immobile rivalutato negli anni
+            valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
+            
+            # Debito Residuo
             debito_residuo = 0
-            if dati.usa_mutuo and dati.tasso_mutuo > 0 and dati.anni_mutuo > 0:
-                r = (dati.tasso_mutuo / 100) / 12
+            if dati.usa_mutuo and dati.anni_mutuo > 0:
                 mesi_totali = dati.anni_mutuo * 12
                 mesi_pagati = dati.anni_messa_a_reddito * 12
                 
                 if mesi_pagati < mesi_totali:
-                    debito_residuo = importo_mutuo * (((1 + r)**mesi_totali - (1 + r)**mesi_pagati) / ((1 + r)**mesi_totali - 1))
+                    if dati.tasso_mutuo > 0:
+                        r = (dati.tasso_mutuo / 100) / 12
+                        debito_residuo = importo_mutuo * (((1 + r)**mesi_totali - (1 + r)**mesi_pagati) / ((1 + r)**mesi_totali - 1))
+                    else:
+                        debito_residuo = importo_mutuo - (rata_mensile_mutuo * mesi_pagati)
             
-            # Guadagno dalla Vendita al netto del debito con la banca
-            incasso_netto_vendita = dati.stima_rivendita - debito_residuo
-            
-            # Utile finale = Tutti i cashflow accumulati + L'incasso netto della vendita - Il tuo capitale iniziale
+            incasso_netto_vendita = valore_futuro_immobile - debito_residuo
             utile_totale = totale_cashflow_accumulato + incasso_netto_vendita - capitale_investito_reale
 
             roi_totale = (utile_totale / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
@@ -197,7 +219,7 @@ def calcola_roi(dati: InputDeal):
 
             risultato.update({
                 "costi_mantenimento": round(costi_mantenimento_annui, 2),
-                "metrica_lorda": round(dati.stima_rivendita, 2),
+                "metrica_lorda": round(valore_futuro_immobile, 2),
                 "utile_netto": round(utile_totale, 2),
                 "cashflow_annuo": round(cashflow_annuo_netto, 2),
                 "debito_residuo": round(debito_residuo, 2),
@@ -209,14 +231,17 @@ def calcola_roi(dati: InputDeal):
 
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
-    conn = sqlite3.connect('deals.db')
-    c = conn.cursor()
-    data_odierna = datetime.now().strftime("%d/%m/%Y %H:%M")
-    c.execute("INSERT INTO deals (data_salvataggio, strategia, prezzo_acquisto, mq, investimento_totale, utile_netto, roi_percentuale) VALUES (?, ?, ?, ?, ?, ?, ?)",
-              (data_odierna, deal.strategia, deal.prezzo_acquisto, deal.mq, deal.investimento_totale, deal.utile_netto, deal.roi_percentuale))
-    conn.commit()
-    conn.close()
-    return {"successo": True, "messaggio": "Deal salvato nel Garage!"}
+    try:
+        conn = sqlite3.connect('deals.db')
+        c = conn.cursor()
+        data_odierna = datetime.now().strftime("%d/%m/%Y %H:%M")
+        c.execute("INSERT INTO deals (data_salvataggio, strategia, prezzo_acquisto, mq, investimento_totale, utile_netto, roi_percentuale) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                  (data_odierna, deal.strategia, deal.prezzo_acquisto, deal.mq, deal.investimento_totale, deal.utile_netto, deal.roi_percentuale))
+        conn.commit()
+        conn.close()
+        return {"successo": True, "messaggio": "Deal salvato nel Garage!"}
+    except Exception as e:
+        return {"successo": False, "errore": str(e)}
 
 @app.get("/api/get-deals")
 def get_deals():
