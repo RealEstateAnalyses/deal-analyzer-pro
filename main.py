@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro - Institutional", version="11.0")
+app = FastAPI(title="Deal Analyzer Pro - Institutional", version="11.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,12 +51,10 @@ class InputDeal(BaseModel):
     costo_lavori_totale: float = 0.0
     imprevisti_perc: float = 10.0
     
-    # Tempistiche
     mesi_lavori: float = 6.0
     stima_rivendita: float = 0.0 
     apprezzamento_annuo: float = 2.0 
     
-    # Affitto
     canone_mensile: float = 0.0
     cedolare_secca_perc: float = 21.0
     imu_annua: float = 0.0 
@@ -68,7 +66,6 @@ class InputDeal(BaseModel):
     assicurazione_annua: float = 0.0
     anni_messa_a_reddito: float = 5.0
 
-    # Mutuo
     usa_mutuo: bool = False
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
@@ -85,7 +82,6 @@ class DealDaSalvare(BaseModel):
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     
-    # 1. COSTI INIZIALI
     agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
     
     imposte_stato = 0
@@ -107,7 +103,6 @@ def calcola_roi(dati: InputDeal):
     costo_totale_progetto = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
     capitale_investito_reale = costo_totale_progetto
 
-    # 2. MUTUO
     importo_mutuo = 0
     rata_mensile_mutuo = 0
 
@@ -122,40 +117,37 @@ def calcola_roi(dati: InputDeal):
             rata_mensile_mutuo = importo_mutuo / (dati.anni_mutuo * 12)
 
     valore_mercato_iniziale = dati.stima_rivendita if dati.stima_rivendita > 0 else costo_totale_progetto
-    timeline_cashflow = [-capitale_investito_reale] # Anno 0
+    timeline_cashflow = [-capitale_investito_reale]
 
     risultato = {
         "strategia": dati.strategia, "tasse_e_notaio": round(tasse_e_notaio, 2), "agenzia": round(agenzia, 2),
         "costo_lavori": round(costo_lavori, 2), "costo_totale_progetto": round(costo_totale_progetto, 2),
         "usa_mutuo": dati.usa_mutuo, "importo_mutuo": round(importo_mutuo, 2), "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
-        "capitale_proprio": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2)
+        "capitale_proprio": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
+        "incasso_mensile_lordo": round(dati.canone_mensile, 2)
     }
 
-    # LOGICA PLUSVALENZA (Capital Gain Tax 26%)
     def calcola_tasse_vendita(prezzo_vendita):
         if dati.profilo_fiscale in ["privato_prima", "privato_seconda"]:
             plusvalenza = max(0, prezzo_vendita - costo_totale_progetto)
             return plusvalenza * 0.26
-        return 0 # Semplificato per società (IRES si calcola a bilancio, non sul singolo deal)
+        return 0
 
-    # --- FLIPPING ---
     if dati.strategia == "Vendita":
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori
         if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
         
         tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale)
         utile_netto = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza)
-        
-        timeline_cashflow.append(utile_netto + capitale_investito_reale) # Anno 1
+        timeline_cashflow.append(utile_netto + capitale_investito_reale) 
         
         risultato.update({
             "costi_mantenimento": round(costi_mantenimento, 2), "metrica_lorda": round(valore_mercato_iniziale, 2),
             "tasse_plusvalenza": round(tasse_plusvalenza, 2), "utile_netto": round(utile_netto, 2),
             "roi_percentuale": round((utile_netto / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
-            "timeline": timeline_cashflow
+            "timeline": timeline_cashflow, "cashflow_mensile_netto": 0
         })
 
-    # --- AFFITTO / MISTA ---
     else:
         metrica_lorda = dati.canone_mensile * 12 
         spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
@@ -164,20 +156,20 @@ def calcola_roi(dati: InputDeal):
 
         tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
         cashflow_annuo_pieno = metrica_lorda - spese_fisse_annue - tasse_affitto
+        cashflow_mensile_netto = cashflow_annuo_pieno / 12
         
-        # Anno 1: Calcola i mesi persi per i lavori
         mesi_affitto_anno_1 = max(0, 12 - dati.mesi_lavori)
         incasso_anno_1 = dati.canone_mensile * mesi_affitto_anno_1
-        spese_anno_1 = spese_fisse_annue # Le spese fisse (mutuo, condo, imu) le paghi comunque
-        cashflow_anno_1 = incasso_anno_1 - spese_anno_1 - ((incasso_anno_1 * dati.cedolare_secca_perc)/100)
+        cashflow_anno_1 = incasso_anno_1 - spese_fisse_annue - ((incasso_anno_1 * dati.cedolare_secca_perc)/100)
         
         if dati.strategia == "Affitto":
             timeline_cashflow.append(cashflow_anno_1)
-            for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) # Mostra 5 anni di proiezioni
+            for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) 
             
             risultato.update({
                 "costi_mantenimento": round(spese_fisse_annue, 2), "metrica_lorda": round(metrica_lorda, 2),
                 "utile_netto": round(cashflow_annuo_pieno, 2), "timeline": timeline_cashflow,
+                "cashflow_mensile_netto": round(cashflow_mensile_netto, 2),
                 "roi_percentuale": round((cashflow_annuo_pieno / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0
             })
 
@@ -198,13 +190,12 @@ def calcola_roi(dati: InputDeal):
             tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile) if dati.anni_messa_a_reddito <= 5 else 0
             incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
             
-            # Costruisci Timeline esatta
             totale_cashflow_accumulato = 0
             for anno in range(1, int(dati.anni_messa_a_reddito) + 1):
                 cf_anno = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
                 totale_cashflow_accumulato += cf_anno
                 if anno == int(dati.anni_messa_a_reddito):
-                    timeline_cashflow.append(cf_anno + incasso_netto_vendita) # Ultimo anno = Cashflow + Vendita
+                    timeline_cashflow.append(cf_anno + incasso_netto_vendita)
                 else:
                     timeline_cashflow.append(cf_anno)
 
@@ -213,6 +204,7 @@ def calcola_roi(dati: InputDeal):
             risultato.update({
                 "costi_mantenimento": round(spese_fisse_annue, 2), "metrica_lorda": round(valore_futuro_immobile, 2),
                 "utile_netto": round(utile_totale, 2), "cashflow_annuo": round(cashflow_annuo_pieno, 2),
+                "cashflow_mensile_netto": round(cashflow_mensile_netto, 2),
                 "debito_residuo": round(debito_residuo, 2), "tasse_plusvalenza": round(tasse_plusvalenza, 2),
                 "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
                 "timeline": timeline_cashflow
