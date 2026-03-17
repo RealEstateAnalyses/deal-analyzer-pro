@@ -173,9 +173,15 @@
                     </div>
                 </div>
 
-                <div id="box_grafico" class="hidden mb-8 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
-                    <h4 class="text-lg font-bold text-blue-400 mb-4 text-center">📈 Proiezione Crescita: Valore vs Debito</h4>
-                    <canvas id="graficoAmmortamento"></canvas>
+                <div id="box_grafici" class="hidden mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
+                        <h4 class="text-lg font-bold text-blue-400 mb-4 text-center">📈 Crescita Valore vs Debito</h4>
+                        <canvas id="graficoAmmortamento"></canvas>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
+                        <h4 class="text-lg font-bold text-emerald-400 mb-4 text-center">💶 Bilancio Mensile in Tasca</h4>
+                        <canvas id="graficoCashflow"></canvas>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,7 +203,8 @@
 
     <script>
         let ultimoDealCalcolato = null;
-        let chartInstance = null; 
+        let chartLineInstance = null; 
+        let chartBarInstance = null;
 
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -256,18 +263,18 @@
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        function disegnaGrafico(datiProgetto) {
+        // --- GRAFICO 1: LINEA (Valore vs Debito) ---
+        function disegnaGraficoAmmortamento(dati) {
             const ctx = document.getElementById('graficoAmmortamento').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
+            if (chartLineInstance) chartLineInstance.destroy();
 
             let labels = [];
             let valoreImmobileData = [];
             let debitoMutuoData = [];
             
-            // Il grafico parte dal VERO valore di mercato
-            let valoreAttuale = datiProgetto.valore_mercato_iniziale;
-            let debitoAttuale = datiProgetto.importo_mutuo || 0;
-            let tassoMensile = (datiProgetto.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
+            let valoreAttuale = dati.valore_mercato_iniziale;
+            let debitoAttuale = dati.importo_mutuo || 0;
+            let tassoMensile = (dati.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
             let anniRappresentati = debitoAttuale > 0 ? parseInt(document.getElementById('anni_mutuo').value) : 15;
 
             for(let a=0; a<=anniRappresentati; a++) {
@@ -275,29 +282,72 @@
                 valoreImmobileData.push(Math.round(valoreAttuale));
                 debitoMutuoData.push(Math.round(debitoAttuale > 0 ? debitoAttuale : 0));
 
-                valoreAttuale = valoreAttuale * (1 + (datiProgetto.apprezzamento_annuo / 100)); 
+                valoreAttuale = valoreAttuale * (1 + (dati.apprezzamento_annuo / 100)); 
                 
                 if(debitoAttuale > 0) {
                     for(let m=0; m<12; m++) {
                         let quotaInteressi = debitoAttuale * tassoMensile;
-                        let quotaCapitale = datiProgetto.rata_mensile_mutuo - quotaInteressi;
+                        let quotaCapitale = dati.rata_mensile_mutuo - quotaInteressi;
                         debitoAttuale -= quotaCapitale;
                     }
                 }
             }
 
-            chartInstance = new Chart(ctx, {
+            chartLineInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: `Valore Immobile (+${datiProgetto.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
-                        { label: 'Debito Residuo Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
+                        { label: `Valore Immobile (+${dati.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'Debito Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
                     ]
                 },
                 options: { responsive: true, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } } } }
             });
-            document.getElementById('box_grafico').classList.remove('hidden');
+        }
+
+        // --- GRAFICO 2: BARRE (CASHFLOW WATERFALL MENSILE) ---
+        function disegnaGraficoCashflow(dati) {
+            const ctx = document.getElementById('graficoCashflow').getContext('2d');
+            if (chartBarInstance) chartBarInstance.destroy();
+
+            // Calcolo importi mensili dal lordo
+            let incassoMensile = dati.metrica_lorda / 12; // Se è affitto puro, metrica_lorda = incasso annuo
+            if (dati.strategia === 'Mista') incassoMensile = (parseFloat(document.getElementById('canone_mensile').value) || 0);
+
+            let rataBanca = dati.rata_mensile_mutuo || 0;
+            
+            let cashflowAnnuo = (dati.strategia === 'Mista') ? dati.cashflow_annuo : dati.utile_netto;
+            let cashflowMensile = cashflowAnnuo / 12;
+
+            // Ricaviamo le spese mensili (Tasse, Condominio, Utenze) per differenza matematica
+            let altreSpese = incassoMensile - rataBanca - cashflowMensile;
+
+            chartBarInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Affitto', 'Rata Mutuo', 'Spese Fisse', 'NETTO TASCA'],
+                    datasets: [{
+                        label: 'Euro (€)',
+                        data: [incassoMensile, -rataBanca, -altreSpese, cashflowMensile],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)', // Verde (Entrata)
+                            'rgba(239, 68, 68, 0.8)',  // Rosso (Uscita mutuo)
+                            'rgba(249, 115, 22, 0.8)', // Arancio (Uscite varie)
+                            cashflowMensile >= 0 ? 'rgba(59, 130, 246, 0.9)' : 'rgba(220, 38, 38, 0.9)' // Netto: Blu se +, Rosso scuro se -
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }, 
+                        x: { ticks: { color: '#cbd5e1', font: {weight: 'bold'} }, grid: { display: false } } 
+                    }
+                }
+            });
         }
 
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
@@ -348,7 +398,8 @@
                     document.getElementById('label_roi_text').textContent = data.usa_mutuo ? "Cash-on-Cash Return" : "R.O.I. Operazione";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                     document.getElementById('out_payback').classList.add('hidden');
-                    document.getElementById('box_grafico').classList.add('hidden');
+                    
+                    document.getElementById('box_grafici').classList.add('hidden'); // No grafici nel flipping
                 } else {
                     if (data.strategia === "Affitto") {
                         document.getElementById('label_rivendita').textContent = "Incasso Lordo Annuo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
@@ -365,7 +416,11 @@
                         document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                         document.getElementById('out_payback').textContent = `📈 Rendimento Medio: ${data.roi_annuo_medio} % Annuo`; document.getElementById('out_payback').classList.remove('hidden');
                     }
-                    disegnaGrafico(data);
+                    
+                    // DISEGNA I DUE GRAFICI AFFIANCATI
+                    document.getElementById('box_grafici').classList.remove('hidden');
+                    disegnaGraficoAmmortamento(data);
+                    disegnaGraficoCashflow(data);
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
@@ -433,7 +488,7 @@
                     this.textContent = "✅ " + data.messaggio;
                     this.className = "w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
                     this.disabled = true;
-                    caricaDeals(); // Aggiorna il DB in background
+                    caricaDeals();
                 } else {
                     this.textContent = "❌ Errore: " + data.errore;
                     this.className = "w-full bg-red-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
