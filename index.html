@@ -3,213 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Analyzer Pro - Startup Edition</title>
+    <title>Deal Analyzer | Institutional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #0B0F19; color: #F3F4F6; }
         .hidden { display: none !important; }
-        input[type="checkbox"] { accent-color: #10b981; width: 1.25rem; height: 1.25rem; cursor: pointer; }
+        .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 0.5rem; }
+        .input-field { width: 100%; background-color: #0B0F19; border: 1px solid #374151; border-radius: 0.375rem; padding: 0.75rem; color: #F9FAFB; transition: border-color 0.2s; }
+        .input-field:focus { outline: none; border-color: #3B82F6; }
+        .label-sm { display: block; font-size: 0.75rem; font-weight: 600; color: #9CA3AF; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        input[type="checkbox"] { accent-color: #3B82F6; width: 1.25rem; height: 1.25rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <nav class="bg-gray-900 border-b border-emerald-500 p-4 sticky top-0 z-50 shadow-lg">
+    <nav class="bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)]">DA</div>
-                <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">Deal Analyzer</h1>
+                <div class="w-8 h-8 bg-blue-600 flex items-center justify-center text-white font-bold text-sm">DA</div>
+                <h1 class="text-xl font-bold tracking-tight text-white">Deal Analyzer</h1>
             </div>
-            <div>
-                <button onclick="mostraCalcolatore()" class="text-white hover:text-emerald-400 font-bold px-2 md:px-4 transition">Nuova Analisi</button>
-                <button onclick="mostraDashboard()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 md:px-4 rounded-lg shadow transition">Il Mio Garage 🚘</button>
+            <div class="flex gap-4">
+                <button onclick="mostraCalcolatore()" class="text-sm font-semibold text-gray-300 hover:text-white transition">ANALISI</button>
+                <button onclick="mostraDashboard()" class="text-sm font-semibold text-gray-300 hover:text-white transition">PORTAFOGLIO</button>
             </div>
         </div>
     </nav>
 
-    <div id="vistaCalcolatore" class="max-w-4xl mx-auto p-4 md:p-8 mt-2">
-        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
+    <div id="vistaCalcolatore" class="max-w-4xl mx-auto p-4 md:p-8 mt-4">
+        <div class="card p-6 md:p-10">
 
             <form id="dealForm">
                 <div class="mb-8 flex gap-2">
-                    <input type="url" id="urlAnnuncio" placeholder="Incolla il link di Immobiliare/Idealista per autocompilare..." class="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
-                    <button id="btnEstrai" type="button" class="bg-emerald-600 hover:bg-emerald-500 px-6 font-bold rounded-lg transition">Estrai</button>
+                    <input type="url" id="urlAnnuncio" placeholder="Incolla l'URL di un annuncio immobiliare..." class="input-field">
+                    <button id="btnEstrai" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 rounded-md transition">Estrai</button>
                 </div>
 
-                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">1. I Numeri Chiave</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
-                    <div><label class="block text-sm font-bold text-gray-300 mb-2">Prezzo di Acquisto (€)</label><input type="number" id="prezzo" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 text-lg font-bold" required></div>
-                    <div><label class="block text-sm font-bold text-gray-300 mb-2">Metri Quadri</label><input type="number" id="mq" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 text-lg font-bold" required><p id="live_prezzo_mq" class="text-xs text-emerald-400 mt-2 font-bold tracking-wide">0 € / mq</p></div>
-                    <div><label class="block text-sm font-bold text-emerald-400 mb-2">Valore di Mercato Stimato (€)</label><input type="number" id="rivendita" placeholder="Il vero valore post-lavori" class="w-full bg-gray-800 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500" required></div>
+                <div class="mb-8 border-b border-gray-800 pb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">DATI STRUTTURALI</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div><label class="label-sm">Prezzo di Acquisto (€)</label><input type="number" id="prezzo" class="input-field font-bold text-lg text-blue-400" required></div>
+                        <div><label class="label-sm">Metri Quadri</label><input type="number" id="mq" class="input-field" required><p id="live_prezzo_mq" class="text-xs text-gray-500 mt-2 font-mono">0 € / mq</p></div>
+                        <div><label class="label-sm">Valore Mercato Stimato (€)</label><input type="number" id="rivendita" class="input-field font-bold text-lg" required></div>
+                    </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Strategia di Investimento</h3>
-                <div class="mb-8 bg-gray-900 p-5 rounded-xl border border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                    <select id="strategia" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-4 text-blue-400 font-black text-xl text-center cursor-pointer" onchange="cambiaStrategia()">
-                        <option value="Vendita">🔄 Flipping (Ristruttura e Vendi Veloce)</option>
-                        <option value="Affitto">💰 Messa a Reddito (Solo Affitto)</option>
-                        <option value="Mista">📈 Strategia Mista (Affitta per X anni, poi Vendi)</option>
+                <div class="mb-8 border-b border-gray-800 pb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">STRATEGIA OPERATIVA</h3>
+                    <select id="strategia" class="input-field mb-6 font-semibold" onchange="cambiaStrategia()">
+                        <option value="Vendita">FLIPPING (Ristrutturazione e Vendita)</option>
+                        <option value="Affitto">MESSA A REDDITO (Solo Affitto)</option>
+                        <option value="Mista">MIXED (Affitto temporaneo + Vendita)</option>
                     </select>
 
-                    <div id="pannelloVendita" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-700">
-                        <div id="box_mesi_cantiere"><label class="block text-sm text-gray-400 mb-2">Mesi stimati (Cantiere + Vendita)</label><input type="number" id="mesi" value="6" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                        <div id="box_anni_affitto" class="hidden"><label class="block text-sm text-orange-400 font-bold mb-2">Anni di Affitto prima di Vendere</label><input type="number" id="anni_affitto" value="5" class="w-full bg-gray-800 border border-orange-500 rounded-lg p-3 text-white"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div><label class="label-sm text-orange-400">Mesi di Lavori / Cantiere</label><input type="number" id="mesi_lavori" value="6" class="input-field">
+                        <p class="text-xs text-gray-500 mt-1">Mesi senza incasso affitto, ma con spese attive.</p></div>
+                        <div id="box_anni_affitto" class="hidden"><label class="label-sm text-blue-400">Anni a Reddito</label><input type="number" id="anni_affitto" value="5" class="input-field"></div>
                     </div>
 
-                    <div id="pannelloAffitto" class="hidden mt-6 pt-6 border-t border-gray-700">
+                    <div id="pannelloAffitto" class="hidden mt-4 pt-4 border-t border-gray-800">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                            <div><label class="block text-sm font-bold text-blue-400 mb-2">Incasso Mensile Lordo (€)</label><input type="number" id="canone_mensile" value="0" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-3 text-blue-400 font-bold"></div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Tasse (Cedolare Secca)</label>
-                                <select id="cedolare" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
-                                    <option value="21">21% (Airbnb/Libero)</option><option value="10">10% (Studenti/Concordato)</option><option value="0">0% (Lordo)</option>
-                                </select>
-                            </div>
-                            <div><label class="block text-sm text-gray-400 mb-2">IMU Annua (€)</label><input type="number" id="imu" value="500" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                            <div><label class="label-sm text-green-400">Canone Mensile Lordo (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-bold"></div>
+                            <div><label class="label-sm">Cedolare Secca (%)</label><select id="cedolare" class="input-field"><option value="21">21%</option><option value="10">10%</option><option value="0">0%</option></select></div>
+                            <div><label class="label-sm">IMU Annua (€)</label><input type="number" id="imu" value="500" class="input-field"></div>
                         </div>
                         
-                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                            <h4 class="text-sm font-bold text-gray-300 mb-4 uppercase tracking-wide">⚡ Utenze a carico del proprietario</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_luce" onchange="toggleInput('val_luce', 'chk_luce')"> Energia Elettrica</label><div class="flex items-center gap-2"><input type="number" id="val_luce" value="40" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/m</span></div></div>
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas / Riscald.</label><div class="flex items-center gap-2"><input type="number" id="val_gas" value="50" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/m</span></div></div>
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_acqua" onchange="toggleInput('val_acqua', 'chk_acqua')"> Acqua e TARI</label><div class="flex items-center gap-2"><input type="number" id="val_acqua" value="30" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/m</span></div></div>
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_wifi" onchange="toggleInput('val_wifi', 'chk_wifi')"> Linea Wi-Fi</label><div class="flex items-center gap-2"><input type="number" id="val_wifi" value="25" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/m</span></div></div>
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_assicurazione" onchange="toggleInput('val_assicurazione', 'chk_assicurazione')"> Assicurazione</label><div class="flex items-center gap-2"><input type="number" id="val_assicurazione" value="200" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">€/ANNO</span></div></div>
-                                <div class="flex items-center justify-between bg-gray-900 p-2 rounded border border-gray-700"><label class="flex items-center gap-2 text-gray-400 text-sm"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Gestione (Airbnb)</label><div class="flex items-center gap-2"><input type="number" id="val_gestione" value="20" class="w-16 bg-gray-800 border border-gray-600 rounded p-1 text-center text-gray-500 text-sm" disabled><span class="text-xs text-gray-500">% inc</span></div></div>
+                        <div class="bg-gray-900 p-4 rounded-md border border-gray-800">
+                            <h4 class="label-sm mb-4">UTENZE A CARICO PROPRIETARIO (Es. Affitti Brevi)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_luce" onchange="toggleInput('val_luce', 'chk_luce')"> Elettricità (€/m)</label><input type="number" id="val_luce" value="40" class="input-field py-1 px-2 text-sm" disabled></div>
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas/Risc. (€/m)</label><input type="number" id="val_gas" value="50" class="input-field py-1 px-2 text-sm" disabled></div>
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_acqua" onchange="toggleInput('val_acqua', 'chk_acqua')"> Acqua/Tari (€/m)</label><input type="number" id="val_acqua" value="30" class="input-field py-1 px-2 text-sm" disabled></div>
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_wifi" onchange="toggleInput('val_wifi', 'chk_wifi')"> Wi-Fi (€/m)</label><input type="number" id="val_wifi" value="25" class="input-field py-1 px-2 text-sm" disabled></div>
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_assicurazione" onchange="toggleInput('val_assicurazione', 'chk_assicurazione')"> Assicuraz. (€/anno)</label><input type="number" id="val_assicurazione" value="200" class="input-field py-1 px-2 text-sm" disabled></div>
+                                <div class="flex flex-col"><label class="text-xs text-gray-400 mb-1"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Gestione (% incasso)</label><input type="number" id="val_gestione" value="20" class="input-field py-1 px-2 text-sm" disabled></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">3. Lavori di Ristrutturazione</h3>
-                <div class="mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
+                <div class="mb-8 border-b border-gray-800 pb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">CAPEX (LAVORI)</h3>
                     <div class="space-y-3">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"><label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_demolizioni" onchange="calcolaStimaLavoro('demolizioni', 40)"> Demolizioni e Smaltimento</label><div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_demolizioni" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div></div>
-                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"><label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_impianti" onchange="calcolaStimaLavoro('impianti', 100)"> Rifacimento Impianti (Idrico/Elettrico)</label><div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_impianti" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div></div>
-                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"><label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_pavimenti" onchange="calcolaStimaLavoro('pavimenti', 60)"> Posa Pavimenti/Rivestimenti</label><div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_pavimenti" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div></div>
-                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700"><label class="flex items-center gap-3 font-bold text-gray-300"><input type="checkbox" id="chk_infissi" onchange="calcolaStimaFissa('infissi', 6500)"> Sostituzione Infissi/Porte</label><div class="flex items-center gap-2 mt-2 md:mt-0"><input type="number" id="val_infissi" value="0" class="w-24 bg-gray-900 border border-gray-600 rounded p-2 text-center text-gray-500" disabled><span class="text-gray-400">€</span></div></div>
+                        <div class="flex items-center justify-between"><label class="text-sm font-medium text-gray-300"><input type="checkbox" id="chk_demolizioni" onchange="calcolaStimaLavoro('demolizioni', 40)"> Demolizioni</label><input type="number" id="val_demolizioni" value="0" class="input-field w-32 py-1" disabled></div>
+                        <div class="flex items-center justify-between"><label class="text-sm font-medium text-gray-300"><input type="checkbox" id="chk_impianti" onchange="calcolaStimaLavoro('impianti', 100)"> Impianti</label><input type="number" id="val_impianti" value="0" class="input-field w-32 py-1" disabled></div>
+                        <div class="flex items-center justify-between"><label class="text-sm font-medium text-gray-300"><input type="checkbox" id="chk_pavimenti" onchange="calcolaStimaLavoro('pavimenti', 60)"> Pavimenti</label><input type="number" id="val_pavimenti" value="0" class="input-field w-32 py-1" disabled></div>
+                        <div class="flex items-center justify-between"><label class="text-sm font-medium text-gray-300"><input type="checkbox" id="chk_infissi" onchange="calcolaStimaFissa('infissi', 6500)"> Infissi</label><input type="number" id="val_infissi" value="0" class="input-field w-32 py-1" disabled></div>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-gray-700 flex items-center justify-between"><label class="font-bold text-orange-400 text-sm">Margine Imprevisti Lavori (%)</label><input type="number" id="imprevisti_perc" value="10" class="w-20 bg-gray-800 border border-orange-500 rounded p-2 text-center text-white"></div>
+                    <div class="mt-4 flex items-center justify-between"><label class="label-sm mb-0">Imprevisti (%)</label><input type="number" id="imprevisti_perc" value="10" class="input-field w-24 py-1 text-center"></div>
                 </div>
 
-                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">4. Fisco, Burocrazia e Macro-Economia</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-gray-300 mb-2">Profilo Fiscale (Tasse d'Acquisto)</label>
-                        <select id="profilo_fiscale" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
-                            <option value="privato_seconda">👤 Privato - Seconda Casa / Investimento (9% sul Catastale)</option>
-                            <option value="privato_prima">🏠 Privato - Prima Casa (2% sul Catastale)</option>
-                            <option value="societa_asta">🏛️ Società o Asta (9% sul Prezzo d'Acquisto)</option>
-                            <option value="societa_trading">💼 Società di Trading / Flipper (Imposte Fisse: 600€ totali)</option>
-                        </select>
-                    </div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label><input type="number" id="rendita" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500"></div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Parcella Notaio Stimata (€)</label><input type="number" id="notaio" value="2500" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Spese Condominiali Mensili (€)</label><input type="number" id="condominio" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Spese Extra Impreviste (€)</label><input type="number" id="spese_extra" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                    <div><label class="block text-sm font-bold text-blue-400 mb-2">Crescita Mercato Immobiliare (% annua)</label><input type="number" id="apprezzamento" value="2" step="0.5" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-3 text-white"></div>
-                </div>
-
-                <h3 class="text-xl font-bold text-purple-400 mb-4 border-b border-gray-700 pb-2 flex items-center gap-2">🏦 5. Leva Finanziaria (Banca)</h3>
-                <div class="mb-8 bg-purple-900 bg-opacity-20 p-5 rounded-xl border border-purple-600 shadow-inner">
-                    <label class="flex items-center gap-3 font-bold text-purple-300 cursor-pointer">
-                        <input type="checkbox" id="usa_mutuo" class="form-checkbox h-5 w-5 text-purple-500 rounded bg-gray-900 border-gray-600" onchange="toggleMutuo()"> 
-                        Richiedi un Finanziamento / Mutuo
-                    </label>
-                    <div id="pannelloMutuo" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 pt-5 mt-4 border-t border-purple-800">
-                        <div>
-                            <label class="block text-sm text-purple-200 mb-2 font-bold">Capitale Proprio Disponibile (€)</label>
-                            <input type="number" id="capitale_proprio" value="30000" class="w-full bg-gray-800 border border-purple-500 rounded-lg p-3 text-white">
+                <div class="mb-8 border-b border-gray-800 pb-6">
+                    <h3 class="text-lg font-semibold text-white mb-6">FISCO E BUROCRAZIA</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="label-sm">Profilo Fiscale</label>
+                            <select id="profilo_fiscale" class="input-field">
+                                <option value="privato_seconda">Privato - Seconda Casa (9%)</option>
+                                <option value="privato_prima">Privato - Prima Casa (2%)</option>
+                                <option value="societa_asta">Società / Asta (9% su Prezzo d'Acquisto)</option>
+                                <option value="societa_trading">Società Trading (Imposte Fisse 600€)</option>
+                            </select>
                         </div>
-                        <div><label class="block text-sm text-gray-300 mb-2">Tasso Annuo (%) <span class="text-xs text-gray-500">Metti 0 per tasso zero</span></label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                        <div><label class="block text-sm text-gray-300 mb-2">Durata (Anni)</label><input type="number" id="anni_mutuo" value="20" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                        <div><label class="label-sm">Rendita Catastale (€)</label><input type="number" id="rendita" value="0" class="input-field"></div>
+                        <div><label class="label-sm">Notaio (€)</label><input type="number" id="notaio" value="2500" class="input-field"></div>
+                        <div><label class="label-sm">Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="input-field"></div>
+                        <div><label class="label-sm">Condominio Mensile (€)</label><input type="number" id="condominio" value="0" class="input-field"></div>
+                        <div><label class="label-sm">Spese Extra (€)</label><input type="number" id="spese_extra" value="0" class="input-field"></div>
+                        <div><label class="label-sm">Apprezzamento Mercato (% annua)</label><input type="number" id="apprezzamento" value="2" step="0.5" class="input-field"></div>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-black py-4 px-8 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition duration-300 text-xl tracking-wide uppercase">
-                    Genera Business Plan
+                <div class="mb-8">
+                    <div class="flex items-center gap-3 mb-6 border-b border-gray-800 pb-2">
+                        <input type="checkbox" id="usa_mutuo" onchange="toggleMutuo()"> 
+                        <h3 class="text-lg font-semibold text-white uppercase tracking-tight">Leva Finanziaria (Mutuo)</h3>
+                    </div>
+                    <div id="pannelloMutuo" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div><label class="label-sm text-blue-400">Capitale Proprio (€)</label><input type="number" id="capitale_proprio" value="30000" class="input-field font-bold"></div>
+                        <div><label class="label-sm">Tasso Annuo (%)</label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="input-field"></div>
+                        <div><label class="label-sm">Durata (Anni)</label><input type="number" id="anni_mutuo" value="20" class="input-field"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-md transition text-lg tracking-widest">
+                    GENERA REPORT
                 </button>
             </form>
 
-            <div id="risultati" class="hidden mt-12 bg-gray-900 border border-gray-600 rounded-2xl p-6 md:p-8">
-                <h3 class="text-3xl font-black text-white border-b border-gray-700 pb-4 mb-6">Analisi Finanziaria</h3>
+            <div id="risultati" class="hidden mt-16 border-t border-gray-800 pt-10">
+                <h3 class="text-2xl font-bold text-white mb-8">RISULTATI ANALISI</h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 relative">
-                        <h4 class="text-red-400 font-bold mb-4 uppercase text-sm tracking-wide">Costi e Struttura Capitale</h4>
-                        <p class="flex justify-between text-gray-400 border-b border-gray-700 pb-2 mb-2">Acquisto: <strong id="out_prezzo" class="text-white"></strong></p>
-                        <p class="flex justify-between text-gray-400 border-b border-gray-700 pb-2 mb-2">Tasse, Notaio, Agenzia: <strong id="out_tasse_agenzia" class="text-white"></strong></p>
-                        <p class="flex justify-between text-gray-400 border-b border-gray-700 pb-2 mb-2">Lavori ed Extra: <strong id="out_lavori" class="text-orange-400"></strong></p>
-                        
-                        <div class="mt-4 pt-4 border-t-2 border-gray-600">
-                            <p class="flex justify-between text-lg text-white font-black">COSTO IMMOBILE FINITO: <strong id="out_investimento" class="text-blue-400"></strong></p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div class="bg-gray-900 p-6 rounded-md border border-gray-800">
+                        <h4 class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Struttura del Capitale</h4>
+                        <div class="space-y-2 text-sm">
+                            <p class="flex justify-between text-gray-400">Acquisto: <span class="text-white font-mono" id="out_prezzo"></span></p>
+                            <p class="flex justify-between text-gray-400">Tasse/Notaio/Agenzia: <span class="text-white font-mono" id="out_tasse_agenzia"></span></p>
+                            <p class="flex justify-between text-gray-400">Lavori (Capex): <span class="text-white font-mono" id="out_lavori"></span></p>
+                            <div class="border-t border-gray-800 pt-2 mt-2">
+                                <p class="flex justify-between font-bold text-gray-200">TOTALE PROGETTO: <span class="text-blue-400 font-mono" id="out_investimento"></span></p>
+                            </div>
                         </div>
 
-                        <div id="box_mutuo_risultato" class="hidden mt-4 bg-purple-900 bg-opacity-30 border border-purple-500 rounded-lg p-4">
-                            <p class="text-xs text-purple-300 font-bold mb-2 uppercase tracking-wide">Copertura Bancaria</p>
-                            <p class="flex justify-between text-gray-300 text-sm mb-1">Tuoi Contanti: <strong id="out_capitale_proprio" class="text-emerald-400"></strong></p>
-                            <p class="flex justify-between text-gray-300 text-sm mb-1">Prestito Banca: <strong id="out_importo_mutuo" class="text-purple-300"></strong></p>
-                            <p id="riga_rata_mutuo" class="flex justify-between text-gray-300 text-sm mt-3 pt-2 border-t border-purple-800 font-bold">Rata Mensile Banca: <strong id="out_rata_mutuo" class="text-red-400"></strong></p>
+                        <div id="box_mutuo_risultato" class="hidden mt-6 pt-6 border-t border-gray-800">
+                            <h4 class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Copertura Finanziaria</h4>
+                            <div class="space-y-2 text-sm">
+                                <p class="flex justify-between text-gray-400">Equity (Tuo Capitale): <span class="text-green-400 font-mono font-bold" id="out_capitale_proprio"></span></p>
+                                <p class="flex justify-between text-gray-400">Debito Banca: <span class="text-white font-mono" id="out_importo_mutuo"></span></p>
+                                <p id="riga_rata_mutuo" class="flex justify-between text-gray-400 mt-2">Rata Mensile: <span class="text-red-400 font-mono" id="out_rata_mutuo"></span></p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex flex-col justify-between">
-                        <div id="box_rendimento_dettagli" class="bg-emerald-900 bg-opacity-20 p-5 rounded-xl border border-emerald-500 mb-4">
-                            <h4 class="text-emerald-400 font-bold mb-4 uppercase text-sm tracking-wide">Rendimento</h4>
-                            <p id="riga_lordo" class="flex justify-between text-gray-300 border-b border-gray-700 pb-2 mb-2"><span id="label_rivendita">Valore Mercato Stimato:</span> <strong id="out_rivendita" class="text-white"></strong></p>
-                            <p id="riga_mista_cashflow" class="hidden flex justify-between text-blue-300 border-b border-gray-700 pb-2 mb-2">Cashflow Netto Annuo: <strong id="out_mista_cashflow" class="text-blue-400"></strong></p>
-                            <p id="riga_mista_debito" class="hidden flex justify-between text-red-300 border-b border-gray-700 pb-2 mb-2">Debito Banca al Rogito: <strong id="out_mista_debito" class="text-red-400"></strong></p>
-                            <p class="flex justify-between text-xl text-white font-black pt-2"><span id="label_utile">Utile Netto Finale:</span> <strong id="out_utile" class="text-emerald-400"></strong></p>
+                    <div class="flex flex-col gap-4">
+                        <div class="bg-gray-900 p-6 rounded-md border border-gray-800 flex-grow">
+                            <h4 class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Rendimento Netto</h4>
+                            <div class="space-y-3 text-sm">
+                                <p class="flex justify-between text-gray-300"><span id="label_rivendita">Valore Finale Lordo:</span> <span class="text-white font-mono font-bold" id="out_rivendita"></span></p>
+                                <p id="riga_plusvalenza" class="hidden flex justify-between text-gray-500">Tasse Plusvalenza (26%): <span class="text-red-400 font-mono" id="out_plusvalenza"></span></p>
+                                <p id="riga_mista_debito" class="hidden flex justify-between text-gray-500">Estinzione Debito: <span class="text-white font-mono" id="out_mista_debito"></span></p>
+                                <div class="border-t border-gray-800 pt-3 mt-3">
+                                    <p class="flex justify-between text-lg font-bold text-gray-200"><span id="label_utile">UTILE NETTO (PROFITTO):</span> <span class="text-green-400 font-mono" id="out_utile"></span></p>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="bg-gray-800 rounded-xl p-6 text-center border border-gray-700 shadow-inner flex-grow flex flex-col justify-center">
-                            <p id="label_roi_text" class="text-gray-400 mb-1 uppercase tracking-wide text-sm font-bold">R.O.I. Operazione</p>
-                            <p id="out_roi" class="text-5xl font-black text-emerald-400 mb-2"></p>
-                            <p id="out_payback" class="hidden text-sm font-bold text-orange-400 bg-orange-900 bg-opacity-30 py-1 px-3 rounded-full inline-block mx-auto mt-2"></p>
+                        <div class="bg-gray-900 p-6 rounded-md border border-gray-800 text-center flex flex-col justify-center">
+                            <p id="label_roi_text" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ritorno sul Capitale (ROI)</p>
+                            <p id="out_roi" class="text-4xl font-bold text-white font-mono tracking-tight"></p>
                         </div>
                     </div>
                 </div>
 
-                <div id="box_grafici" class="hidden mb-8 flex flex-col gap-8">
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner w-full">
-                        <h4 class="text-2xl font-black text-emerald-400 mb-2 text-center">💶 Radiografia del Mese</h4>
-                        <p class="text-gray-400 text-sm text-center mb-6">Cosa succede esattamente ogni 30 del mese sul tuo conto corrente</p>
-                        <div class="relative h-[350px] w-full">
-                            <canvas id="graficoCashflow"></canvas>
-                        </div>
+                <div id="box_grafici" class="hidden flex flex-col gap-10 mb-10">
+                    <div class="bg-gray-900 p-6 rounded-md border border-gray-800">
+                        <h4 class="text-sm font-bold text-gray-300 mb-6 uppercase tracking-widest">CASHFLOW MENSILE</h4>
+                        <div class="relative h-[300px] w-full"><canvas id="graficoCashflow"></canvas></div>
                     </div>
                     
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner w-full">
-                        <h4 class="text-2xl font-black text-blue-400 mb-2 text-center">📈 Proiezione a Lungo Termine</h4>
-                        <p class="text-gray-400 text-sm text-center mb-6">Come cresce il tuo patrimonio netto negli anni pagando il mutuo</p>
-                        <div class="relative h-[400px] w-full">
-                            <canvas id="graficoAmmortamento"></canvas>
-                        </div>
+                    <div class="bg-gray-900 p-6 rounded-md border border-gray-800">
+                        <h4 class="text-sm font-bold text-gray-300 mb-6 uppercase tracking-widest">LIFECYCLE DELL'INVESTIMENTO</h4>
+                        <div class="relative h-[350px] w-full"><canvas id="graficoTimeline"></canvas></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="window.print()" type="button" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg border border-gray-500">
-                        📄 Esporta in PDF
-                    </button>
-                    <button id="btnSalvaDeal" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg">
-                        💾 Salva nel Garage
-                    </button>
+                <div class="flex gap-4">
+                    <button id="btnSalvaDeal" class="flex-1 bg-white text-gray-900 hover:bg-gray-200 font-bold py-3 rounded-md transition text-sm tracking-wider">SALVA NEL PORTAFOGLIO</button>
                 </div>
             </div>
         </div>
     </div> 
 
-    <div id="vistaDashboard" class="hidden max-w-6xl mx-auto p-4 md:p-8 mt-6">
-        <h2 class="text-3xl font-bold text-white mb-2">Il Mio Garage 🚘</h2>
+    <div id="vistaDashboard" class="hidden max-w-6xl mx-auto p-4 md:p-8 mt-4">
+        <h2 class="text-2xl font-bold text-white mb-6">PORTAFOGLIO ASSET</h2>
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
     <script>
+        Chart.register(ChartDataLabels); // Attiva le labels sui grafici
+        
         let ultimoDealCalcolato = null;
-        let chartLineInstance = null; 
+        let chartTimelineInstance = null; 
         let chartBarInstance = null;
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -217,15 +214,13 @@
             function popolaCampo(id, parametro) {
                 if(urlParams.has(parametro)) {
                     const input = document.getElementById(id);
-                    if(input) { input.value = urlParams.get(parametro); input.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-900', 'bg-opacity-20'); }
+                    if(input) { input.value = urlParams.get(parametro); }
                 }
             }
             popolaCampo('prezzo', 'prezzo'); popolaCampo('mq', 'mq'); popolaCampo('tipologia', 'tipologia');
-            
             function calcolaPrezzoMq() {
-                const prezzo = parseFloat(document.getElementById('prezzo').value) || 0;
-                const mq = parseFloat(document.getElementById('mq').value) || 0;
-                document.getElementById('live_prezzo_mq').textContent = (prezzo>0 && mq>0) ? `⚡ ${Math.round(prezzo / mq).toLocaleString()} € / mq` : "0 € / mq";
+                const p = parseFloat(document.getElementById('prezzo').value)||0; const m = parseFloat(document.getElementById('mq').value)||0;
+                document.getElementById('live_prezzo_mq').textContent = (p>0 && m>0) ? `${Math.round(p/m).toLocaleString()} € / mq` : "0 € / mq";
             }
             document.getElementById('prezzo').addEventListener('input', calcolaPrezzoMq);
             document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
@@ -234,133 +229,90 @@
 
         function toggleInput(inputId, checkId) {
             const input = document.getElementById(inputId);
-            if(document.getElementById(checkId).checked) {
-                input.disabled = false; input.classList.replace('bg-gray-900', 'bg-gray-800'); input.classList.replace('text-gray-500', 'text-white');
-            } else {
-                input.disabled = true; input.value = input.getAttribute('value') || 0; input.classList.replace('bg-gray-800', 'bg-gray-900'); input.classList.replace('text-white', 'text-gray-500');
-            }
+            if(document.getElementById(checkId).checked) { input.disabled = false; input.classList.remove('opacity-50'); } 
+            else { input.disabled = true; input.value = input.getAttribute('value')||0; input.classList.add('opacity-50'); }
         }
-
-        function calcolaStimaLavoro(tipo, costoAlMq) { toggleInput(`val_${tipo}`, `chk_${tipo}`); const i = document.getElementById(`val_${tipo}`); if(document.getElementById(`chk_${tipo}`).checked) i.value = (parseFloat(document.getElementById('mq').value) || 0) * costoAlMq; else i.value = 0; }
-        function calcolaStimaFissa(tipo, costoFisso) { toggleInput(`val_${tipo}`, `chk_${tipo}`); document.getElementById(`val_${tipo}`).value = document.getElementById(`chk_${tipo}`).checked ? costoFisso : 0; }
-
-        function toggleMutuo() {
-            document.getElementById('pannelloMutuo').classList.toggle('hidden', !document.getElementById('usa_mutuo').checked);
-        }
+        function calcolaStimaLavoro(t, c) { toggleInput(`val_${t}`, `chk_${t}`); const i = document.getElementById(`val_${t}`); if(document.getElementById(`chk_${t}`).checked) i.value = (parseFloat(document.getElementById('mq').value)||0)*c; else i.value=0; }
+        function calcolaStimaFissa(t, c) { toggleInput(`val_${t}`, `chk_${t}`); document.getElementById(`val_${t}`).value = document.getElementById(`chk_${t}`).checked ? c : 0; }
+        function toggleMutuo() { document.getElementById('pannelloMutuo').classList.toggle('hidden', !document.getElementById('usa_mutuo').checked); }
 
         function cambiaStrategia() {
             const strat = document.getElementById('strategia').value;
-            const pVendita = document.getElementById('pannelloVendita');
-            const pAffitto = document.getElementById('pannelloAffitto');
-            
-            if(strat === 'Vendita') {
-                pVendita.classList.remove('hidden'); pAffitto.classList.add('hidden');
-                document.getElementById('box_mesi_cantiere').classList.remove('hidden');
-                document.getElementById('box_anni_affitto').classList.add('hidden');
-            } else if (strat === 'Affitto') {
-                pVendita.classList.add('hidden'); pAffitto.classList.remove('hidden');
-            } else if (strat === 'Mista') {
-                pVendita.classList.remove('hidden'); pAffitto.classList.remove('hidden');
-                document.getElementById('box_mesi_cantiere').classList.add('hidden');
-                document.getElementById('box_anni_affitto').classList.remove('hidden');
-            }
+            document.getElementById('pannelloVendita').classList.toggle('hidden', strat === 'Affitto');
+            document.getElementById('pannelloAffitto').classList.toggle('hidden', strat === 'Vendita');
+            document.getElementById('box_anni_affitto').classList.toggle('hidden', strat !== 'Mista');
         }
 
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        // --- GRAFICO 1: LINEA (Valore vs Debito) - ORA GIGANTE ---
-        function disegnaGraficoAmmortamento(datiProgetto) {
-            const ctx = document.getElementById('graficoAmmortamento').getContext('2d');
-            if (chartLineInstance) chartLineInstance.destroy();
-
-            let labels = [];
-            let valoreImmobileData = [];
-            let debitoMutuoData = [];
-            
-            let valoreAttuale = datiProgetto.valore_mercato_iniziale;
-            let debitoAttuale = datiProgetto.importo_mutuo || 0;
-            let tassoMensile = (datiProgetto.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
-            let anniRappresentati = debitoAttuale > 0 ? parseInt(document.getElementById('anni_mutuo').value) : 15;
-
-            for(let a=0; a<=anniRappresentati; a++) {
-                labels.push('Anno ' + a);
-                valoreImmobileData.push(Math.round(valoreAttuale));
-                debitoMutuoData.push(Math.round(debitoAttuale > 0 ? debitoAttuale : 0));
-
-                valoreAttuale = valoreAttuale * (1 + (datiProgetto.apprezzamento_annuo / 100)); 
-                
-                if(debitoAttuale > 0) {
-                    for(let m=0; m<12; m++) {
-                        let quotaInteressi = debitoAttuale * tassoMensile;
-                        let quotaCapitale = datiProgetto.rata_mensile_mutuo - quotaInteressi;
-                        debitoAttuale -= quotaCapitale;
-                    }
-                }
-            }
-
-            chartLineInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: `Valore Immobile (+${datiProgetto.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
-                        { label: 'Debito Residuo Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
-                    ]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, // Serve per fargli riempire tutto lo spazio verticale che gli diamo
-                    plugins: { legend: { labels: { color: '#cbd5e1', font: {size: 14} } } }, 
-                    scales: { 
-                        y: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } }, 
-                        x: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } } 
-                    } 
-                }
-            });
-        }
-
-        // --- GRAFICO 2: BARRE (CASHFLOW MENSILE) - NUOVO E GIGANTE ---
-        function disegnaGraficoCashflow(dati) {
+        // GRAFICO 1: CASHFLOW MENSILE (WATERFALL)
+        function disegnaGraficoCashflow(dati, payload) {
             const ctx = document.getElementById('graficoCashflow').getContext('2d');
             if (chartBarInstance) chartBarInstance.destroy();
 
-            let incassoMensile = dati.metrica_lorda / 12; 
-            if (dati.strategia === 'Mista') incassoMensile = (parseFloat(document.getElementById('canone_mensile').value) || 0);
-
+            let incassoMensile = (dati.strategia === 'Mista' || dati.strategia === 'Affitto') ? payload.canone_mensile : 0;
             let rataBanca = dati.rata_mensile_mutuo || 0;
-            let cashflowAnnuo = (dati.strategia === 'Mista') ? dati.cashflow_annuo : dati.utile_netto;
-            let cashflowMensile = cashflowAnnuo / 12;
-
-            // Ricaviamo le spese mensili (Tasse, Condominio, Utenze) per differenza matematica
+            let cashflowMensile = dati.cashflow_annuo / 12;
             let altreSpese = incassoMensile - rataBanca - cashflowMensile;
 
             chartBarInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Incasso Affitto', 'Rata Banca', 'Tasse e Utenze', 'NETTO IN TASCA'],
+                    labels: ['Incasso Lordo', 'Rata Banca', 'Tasse/Utenze', 'NETTO MENSILE'],
                     datasets: [{
-                        label: 'Euro (€)',
                         data: [incassoMensile, -rataBanca, -altreSpese, cashflowMensile],
-                        backgroundColor: [
-                            'rgba(16, 185, 129, 0.9)', // Verde
-                            'rgba(239, 68, 68, 0.9)',  // Rosso
-                            'rgba(249, 115, 22, 0.9)', // Arancio
-                            cashflowMensile >= 0 ? 'rgba(59, 130, 246, 0.9)' : 'rgba(220, 38, 38, 0.9)' // Netto: Blu o Rosso Scuro
-                        ],
-                        borderRadius: 6
+                        backgroundColor: ['#10B981', '#EF4444', '#F97316', cashflowMensile>=0?'#3B82F6':'#DC2626'],
+                        borderRadius: 4
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Fondamentale per renderlo grande
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { 
                         legend: { display: false },
-                        tooltip: { callbacks: { label: function(context) { return '€ ' + context.parsed.y.toFixed(2); } } }
+                        datalabels: { color: '#FFF', font: {weight: 'bold'}, formatter: (val) => '€ ' + Math.round(val) }
                     },
                     scales: { 
-                        y: { ticks: { color: '#cbd5e1', font: {size: 14} }, grid: { color: '#334155' } }, 
-                        x: { ticks: { color: '#cbd5e1', font: {weight: 'bold', size: 14} }, grid: { display: false } } 
+                        y: { ticks: { color: '#6B7280' }, grid: { color: '#1F2937' } }, 
+                        x: { ticks: { color: '#9CA3AF', font: {weight: '600'} }, grid: { display: false } } 
+                    }
+                }
+            });
+        }
+
+        // GRAFICO 2: TIMELINE ANNUALE (IL LIFECYCLE)
+        function disegnaGraficoTimeline(dati) {
+            const ctx = document.getElementById('graficoTimeline').getContext('2d');
+            if (chartTimelineInstance) chartTimelineInstance.destroy();
+
+            let labels = dati.timeline.map((_, i) => i === 0 ? 'Anno 0 (Acquisto)' : `Anno ${i}`);
+            if (dati.strategia !== 'Affitto') labels[labels.length - 1] += ' (Vendita)';
+
+            let colors = dati.timeline.map((val, i) => i === 0 ? '#EF4444' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10B981' : '#3B82F6'));
+
+            chartTimelineInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dati.timeline,
+                        backgroundColor: colors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: { 
+                            color: '#FFF', font: {weight: 'bold', size: 10}, 
+                            anchor: 'end', align: 'top', offset: 4,
+                            formatter: (val) => '€ ' + Math.round(val).toLocaleString() 
+                        }
+                    },
+                    scales: { 
+                        y: { ticks: { color: '#6B7280' }, grid: { color: '#1F2937' } }, 
+                        x: { ticks: { color: '#9CA3AF' }, grid: { display: false } } 
                     }
                 }
             });
@@ -372,16 +324,14 @@
             const strat = document.getElementById('strategia').value;
 
             const payload = {
-                prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat,
-                profilo_fiscale: document.getElementById('profilo_fiscale').value,
+                prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
                 spese_condominio_mensili: getVal('condominio'), spese_extra: getVal('spese_extra'), costo_lavori_totale: getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi'), 
-                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_operazione: getVal('mesi') || 6, 
+                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_lavori: getVal('mesi') || 6, 
                 stima_rivendita: getVal('rivendita'), apprezzamento_annuo: getVal('apprezzamento'),
                 canone_mensile: getVal('canone_mensile'), cedolare_secca_perc: getVal('cedolare'), imu_annua: getVal('imu'), costo_wifi: getVal('val_wifi'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'),
                 costo_acqua_tari: getVal('val_acqua'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
-                anni_messa_a_reddito: getVal('anni_affitto') || 5,
-                usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo')
+                anni_messa_a_reddito: getVal('anni_affitto') || 5, usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo')
             };
 
             try {
@@ -405,112 +355,88 @@
                     document.getElementById('out_rata_mutuo').textContent = "€ " + data.rata_mensile_mutuo.toLocaleString() + " / mese";
                 } else { mutuoBox.classList.add('hidden'); }
 
-                document.getElementById('riga_mista_cashflow').classList.add('hidden');
                 document.getElementById('riga_mista_debito').classList.add('hidden');
+                document.getElementById('riga_plusvalenza').classList.add('hidden');
+                document.getElementById('box_grafici').classList.add('hidden');
 
                 if(data.strategia === "Vendita") {
-                    document.getElementById('label_rivendita').textContent = "Valore di Mercato (Rivendita):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                    document.getElementById('label_utile').textContent = "Utile Netto (Guadagno Puro):"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                    document.getElementById('label_roi_text').textContent = data.usa_mutuo ? "Cash-on-Cash Return" : "R.O.I. Operazione";
-                    document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-                    document.getElementById('out_payback').classList.add('hidden');
+                    document.getElementById('label_rivendita').textContent = "Rivendita Lorda:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                    document.getElementById('label_utile').textContent = "PROFITTO NETTO:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                    if(data.tasse_plusvalenza > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "€ " + data.tasse_plusvalenza.toLocaleString(); }
+                    document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
                     
-                    document.getElementById('box_grafici').classList.add('hidden'); // Nasconde i grafici per la vendita veloce
+                    document.getElementById('box_grafici').classList.remove('hidden');
+                    document.getElementById('graficoCashflow').parentElement.parentElement.classList.add('hidden'); // Nascondi waterfall mensile nel flip
+                    disegnaGraficoTimeline(data);
                 } else {
+                    document.getElementById('graficoCashflow').parentElement.parentElement.classList.remove('hidden');
                     if (data.strategia === "Affitto") {
-                        document.getElementById('label_rivendita').textContent = "Incasso Lordo Annuo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                        document.getElementById('label_utile').textContent = "Cashflow Netto Annuo:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                        document.getElementById('label_roi_text').textContent = data.usa_mutuo ? "Cash-on-Cash Return" : "Rendimento Annuo Netto";
-                        document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-                        if(data.utile_netto > 0) { document.getElementById('out_payback').textContent = `⏱️ Rientro del Capitale in ${(data.capitale_proprio / data.utile_netto).toFixed(1)} anni`; document.getElementById('out_payback').classList.remove('hidden'); } else { document.getElementById('out_payback').classList.add('hidden'); }
+                        document.getElementById('label_rivendita').textContent = "Incasso Annuo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                        document.getElementById('label_utile').textContent = "CASHFLOW NETTO/ANNO:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                        document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
                     } else if (data.strategia === "Mista") {
-                        document.getElementById('label_rivendita').textContent = "Valore Immobile Stimato (Anno "+payload.anni_messa_a_reddito+"):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                        document.getElementById('riga_mista_cashflow').classList.remove('hidden'); document.getElementById('out_mista_cashflow').textContent = "€ " + data.cashflow_annuo.toLocaleString();
+                        document.getElementById('label_rivendita').textContent = "Valore Vendita (Anno "+payload.anni_messa_a_reddito+"):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                        if(data.tasse_plusvalenza > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "€ " + data.tasse_plusvalenza.toLocaleString(); }
                         if(data.usa_mutuo && data.debito_residuo > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "€ " + data.debito_residuo.toLocaleString(); }
-                        document.getElementById('label_utile').textContent = "UTILE TOTALE FINALE:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
-                        document.getElementById('label_roi_text').textContent = "ROI TOTALE OPERAZIONE";
-                        document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
-                        document.getElementById('out_payback').textContent = `📈 Rendimento Medio: ${data.roi_annuo_medio} % Annuo`; document.getElementById('out_payback').classList.remove('hidden');
+                        document.getElementById('label_utile').textContent = "PROFITTO FINALE:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
+                        document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
                     }
                     
-                    // Disegna i grafici giganteschi e li mostra
                     document.getElementById('box_grafici').classList.remove('hidden');
-                    disegnaGraficoCashflow(data); // Prima il mensile
-                    disegnaGraficoAmmortamento(data); // Poi quello negli anni
+                    disegnaGraficoCashflow(data, payload);
+                    disegnaGraficoTimeline(data);
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-                document.getElementById('btnSalvaDeal').disabled = false;
-                document.getElementById('btnSalvaDeal').textContent = "💾 Salva nel Garage";
-                document.getElementById('btnSalvaDeal').className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
+                document.getElementById('btnSalvaDeal').disabled = false; document.getElementById('btnSalvaDeal').textContent = "SALVA NEL PORTAFOGLIO";
 
-            } catch (e) { alert("Errore di calcolo dal server. Controlla di aver compilato bene i dati."); console.error(e); }
+            } catch (e) { alert("Errore di calcolo dal server. Controlla i dati."); console.error(e); }
         });
 
-        // (CARICA E ELIMINA DEALS - Codice Invariato)
+        // (CARICA DEALS INVARIATO MA STILIZZATO SCURO)
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
-            contenitore.innerHTML = '<p class="text-white animate-pulse">Recupero dati dal database...</p>';
+            contenitore.innerHTML = '<p class="text-gray-500 animate-pulse">Caricamento portafoglio...</p>';
             try {
                 const res = await fetch('/api/get-deals');
                 const data = await res.json();
-                
                 if(data.success && data.deals.length > 0) {
                     contenitore.innerHTML = '';
                     data.deals.forEach(deal => {
-                        const isVendita = deal.strategia === 'Vendita';
-                        const isMista = deal.strategia === 'Mista';
-                        const stratColor = isVendita ? 'text-emerald-400' : (isMista ? 'text-purple-400' : 'text-blue-400');
-                        const icona = isVendita ? '🔄' : (isMista ? '📈' : '💰');
-                        const roiColor = deal.roi_percentuale >= 15 ? 'text-emerald-400' : (deal.roi_percentuale > 0 ? 'text-yellow-400' : 'text-red-500');
-                        let labelUtile = isVendita ? 'Utile Netto:' : 'Cashflow Annuo:';
-                        if (isMista) labelUtile = 'Utile Tot. Finale:';
-
+                        const isV = deal.strategia === 'Vendita';
+                        const cColor = isV ? 'text-blue-400' : 'text-green-400';
                         contenitore.innerHTML += `
-                            <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl relative hover:border-gray-500 transition duration-300">
-                                <button onclick="eliminaDeal(${deal.id})" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl transition" title="Elimina">🗑️</button>
-                                <div class="text-xs text-gray-400 mb-3"><span>📅 ${deal.data_salvataggio}</span></div>
-                                <h3 class="text-2xl font-black ${stratColor} mb-4 border-b border-gray-700 pb-2">${icona} ${deal.strategia}</h3>
-                                <div class="space-y-2 mb-4">
-                                    <p class="text-gray-400 flex justify-between">Acquisto: <b class="text-white">€ ${deal.prezzo_acquisto.toLocaleString()}</b></p>
-                                    <p class="text-gray-400 flex justify-between">Capitale Proprio: <b class="text-white">€ ${deal.investimento_totale.toLocaleString()}</b></p>
-                                </div>
-                                <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
-                                    <p class="text-gray-300 flex justify-between items-center mb-1">${labelUtile} <b class="text-xl text-white">€ ${deal.utile_netto.toLocaleString()}</b></p>
-                                    <p class="text-gray-300 flex justify-between items-center">R.O.I.: <b class="text-2xl font-black ${roiColor}">${deal.roi_percentuale}%</b></p>
+                            <div class="card p-5 relative hover:border-gray-600 transition">
+                                <button onclick="eliminaDeal(${deal.id})" class="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition">✕</button>
+                                <p class="text-xs text-gray-500 mb-2 font-mono">${deal.data_salvataggio}</p>
+                                <h3 class="text-lg font-bold text-white mb-4 uppercase tracking-wider">${deal.strategia}</h3>
+                                <p class="text-sm text-gray-400 flex justify-between mb-1">Acquisto: <span class="text-white font-mono">€ ${deal.prezzo_acquisto.toLocaleString()}</span></p>
+                                <p class="text-sm text-gray-400 flex justify-between mb-4">Investito: <span class="text-white font-mono">€ ${deal.investimento_totale.toLocaleString()}</span></p>
+                                <div class="border-t border-gray-800 pt-3">
+                                    <p class="text-sm text-gray-400 flex justify-between items-center mb-1">Utile/Cashflow: <span class="text-white font-mono font-bold">€ ${deal.utile_netto.toLocaleString()}</span></p>
+                                    <p class="text-sm text-gray-400 flex justify-between items-center">ROI: <span class="${cColor} text-xl font-bold font-mono">${deal.roi_percentuale}%</span></p>
                                 </div>
                             </div>
                         `;
                     });
-                } else {
-                    contenitore.innerHTML = `<div class="col-span-full text-center py-12 bg-gray-800 rounded-lg border border-dashed border-gray-600"><p class="text-gray-400 text-lg mb-2">Il tuo garage è ancora vuoto.</p></div>`;
-                }
-            } catch (error) { contenitore.innerHTML = '<p class="text-red-500">❌ Errore Database.</p>'; }
+                } else { contenitore.innerHTML = `<p class="text-gray-500">Nessun asset in portafoglio.</p>`; }
+            } catch (e) { contenitore.innerHTML = '<p class="text-red-500">Errore Database.</p>'; }
         }
-
-        async function eliminaDeal(id) {
-            if(confirm("Sei sicuro di eliminare questa operazione?")) {
-                await fetch('/api/delete-deal/' + id, { method: 'DELETE' });
-                caricaDeals();
-            }
-        }
+        async function eliminaDeal(id) { if(confirm("Eliminare asset dal portafoglio?")) { await fetch('/api/delete-deal/' + id, { method: 'DELETE' }); caricaDeals(); } }
         
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
             if(!ultimoDealCalcolato) return;
-            this.textContent = "⏳ Salvataggio...";
+            this.textContent = "SALVATAGGIO...";
             try {
                 const response = await fetch('/api/salva-deal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ultimoDealCalcolato) });
                 const data = await response.json();
                 if(data.successo) {
-                    this.textContent = "✅ " + data.messaggio;
-                    this.className = "w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
+                    this.textContent = "SALVATO ✓";
+                    this.classList.add('bg-green-600', 'text-white');
                     this.disabled = true;
-                    caricaDeals(); 
-                } else {
-                    this.textContent = "❌ Errore: " + data.errore;
-                    this.className = "w-full bg-red-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
+                    caricaDeals();
                 }
-            } catch (error) { this.textContent = "❌ Errore di Rete"; }
+            } catch (error) { this.textContent = "ERRORE"; }
         });
     </script>
 </body>
