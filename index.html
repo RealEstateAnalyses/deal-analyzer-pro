@@ -163,24 +163,30 @@
                         <div class="bg-gray-900 p-6 rounded-md border border-gray-800 flex-grow">
                             <h4 class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Rendimento Netto</h4>
                             <div class="space-y-3 text-sm">
+                                <!-- Dati Finanziari Mensili Reintrodotti -->
+                                <p id="riga_incasso_mese" class="hidden flex justify-between text-gray-400">Incasso Mensile Lordo: <span class="text-white font-mono" id="out_incasso_mese"></span></p>
+                                <p id="riga_cashflow_mese" class="hidden flex justify-between text-gray-400 mb-2 border-b border-gray-800 pb-2">Cashflow Netto Mensile: <span class="text-blue-400 font-mono font-bold" id="out_cashflow_mese"></span></p>
+                                <p id="riga_cashflow_annuo" class="hidden flex justify-between text-gray-400 mb-4">Cashflow Netto Annuo: <span class="text-blue-400 font-mono font-bold" id="out_cashflow_annuo"></span></p>
+
                                 <p class="flex justify-between text-gray-300"><span id="label_rivendita">Valore Finale Lordo:</span> <span class="text-white font-mono font-bold" id="out_rivendita"></span></p>
                                 <p id="riga_plusvalenza" class="hidden flex justify-between text-gray-500">Tasse Plusvalenza (26%): <span class="text-red-400 font-mono" id="out_plusvalenza"></span></p>
                                 <p id="riga_mista_debito" class="hidden flex justify-between text-gray-500">Estinzione Debito: <span class="text-white font-mono" id="out_mista_debito"></span></p>
+                                
                                 <div class="border-t border-gray-800 pt-3 mt-3">
-                                    <p class="flex justify-between text-lg font-bold text-gray-200"><span id="label_utile">UTILE NETTO (PROFITTO):</span> <span class="text-green-400 font-mono" id="out_utile"></span></p>
+                                    <p class="flex justify-between text-lg font-bold text-gray-200"><span id="label_utile">UTILE NETTO FINALE:</span> <span class="font-mono" id="out_utile"></span></p>
                                 </div>
                             </div>
                         </div>
                         <div class="bg-gray-900 p-6 rounded-md border border-gray-800 text-center flex flex-col justify-center">
                             <p id="label_roi_text" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ritorno sul Capitale (ROI)</p>
-                            <p id="out_roi" class="text-4xl font-bold text-white font-mono tracking-tight"></p>
+                            <p id="out_roi" class="text-4xl font-bold font-mono tracking-tight"></p>
                         </div>
                     </div>
                 </div>
 
                 <div id="box_grafici" class="hidden flex flex-col gap-10 mb-10">
                     <div class="bg-gray-900 p-6 rounded-md border border-gray-800">
-                        <h4 class="text-sm font-bold text-gray-300 mb-6 uppercase tracking-widest">CASHFLOW MENSILE</h4>
+                        <h4 class="text-sm font-bold text-gray-300 mb-6 uppercase tracking-widest">CASHFLOW MENSILE (Entrate vs Uscite)</h4>
                         <div class="relative h-[300px] w-full"><canvas id="graficoCashflow"></canvas></div>
                     </div>
                     
@@ -203,7 +209,7 @@
     </div>
 
     <script>
-        Chart.register(ChartDataLabels); // Attiva le labels sui grafici
+        Chart.register(ChartDataLabels);
         
         let ultimoDealCalcolato = null;
         let chartTimelineInstance = null; 
@@ -246,14 +252,13 @@
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        // GRAFICO 1: CASHFLOW MENSILE (WATERFALL)
-        function disegnaGraficoCashflow(dati, payload) {
+        function disegnaGraficoCashflow(dati) {
             const ctx = document.getElementById('graficoCashflow').getContext('2d');
             if (chartBarInstance) chartBarInstance.destroy();
 
-            let incassoMensile = (dati.strategia === 'Mista' || dati.strategia === 'Affitto') ? payload.canone_mensile : 0;
+            let incassoMensile = dati.incasso_mensile_lordo || 0;
             let rataBanca = dati.rata_mensile_mutuo || 0;
-            let cashflowMensile = dati.cashflow_annuo / 12;
+            let cashflowMensile = dati.cashflow_mensile_netto || 0;
             let altreSpese = incassoMensile - rataBanca - cashflowMensile;
 
             chartBarInstance = new Chart(ctx, {
@@ -280,7 +285,6 @@
             });
         }
 
-        // GRAFICO 2: TIMELINE ANNUALE (IL LIFECYCLE)
         function disegnaGraficoTimeline(dati) {
             const ctx = document.getElementById('graficoTimeline').getContext('2d');
             if (chartTimelineInstance) chartTimelineInstance.destroy();
@@ -288,7 +292,7 @@
             let labels = dati.timeline.map((_, i) => i === 0 ? 'Anno 0 (Acquisto)' : `Anno ${i}`);
             if (dati.strategia !== 'Affitto') labels[labels.length - 1] += ' (Vendita)';
 
-            let colors = dati.timeline.map((val, i) => i === 0 ? '#EF4444' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10B981' : '#3B82F6'));
+            let colors = dati.timeline.map((val, i) => i === 0 ? '#EF4444' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10B981' : (val >= 0 ? '#3B82F6' : '#F97316')));
 
             chartTimelineInstance = new Chart(ctx, {
                 type: 'bar',
@@ -306,7 +310,9 @@
                         legend: { display: false },
                         datalabels: { 
                             color: '#FFF', font: {weight: 'bold', size: 10}, 
-                            anchor: 'end', align: 'top', offset: 4,
+                            anchor: (context) => context.dataset.data[context.dataIndex] >= 0 ? 'end' : 'start', 
+                            align: (context) => context.dataset.data[context.dataIndex] >= 0 ? 'top' : 'bottom', 
+                            offset: 4,
                             formatter: (val) => '€ ' + Math.round(val).toLocaleString() 
                         }
                     },
@@ -327,7 +333,7 @@
                 prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
                 spese_condominio_mensili: getVal('condominio'), spese_extra: getVal('spese_extra'), costo_lavori_totale: getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi'), 
-                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_lavori: getVal('mesi') || 6, 
+                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_lavori: getVal('mesi_lavori') || 6, 
                 stima_rivendita: getVal('rivendita'), apprezzamento_annuo: getVal('apprezzamento'),
                 canone_mensile: getVal('canone_mensile'), cedolare_secca_perc: getVal('cedolare'), imu_annua: getVal('imu'), costo_wifi: getVal('val_wifi'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'),
                 costo_acqua_tari: getVal('val_acqua'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
@@ -355,9 +361,18 @@
                     document.getElementById('out_rata_mutuo').textContent = "€ " + data.rata_mensile_mutuo.toLocaleString() + " / mese";
                 } else { mutuoBox.classList.add('hidden'); }
 
+                // Reset Viste Testi
                 document.getElementById('riga_mista_debito').classList.add('hidden');
                 document.getElementById('riga_plusvalenza').classList.add('hidden');
+                document.getElementById('riga_incasso_mese').classList.add('hidden');
+                document.getElementById('riga_cashflow_mese').classList.add('hidden');
+                document.getElementById('riga_cashflow_annuo').classList.add('hidden');
                 document.getElementById('box_grafici').classList.add('hidden');
+
+                // Gestione Colore Utile Netto Dinamico
+                const colorUtile = data.utile_netto >= 0 ? 'text-green-400' : 'text-red-500';
+                document.getElementById('out_utile').className = `${colorUtile} font-mono font-bold`;
+                document.getElementById('out_roi').className = `text-4xl font-bold ${colorUtile} font-mono tracking-tight`;
 
                 if(data.strategia === "Vendita") {
                     document.getElementById('label_rivendita').textContent = "Rivendita Lorda:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
@@ -366,15 +381,29 @@
                     document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
                     
                     document.getElementById('box_grafici').classList.remove('hidden');
-                    document.getElementById('graficoCashflow').parentElement.parentElement.classList.add('hidden'); // Nascondi waterfall mensile nel flip
+                    document.getElementById('graficoCashflow').parentElement.parentElement.classList.add('hidden');
                     disegnaGraficoTimeline(data);
                 } else {
                     document.getElementById('graficoCashflow').parentElement.parentElement.classList.remove('hidden');
+                    
+                    // Riattiviamo i testi del Cashflow
+                    document.getElementById('riga_incasso_mese').classList.remove('hidden');
+                    document.getElementById('out_incasso_mese').textContent = "€ " + data.incasso_mensile_lordo.toLocaleString();
+                    
+                    document.getElementById('riga_cashflow_mese').classList.remove('hidden');
+                    document.getElementById('out_cashflow_mese').textContent = "€ " + data.cashflow_mensile_netto.toLocaleString();
+                    document.getElementById('out_cashflow_mese').className = (data.cashflow_mensile_netto >= 0 ? 'text-blue-400' : 'text-red-400') + ' font-mono font-bold';
+
                     if (data.strategia === "Affitto") {
-                        document.getElementById('label_rivendita').textContent = "Incasso Annuo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                        document.getElementById('label_rivendita').textContent = "Incasso Annuo Lordo:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                        document.getElementById('riga_cashflow_annuo').classList.remove('hidden');
+                        document.getElementById('out_cashflow_annuo').textContent = "€ " + data.utile_netto.toLocaleString();
                         document.getElementById('label_utile').textContent = "CASHFLOW NETTO/ANNO:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
                         document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
                     } else if (data.strategia === "Mista") {
+                        document.getElementById('riga_cashflow_annuo').classList.remove('hidden');
+                        document.getElementById('out_cashflow_annuo').textContent = "€ " + data.cashflow_annuo.toLocaleString();
+                        
                         document.getElementById('label_rivendita').textContent = "Valore Vendita (Anno "+payload.anni_messa_a_reddito+"):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
                         if(data.tasse_plusvalenza > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "€ " + data.tasse_plusvalenza.toLocaleString(); }
                         if(data.usa_mutuo && data.debito_residuo > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "€ " + data.debito_residuo.toLocaleString(); }
@@ -383,7 +412,7 @@
                     }
                     
                     document.getElementById('box_grafici').classList.remove('hidden');
-                    disegnaGraficoCashflow(data, payload);
+                    disegnaGraficoCashflow(data);
                     disegnaGraficoTimeline(data);
                 }
                 
@@ -393,7 +422,6 @@
             } catch (e) { alert("Errore di calcolo dal server. Controlla i dati."); console.error(e); }
         });
 
-        // (CARICA DEALS INVARIATO MA STILIZZATO SCURO)
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
             contenitore.innerHTML = '<p class="text-gray-500 animate-pulse">Caricamento portafoglio...</p>';
@@ -404,7 +432,7 @@
                     contenitore.innerHTML = '';
                     data.deals.forEach(deal => {
                         const isV = deal.strategia === 'Vendita';
-                        const cColor = isV ? 'text-blue-400' : 'text-green-400';
+                        const cColor = deal.roi_percentuale >= 0 ? 'text-green-400' : 'text-red-500';
                         contenitore.innerHTML += `
                             <div class="card p-5 relative hover:border-gray-600 transition">
                                 <button onclick="eliminaDeal(${deal.id})" class="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition">✕</button>
