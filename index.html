@@ -9,32 +9,35 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #EDEDED; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #EDEDED; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .hidden { display: none !important; }
         
-        /* Stili Istituzionali Premium */
-        .card { background-color: #0A0A0A; border: 1px solid #1F1F1F; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .section-title { font-size: 0.85rem; font-weight: 600; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #1F1F1F; padding-bottom: 0.75rem; margin-bottom: 1.5rem; }
+        .card { background-color: #0A0A0A; border: 1px solid #1F1F1F; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.8); }
+        .section-title { font-size: 0.85rem; font-weight: 600; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #1F1F1F; padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;}
         .label-sm { display: block; font-size: 0.65rem; font-weight: 700; color: #737373; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
         
         .input-field { width: 100%; background-color: #141414; border: 1px solid #262626; border-radius: 6px; padding: 0.75rem; color: #FFFFFF; font-size: 0.875rem; transition: all 0.2s ease; }
-        .input-field:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5); }
+        .input-field:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3); }
         .input-field:disabled { background-color: #0A0A0A; color: #404040; border-color: #1A1A1A; }
         
-        input[type="checkbox"] { appearance: none; background-color: #141414; margin: 0; font: inherit; color: currentColor; width: 1.15em; height: 1.15em; border: 1px solid #262626; border-radius: 0.15em; display: grid; place-content: center; cursor: pointer;}
-        input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #3B82F6; background-color: #3B82F6; transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+        input[type="checkbox"] { appearance: none; background-color: #141414; margin: 0; color: currentColor; width: 1.25em; height: 1.25em; border: 1px solid #262626; border-radius: 0.25em; display: grid; place-content: center; cursor: pointer;}
+        input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #3B82F6; background-color: #3B82F6; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
         input[type="checkbox"]:checked::before { transform: scale(1); }
 
         .btn-primary { background-color: #FFFFFF; color: #000000; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 1rem; border-radius: 6px; transition: background-color 0.2s; }
         .btn-primary:hover { background-color: #D4D4D4; }
         .btn-secondary { background-color: #141414; border: 1px solid #262626; color: #EDEDED; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
         .btn-secondary:hover { background-color: #1F1F1F; border-color: #404040; }
+
+        /* Toggle Switch Stile iOS/Institutional */
+        .toggle-checkbox:checked { right: 0; border-color: #3B82F6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3B82F6; }
+        .toggle-checkbox:checked + .toggle-label:before { transform: translateX(100%); }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-blue-900 selection:text-white">
 
-    <!-- HEADER MINIMAL -->
     <nav class="bg-[#0A0A0A] border-b border-[#1F1F1F] sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
             <div class="flex items-center gap-4">
@@ -48,21 +51,13 @@
         </div>
     </nav>
 
-    <!-- CALCOLATORE -->
     <div id="vistaCalcolatore" class="max-w-5xl mx-auto px-4 py-8">
         <form id="dealForm" class="space-y-8">
             
-            <div class="flex gap-2">
-                <input type="url" id="urlAnnuncio" placeholder="Incolla l'URL dell'annuncio per l'estrazione dati (opzionale)..." class="input-field">
-                <button id="btnEstrai" type="button" class="btn-secondary whitespace-nowrap">Estrai Dati</button>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- COLONNA SINISTRA (Dati Principali) -->
                 <div class="lg:col-span-8 space-y-8">
                     
-                    <!-- 1. ASSET & ACQUISTO -->
                     <div class="card p-6 md:p-8">
                         <h3 class="section-title">1. Asset & Struttura Fiscale</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
@@ -87,7 +82,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. STRATEGIA E TEMPISTICHE -->
                     <div class="card p-6 md:p-8 border-l-4 border-l-blue-600">
                         <h3 class="section-title">2. Strategia Operativa & Timeline</h3>
                         <div class="mb-5">
@@ -100,23 +94,21 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="label-sm">Mesi di Lavori / Cantiere</label>
+                                <label class="label-sm">Mesi di Cantiere / Lavori</label>
                                 <input type="number" id="mesi_lavori" value="6" class="input-field font-mono">
                                 <p class="text-[10px] text-[#737373] mt-2">Mesi in cui si sostengono spese senza generare reddito.</p>
                             </div>
                             <div id="modulo_anni_affitto" class="hidden">
                                 <label class="label-sm">Anni di Messa a Reddito</label>
                                 <input type="number" id="anni_affitto" value="5" class="input-field font-mono">
-                                <p class="text-[10px] text-[#737373] mt-2">Durata dell'affitto prima della liquidazione finale dell'asset.</p>
+                                <p class="text-[10px] text-[#737373] mt-2">Vendita prima di 5 anni = Tasse Plusvalenza 26%.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. REVENUES (RICAVI E AFFITTI) -->
                     <div class="card p-6 md:p-8">
                         <h3 class="section-title">3. Revenues (Ricavi Previsti)</h3>
                         
-                        <!-- RIVENDITA (Visibile in Flip e Mista) -->
                         <div id="modulo_rivendita" class="mb-6 pb-6 border-b border-[#1F1F1F]">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div><label class="label-sm text-green-400">Valore di Mercato Atteso (€)</label><input type="number" id="rivendita" class="input-field font-mono text-lg font-bold" required></div>
@@ -124,7 +116,6 @@
                             </div>
                         </div>
 
-                        <!-- AFFITTO (Visibile in Affitto e Mista) -->
                         <div id="modulo_affitto_ricavi" class="hidden">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div><label class="label-sm text-green-400">Canone Affitto Mensile Lordo (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-mono text-lg font-bold"></div>
@@ -141,28 +132,67 @@
 
                 </div>
 
-                <!-- COLONNA DESTRA (Capex, Opex, Debt) -->
                 <div class="lg:col-span-4 space-y-8">
                     
-                    <!-- 4. CAPEX -->
                     <div class="card p-6">
-                        <h3 class="section-title">4. CAPEX (Lavori)</h3>
-                        <div class="space-y-3 mb-5">
+                        <div class="section-title">
+                            <span>4. CAPEX (Lavori)</span>
+                            <div class="flex items-center justify-center">
+                                <label for="toggle_capex" class="flex items-center cursor-pointer">
+                                    <span class="mr-2 text-[10px] text-[#A3A3A3] font-bold uppercase">Dettagliato</span>
+                                    <div class="relative">
+                                        <input type="checkbox" id="toggle_capex" class="sr-only" onchange="toggleCapexMode()">
+                                        <div class="block bg-[#141414] w-10 h-6 rounded-full border border-[#262626]"></div>
+                                        <div class="dot absolute left-1 top-1 bg-[#737373] w-4 h-4 rounded-full transition transform"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="capex_rapido" class="space-y-3 mb-5">
                             <div class="flex items-center justify-between"><label class="text-xs font-medium text-[#D4D4D4] flex items-center gap-2"><input type="checkbox" id="chk_demolizioni" onchange="calcolaStimaLavoro('demolizioni', 40)"> Demolizioni</label><input type="number" id="val_demolizioni" value="0" class="input-field w-24 py-1 text-right font-mono text-xs" disabled></div>
                             <div class="flex items-center justify-between"><label class="text-xs font-medium text-[#D4D4D4] flex items-center gap-2"><input type="checkbox" id="chk_impianti" onchange="calcolaStimaLavoro('impianti', 100)"> Impianti</label><input type="number" id="val_impianti" value="0" class="input-field w-24 py-1 text-right font-mono text-xs" disabled></div>
                             <div class="flex items-center justify-between"><label class="text-xs font-medium text-[#D4D4D4] flex items-center gap-2"><input type="checkbox" id="chk_pavimenti" onchange="calcolaStimaLavoro('pavimenti', 60)"> Pavimenti</label><input type="number" id="val_pavimenti" value="0" class="input-field w-24 py-1 text-right font-mono text-xs" disabled></div>
                             <div class="flex items-center justify-between"><label class="text-xs font-medium text-[#D4D4D4] flex items-center gap-2"><input type="checkbox" id="chk_infissi" onchange="calcolaStimaFissa('infissi', 6500)"> Infissi</label><input type="number" id="val_infissi" value="0" class="input-field w-24 py-1 text-right font-mono text-xs" disabled></div>
                         </div>
+
+                        <div id="capex_dettagliato" class="hidden space-y-4 mb-5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            <p class="text-[10px] text-blue-400 uppercase tracking-widest mb-2 font-bold">Impianti e Struttura</p>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Pratica Edil. (CILA/Geometra)</label><input type="number" id="det_pratica" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Demolizioni</label><input type="number" id="det_dem_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_dem_eu" placeholder="€/mq" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Bagni Completi</label><input type="number" id="det_bagni_n" placeholder="N°" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_bagni_eu" placeholder="€/cd" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Impianto Elettrico</label><input type="number" id="det_elettrico" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Caldaia / Clima</label><input type="number" id="det_clima" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            
+                            <p class="text-[10px] text-blue-400 uppercase tracking-widest mt-4 mb-2 font-bold border-t border-[#1F1F1F] pt-2">Finiture (Infissi e Porte)</p>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Porte Interne</label><input type="number" id="det_porte_n" placeholder="N°" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_porte_eu" placeholder="€/cd" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Infissi Esterni</label><input type="number" id="det_infissi_n" placeholder="N°" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_infissi_eu" placeholder="€/cd" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Porta Blindata</label><input type="number" id="det_blindata" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Tinteggiatura</label><input type="number" id="det_tinta_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_tinta_eu" placeholder="€/mq" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+
+                            <p class="text-[10px] text-blue-400 uppercase tracking-widest mt-4 mb-2 font-bold border-t border-[#1F1F1F] pt-2">Pavimentazioni (Multi-Zona)</p>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Zona A (es. Giorno)</label><input type="number" id="det_pav1_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_pav1_eu" placeholder="€/mq" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-3 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Zona B (es. Notte)</label><input type="number" id="det_pav2_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_pav2_eu" placeholder="€/mq" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+
+                            <p class="text-[10px] text-blue-400 uppercase tracking-widest mt-4 mb-2 font-bold border-t border-[#1F1F1F] pt-2">Altro / Extra</p>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Cartongessi/Murature</label><input type="number" id="det_cartongesso" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            <div class="grid grid-cols-2 gap-2"><label class="text-xs text-[#A3A3A3] self-center">Home Staging / Pulizie</label><input type="number" id="det_staging" placeholder="€ Totale" class="input-field py-1 text-right font-mono text-xs calc-det"></div>
+                            
+                            <div class="bg-[#141414] border border-[#262626] rounded p-3 mt-4 text-right">
+                                <span class="text-[10px] text-[#737373] uppercase tracking-widest block mb-1">Totale Netto Calcolato:</span>
+                                <span class="font-mono text-blue-400 font-bold text-lg" id="live_capex_total">€ 0</span>
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-between border-t border-[#1F1F1F] pt-4">
                             <label class="label-sm mb-0">Imprevisti / Spese Extra</label>
-                            <div class="flex gap-2 w-32">
+                            <div class="flex gap-2 w-40">
                                 <input type="number" id="imprevisti_perc" value="10" placeholder="%" class="input-field py-1 px-2 text-center font-mono text-xs w-1/3">
                                 <input type="number" id="spese_extra" value="0" placeholder="€ fisse" class="input-field py-1 px-2 text-right font-mono text-xs w-2/3">
                             </div>
                         </div>
                     </div>
 
-                    <!-- 5. OPEX -->
                     <div id="modulo_opex" class="hidden card p-6">
                         <h3 class="section-title">5. OPEX (Gestione e Utenze)</h3>
                         <div class="grid grid-cols-2 gap-4 mb-4">
@@ -180,8 +210,7 @@
                         </div>
                     </div>
 
-                    <!-- 6. MUTUO -->
-                    <div class="card p-6 bg-[#0a0a0a] border border-[#262626]">
+                    <div class="card p-6 bg-[#0A0A0A] border border-[#262626]">
                         <div class="flex items-center gap-3 mb-4">
                             <input type="checkbox" id="usa_mutuo" onchange="toggleMutuo()"> 
                             <h3 class="text-sm font-bold text-white uppercase tracking-widest m-0">6. Debt (Leva Finanziaria)</h3>
@@ -201,7 +230,6 @@
             <button type="submit" class="btn-primary w-full shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-8">Elabora Business Plan</button>
         </form>
 
-        <!-- SEZIONE RISULTATI (UI ISTITUZIONALE) -->
         <div id="risultati" class="hidden mt-16 pt-12 border-t border-[#1F1F1F]">
             <div class="flex justify-between items-end mb-8">
                 <h2 class="text-2xl font-bold text-white uppercase tracking-wider">Executive Summary</h2>
@@ -210,20 +238,18 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 
-                <!-- Struttura Capitale -->
                 <div class="card p-6">
                     <h4 class="section-title text-[#737373]">Struttura Capitale</h4>
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between"><span class="text-[#A3A3A3]">Asset Value (Acquisto)</span><span class="font-mono text-white" id="out_prezzo"></span></div>
                         <div class="flex justify-between"><span class="text-[#A3A3A3]">Tasse & Fee</span><span class="font-mono text-white" id="out_tasse_agenzia"></span></div>
-                        <div class="flex justify-between"><span class="text-[#A3A3A3]">CAPEX (Lavori)</span><span class="font-mono text-white" id="out_lavori"></span></div>
+                        <div class="flex justify-between"><span class="text-[#A3A3A3]">CAPEX (Lavori + Imprev.)</span><span class="font-mono text-white" id="out_lavori"></span></div>
                         <div class="border-t border-[#1F1F1F] pt-3 mt-3 flex justify-between">
                             <span class="font-bold text-white uppercase">Costo Progetto</span><span class="font-mono font-bold text-blue-400" id="out_investimento"></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Copertura e Debito -->
                 <div class="card p-6">
                     <h4 class="section-title text-[#737373]">Struttura Finanziaria</h4>
                     <div id="box_no_mutuo" class="text-sm text-[#A3A3A3] mt-4">Operazione 100% Equity. Nessun debito bancario rilevato.</div>
@@ -236,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- KPI Rendimento -->
                 <div class="card p-6 bg-[#050505] border border-[#262626] flex flex-col justify-center items-center text-center">
                     <h4 class="text-[10px] font-bold text-[#737373] uppercase tracking-widest mb-2">Ritorno sul Capitale (ROI)</h4>
                     <div id="out_roi" class="text-5xl font-mono font-bold tracking-tighter mb-2"></div>
@@ -244,7 +269,12 @@
                 </div>
             </div>
 
-            <!-- Dettaglio Cashflow e Rivendita (Tabulare) -->
+            <div id="box_scontrino_capex" class="hidden card p-6 mb-8 border border-blue-900/30 bg-blue-900/5">
+                <h4 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4 border-b border-blue-900/50 pb-2">Dettaglio Costi di Ristrutturazione (Bill of Quantities)</h4>
+                <div id="scontrino_body" class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 text-xs text-[#A3A3A3] font-mono">
+                    </div>
+            </div>
+
             <div class="card p-6 mb-8 overflow-x-auto">
                 <table class="w-full text-sm text-left whitespace-nowrap">
                     <thead class="text-xs text-[#737373] uppercase bg-[#141414] border-b border-[#1F1F1F]">
@@ -265,7 +295,6 @@
                 </table>
             </div>
 
-            <!-- GRAFICI ISTITUZIONALI -->
             <div id="box_grafici" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div id="container_waterfall" class="card p-6 h-[400px] flex flex-col hidden">
                     <h4 class="section-title text-[#737373]">Analisi Cashflow Mensile</h4>
@@ -281,11 +310,20 @@
         </div>
     </div> 
 
-    <!-- DASHBOARD PORTAFOGLIO -->
     <div id="vistaDashboard" class="hidden max-w-6xl mx-auto px-4 py-8">
         <h2 class="text-2xl font-bold text-white mb-8 uppercase tracking-wider">Asset in Portafoglio</h2>
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0A0A0A; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #404040; }
+        /* Aggiunta per il Toggle CSS */
+        #toggle_capex:checked + div { background-color: #3B82F6; border-color: #3B82F6;}
+        #toggle_capex:checked + div + div { transform: translateX(16px); background-color: white;}
+    </style>
 
     <script>
         Chart.register(ChartDataLabels);
@@ -295,6 +333,7 @@
         let ultimoDealCalcolato = null;
         let chartTimelineInstance = null; 
         let chartBarInstance = null;
+        let isDetailedCapex = false;
 
         // Gestione form UI
         function aggiornaVisibilitaModuli() {
@@ -306,17 +345,85 @@
             document.getElementById('modulo_anni_affitto').classList.toggle('hidden', isFlip);
             document.getElementById('modulo_affitto_ricavi').classList.toggle('hidden', isFlip);
             document.getElementById('modulo_opex').classList.toggle('hidden', isFlip);
-            
-            // Nella rivendita pura o mista mostriamo il valore futuro. In affitto puro, lo nascondiamo per pulizia.
             document.getElementById('modulo_rivendita').classList.toggle('hidden', isAffitto);
-            
-            // Requisiti HTML5
             document.getElementById('rivendita').required = !isAffitto;
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            aggiornaVisibilitaModuli(); // Inizializza lo stato corretto
+        // Toggle Modalità Lavori (Rapido vs Dettagliato)
+        function toggleCapexMode() {
+            isDetailedCapex = document.getElementById('toggle_capex').checked;
+            document.getElementById('capex_rapido').classList.toggle('hidden', isDetailedCapex);
+            document.getElementById('capex_dettagliato').classList.toggle('hidden', !isDetailedCapex);
+            if(isDetailedCapex) calcolaTotaleDettagliato();
+        }
 
+        // Calcolatore in tempo reale per il Computo Metrico
+        function calcolaTotaleDettagliato() {
+            const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+            let tot = 0;
+            tot += getVal('det_pratica');
+            tot += getVal('det_dem_mq') * getVal('det_dem_eu');
+            tot += getVal('det_bagni_n') * getVal('det_bagni_eu');
+            tot += getVal('det_elettrico');
+            tot += getVal('det_clima');
+            tot += getVal('det_porte_n') * getVal('det_porte_eu');
+            tot += getVal('det_infissi_n') * getVal('det_infissi_eu');
+            tot += getVal('det_blindata');
+            tot += getVal('det_tinta_mq') * getVal('det_tinta_eu');
+            tot += getVal('det_pav1_mq') * getVal('det_pav1_eu');
+            tot += getVal('det_pav2_mq') * getVal('det_pav2_eu');
+            tot += getVal('det_cartongesso');
+            tot += getVal('det_staging');
+            
+            document.getElementById('live_capex_total').textContent = "€ " + Math.round(tot).toLocaleString();
+            return tot;
+        }
+
+        // Aggiungi event listener a tutti gli input dettagliati per il ricalcolo live
+        document.querySelectorAll('.calc-det').forEach(el => {
+            el.addEventListener('input', calcolaTotaleDettagliato);
+        });
+
+        // Funzione per generare lo scontrino visivo nei risultati
+        function generaScontrino(totaleNetto) {
+            const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+            const container = document.getElementById('scontrino_body');
+            container.innerHTML = ''; // Svuota
+            
+            const voci = [
+                { nome: "Pratica Edilizia", val: getVal('det_pratica') },
+                { nome: `Demolizioni (${getVal('det_dem_mq')} mq)`, val: getVal('det_dem_mq') * getVal('det_dem_eu') },
+                { nome: `Bagni (${getVal('det_bagni_n')} pz)`, val: getVal('det_bagni_n') * getVal('det_bagni_eu') },
+                { nome: "Imp. Elettrico", val: getVal('det_elettrico') },
+                { nome: "Clima/Caldaia", val: getVal('det_clima') },
+                { nome: `Porte (${getVal('det_porte_n')} pz)`, val: getVal('det_porte_n') * getVal('det_porte_eu') },
+                { nome: `Infissi (${getVal('det_infissi_n')} pz)`, val: getVal('det_infissi_n') * getVal('det_infissi_eu') },
+                { nome: "P. Blindata", val: getVal('det_blindata') },
+                { nome: `Tinteggiatura (${getVal('det_tinta_mq')} mq)`, val: getVal('det_tinta_mq') * getVal('det_tinta_eu') },
+                { nome: `Pavimenti Zona A (${getVal('det_pav1_mq')} mq)`, val: getVal('det_pav1_mq') * getVal('det_pav1_eu') },
+                { nome: `Pavimenti Zona B (${getVal('det_pav2_mq')} mq)`, val: getVal('det_pav2_mq') * getVal('det_pav2_eu') },
+                { nome: "Cartongessi/Murature", val: getVal('det_cartongesso') },
+                { nome: "Home Staging/Pulizie", val: getVal('det_staging') }
+            ];
+
+            let hasItems = false;
+            voci.forEach(v => {
+                if (v.val > 0) {
+                    hasItems = true;
+                    container.innerHTML += `<div class="flex justify-between border-b border-[#1F1F1F] border-dashed pb-1"><span>${v.nome}</span><span class="text-white">€ ${Math.round(v.val).toLocaleString()}</span></div>`;
+                }
+            });
+
+            if(hasItems) {
+                container.innerHTML += `<div class="flex justify-between col-span-1 md:col-span-2 pt-2 text-blue-400 font-bold uppercase mt-2"><span>Totale Lavori Netto:</span><span>€ ${Math.round(totaleNetto).toLocaleString()}</span></div>`;
+                document.getElementById('box_scontrino_capex').classList.remove('hidden');
+            } else {
+                document.getElementById('box_scontrino_capex').classList.add('hidden');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            aggiornaVisibilitaModuli();
             const urlParams = new URLSearchParams(window.location.search);
             function popolaCampo(id, param) { if(urlParams.has(param)) { const i = document.getElementById(id); if(i) i.value = urlParams.get(param); } }
             popolaCampo('prezzo', 'prezzo'); popolaCampo('mq', 'mq');
@@ -329,7 +436,7 @@
             document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
         });
 
-        function toggleInput(id, checkId) { const i = document.getElementById(id); if(document.getElementById(checkId).checked) { i.disabled = false; } else { i.disabled = true; i.value = i.getAttribute('value')||0; } }
+        function toggleInput(id, checkId) { const i = document.getElementById(id); if(document.getElementById(checkId).checked) { i.disabled = false; i.classList.remove('opacity-50'); } else { i.disabled = true; i.value = i.getAttribute('value')||0; i.classList.add('opacity-50'); } }
         function calcolaStimaLavoro(t, c) { toggleInput(`val_${t}`, `chk_${t}`); const i = document.getElementById(`val_${t}`); if(document.getElementById(`chk_${t}`).checked) i.value = (parseFloat(document.getElementById('mq').value)||0)*c; else i.value=0; }
         function calcolaStimaFissa(t, c) { toggleInput(`val_${t}`, `chk_${t}`); document.getElementById(`val_${t}`).value = document.getElementById(`chk_${t}`).checked ? c : 0; }
         function toggleMutuo() { document.getElementById('pannelloMutuo').classList.toggle('hidden', !document.getElementById('usa_mutuo').checked); }
@@ -337,7 +444,6 @@
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        // GRAFICI
         function disegnaGraficoCashflow(dati, payload) {
             const ctx = document.getElementById('graficoCashflow').getContext('2d');
             if (chartBarInstance) chartBarInstance.destroy();
@@ -359,14 +465,8 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        datalabels: { color: '#FFF', font: {family: 'JetBrains Mono', size: 11}, formatter: (val) => '€ ' + Math.round(val) }
-                    },
-                    scales: { 
-                        y: { ticks: { font: {family: 'JetBrains Mono'} }, grid: { color: '#1F1F1F' }, border: {display: false} }, 
-                        x: { grid: { display: false }, border: {display: false} } 
-                    }
+                    plugins: { legend: { display: false }, datalabels: { color: '#FFF', font: {family: 'JetBrains Mono', size: 11}, formatter: (val) => '€ ' + Math.round(val) } },
+                    scales: { y: { ticks: { font: {family: 'JetBrains Mono'} }, grid: { color: '#1F1F1F' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false} } }
                 }
             });
             document.getElementById('container_waterfall').classList.remove('hidden');
@@ -383,26 +483,11 @@
 
             chartTimelineInstance = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{ data: dati.timeline, backgroundColor: colors, borderRadius: 2 }]
-                },
+                data: { labels: labels, datasets: [{ data: dati.timeline, backgroundColor: colors, borderRadius: 2 }] },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        datalabels: { 
-                            color: '#FFF', font: {family: 'JetBrains Mono', size: 10}, 
-                            anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
-                            align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            offset: 4,
-                            formatter: (val) => '€ ' + Math.round(val).toLocaleString() 
-                        }
-                    },
-                    scales: { 
-                        y: { ticks: { font: {family: 'JetBrains Mono'} }, grid: { color: '#1F1F1F' }, border: {display: false} }, 
-                        x: { grid: { display: false }, border: {display: false} } 
-                    }
+                    plugins: { legend: { display: false }, datalabels: { color: '#FFF', font: {family: 'JetBrains Mono', size: 10}, anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', offset: 4, formatter: (val) => '€ ' + Math.round(val).toLocaleString() } },
+                    scales: { y: { ticks: { font: {family: 'JetBrains Mono'} }, grid: { color: '#1F1F1F' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false} } }
                 }
             });
             document.getElementById('container_timeline').classList.remove('hidden');
@@ -413,10 +498,19 @@
             const getVal = (id) => { const el = document.getElementById(id); return (!el || el.disabled || !el.value) ? 0 : parseFloat(el.value.replace(',', '.')); };
             const strat = document.getElementById('strategia').value;
 
+            // Determina il costo lavori in base al toggle
+            let costo_lavori_finale = 0;
+            if (isDetailedCapex) {
+                costo_lavori_finale = calcolaTotaleDettagliato();
+            } else {
+                costo_lavori_finale = getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi');
+            }
+
             const payload = {
                 prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
-                spese_condominio_mensili: getVal('condominio'), spese_extra: getVal('spese_extra'), costo_lavori_totale: getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi'), 
+                spese_condominio_mensili: getVal('condominio'), spese_extra: getVal('spese_extra'), 
+                costo_lavori_totale: costo_lavori_finale, // Usa il valore corretto
                 imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_lavori: getVal('mesi_lavori') || 6, 
                 stima_rivendita: getVal('rivendita'), apprezzamento_annuo: getVal('apprezzamento'),
                 canone_mensile: getVal('canone_mensile'), cedolare_secca_perc: getVal('cedolare'), imu_annua: getVal('imu'), costo_wifi: getVal('val_wifi'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'),
@@ -443,23 +537,19 @@
                     boxMutuo.classList.remove('hidden'); boxNoMutuo.classList.add('hidden');
                     document.getElementById('out_capitale_proprio').textContent = "€ " + data.capitale_proprio.toLocaleString();
                     document.getElementById('out_importo_mutuo').textContent = "€ " + data.importo_mutuo.toLocaleString();
-                    document.getElementById('riga_rata_mutuo').classList.toggle('hidden', data.strategia === 'Vendita'); // Nel flip non mostriamo rata
+                    document.getElementById('riga_rata_mutuo').classList.toggle('hidden', data.strategia === 'Vendita');
                     document.getElementById('out_rata_mutuo').textContent = "€ " + data.rata_mensile_mutuo.toLocaleString();
-                } else { 
-                    boxMutuo.classList.add('hidden'); boxNoMutuo.classList.remove('hidden'); 
-                }
+                } else { boxMutuo.classList.add('hidden'); boxNoMutuo.classList.remove('hidden'); }
+
+                // GESTISCI SCONTRINO
+                if (isDetailedCapex) { generaScontrino(costo_lavori_finale); } 
+                else { document.getElementById('box_scontrino_capex').classList.add('hidden'); }
 
                 // RESET VISTE TABELLA DATI
-                document.getElementById('riga_incasso_mese').classList.add('hidden');
-                document.getElementById('riga_cashflow_mese').classList.add('hidden');
-                document.getElementById('riga_cashflow_annuo').classList.add('hidden');
-                document.getElementById('riga_valore_mercato').classList.add('hidden');
-                document.getElementById('riga_mista_debito').classList.add('hidden');
-                document.getElementById('riga_plusvalenza').classList.add('hidden');
-                
-                document.getElementById('box_grafici').classList.add('hidden');
-                document.getElementById('container_waterfall').classList.add('hidden');
-                document.getElementById('container_timeline').classList.add('hidden');
+                document.getElementById('riga_incasso_mese').classList.add('hidden'); document.getElementById('riga_cashflow_mese').classList.add('hidden');
+                document.getElementById('riga_cashflow_annuo').classList.add('hidden'); document.getElementById('riga_valore_mercato').classList.add('hidden');
+                document.getElementById('riga_mista_debito').classList.add('hidden'); document.getElementById('riga_plusvalenza').classList.add('hidden');
+                document.getElementById('box_grafici').classList.add('hidden'); document.getElementById('container_waterfall').classList.add('hidden'); document.getElementById('container_timeline').classList.add('hidden');
 
                 // Gestione Colore Utile
                 const colorUtile = data.utile_netto >= 0 ? 'text-[#10B981]' : 'text-[#EF4444]';
@@ -468,48 +558,29 @@
                 document.getElementById('out_roi').className = `text-5xl font-mono font-bold tracking-tighter mb-2 ${colorUtile}`;
                 document.getElementById('out_roi').textContent = data.roi_percentuale + "%";
 
-                // LOGICA VISUALIZZAZIONE PER STRATEGIA
                 if(data.strategia === "Vendita") {
                     document.getElementById('riga_valore_mercato').classList.remove('hidden');
                     document.getElementById('label_rivendita_tab').textContent = "Valore di Vendita Stimato";
                     document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                    
-                    if(data.tasse_plusvalenza > 0) { 
-                        document.getElementById('riga_plusvalenza').classList.remove('hidden'); 
-                        document.getElementById('out_plusvalenza').textContent = "- € " + data.tasse_plusvalenza.toLocaleString(); 
-                    }
-                    
+                    if(data.tasse_plusvalenza > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- € " + data.tasse_plusvalenza.toLocaleString(); }
                     document.getElementById('box_grafici').classList.remove('hidden');
                     disegnaGraficoTimeline(data);
                 } 
                 else {
-                    // Affitto o Mista mostrano i dati mensili
-                    document.getElementById('riga_incasso_mese').classList.remove('hidden');
-                    document.getElementById('out_incasso_mese').textContent = "€ " + data.incasso_mensile_lordo.toLocaleString();
-                    
-                    document.getElementById('riga_cashflow_mese').classList.remove('hidden');
-                    document.getElementById('out_cashflow_mese').textContent = "€ " + data.cashflow_mensile_netto.toLocaleString();
+                    document.getElementById('riga_incasso_mese').classList.remove('hidden'); document.getElementById('out_incasso_mese').textContent = "€ " + data.incasso_mensile_lordo.toLocaleString();
+                    document.getElementById('riga_cashflow_mese').classList.remove('hidden'); document.getElementById('out_cashflow_mese').textContent = "€ " + data.cashflow_mensile_netto.toLocaleString();
                     document.getElementById('out_cashflow_mese').className = (data.cashflow_mensile_netto >= 0 ? 'text-[#3B82F6]' : 'text-[#EF4444]') + ' font-mono font-bold text-right px-4 py-3';
-
                     document.getElementById('riga_cashflow_annuo').classList.remove('hidden');
                     
                     if (data.strategia === "Affitto") {
                         document.getElementById('out_cashflow_annuo').textContent = "€ " + data.utile_netto.toLocaleString();
                     } else if (data.strategia === "Mista") {
                         document.getElementById('out_cashflow_annuo').textContent = "€ " + data.cashflow_annuo.toLocaleString();
-                        
                         document.getElementById('riga_valore_mercato').classList.remove('hidden');
                         document.getElementById('label_rivendita_tab').textContent = `Valore Asset (Exit Year ${payload.anni_messa_a_reddito})`;
                         document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
-                        
-                        if(data.tasse_plusvalenza > 0) { 
-                            document.getElementById('riga_plusvalenza').classList.remove('hidden'); 
-                            document.getElementById('out_plusvalenza').textContent = "- € " + data.tasse_plusvalenza.toLocaleString(); 
-                        }
-                        if(data.usa_mutuo && data.debito_residuo > 0) { 
-                            document.getElementById('riga_mista_debito').classList.remove('hidden'); 
-                            document.getElementById('out_mista_debito').textContent = "- € " + data.debito_residuo.toLocaleString(); 
-                        }
+                        if(data.tasse_plusvalenza > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- € " + data.tasse_plusvalenza.toLocaleString(); }
+                        if(data.usa_mutuo && data.debito_residuo > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "- € " + data.debito_residuo.toLocaleString(); }
                     }
                     
                     document.getElementById('box_grafici').classList.remove('hidden');
@@ -517,17 +588,12 @@
                     disegnaGraficoTimeline(data);
                 }
                 
-                document.getElementById('risultati').classList.remove('hidden'); 
-                document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-                
-                document.getElementById('btnSalvaDeal').disabled = false; 
-                document.getElementById('btnSalvaDeal').textContent = "AGGIUNGI AL PORTAFOGLIO";
-                document.getElementById('btnSalvaDeal').className = "btn-primary w-full border border-[#262626]";
+                document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('btnSalvaDeal').disabled = false; document.getElementById('btnSalvaDeal').textContent = "AGGIUNGI AL PORTAFOGLIO"; document.getElementById('btnSalvaDeal').className = "btn-primary w-full border border-[#262626]";
 
             } catch (e) { alert("Errore del motore di calcolo. Verificare i parametri inseriti."); console.error(e); }
         });
 
-        // DASHBOARD
         async function caricaDeals() {
             const contenitore = document.getElementById('tabellaDeals');
             contenitore.innerHTML = '<p class="text-[#737373] animate-pulse text-sm">Sincronizzazione dati...</p>';
