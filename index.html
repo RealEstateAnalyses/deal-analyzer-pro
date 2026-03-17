@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Analyzer Pro</title>
+    <title>Deal Analyzer Pro - Startup Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- AGGIUNTA LIBRERIA GRAFICI -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
@@ -42,7 +41,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
                     <div><label class="block text-sm font-bold text-gray-300 mb-2">Prezzo di Acquisto (€)</label><input type="number" id="prezzo" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 text-lg font-bold" required></div>
                     <div><label class="block text-sm font-bold text-gray-300 mb-2">Metri Quadri</label><input type="number" id="mq" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 text-lg font-bold" required><p id="live_prezzo_mq" class="text-xs text-emerald-400 mt-2 font-bold tracking-wide">0 € / mq</p></div>
-                    <div><label class="block text-sm font-bold text-gray-300 mb-2">Tipologia</label><input type="text" id="tipologia" placeholder="Es. Appartamento" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500 text-lg"></div>
+                    <div><label class="block text-sm font-bold text-emerald-400 mb-2">Valore di Mercato Stimato (€)</label><input type="number" id="rivendita" placeholder="Il vero valore post-lavori" class="w-full bg-gray-800 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500" required></div>
                 </div>
 
                 <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">2. Strategia di Investimento</h3>
@@ -56,7 +55,6 @@
                     <div id="pannelloVendita" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-700">
                         <div id="box_mesi_cantiere"><label class="block text-sm text-gray-400 mb-2">Mesi stimati (Cantiere + Vendita)</label><input type="number" id="mesi" value="6" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
                         <div id="box_anni_affitto" class="hidden"><label class="block text-sm text-orange-400 font-bold mb-2">Anni di Affitto prima di Vendere</label><input type="number" id="anni_affitto" value="5" class="w-full bg-gray-800 border border-orange-500 rounded-lg p-3 text-white"></div>
-                        <div><label class="block text-sm font-bold text-emerald-400 mb-2">Prezzo di Rivendita Stimato (€)</label><input type="number" id="rivendita" class="w-full bg-gray-800 border border-emerald-500 rounded-lg p-3 text-emerald-400 font-bold focus:ring-2 focus:ring-emerald-500" required></div>
                     </div>
 
                     <div id="pannelloAffitto" class="hidden mt-6 pt-6 border-t border-gray-700">
@@ -96,13 +94,23 @@
                     <div class="mt-4 pt-4 border-t border-gray-700 flex items-center justify-between"><label class="font-bold text-orange-400 text-sm">Margine Imprevisti Lavori (%)</label><input type="number" id="imprevisti_perc" value="10" class="w-20 bg-gray-800 border border-orange-500 rounded p-2 text-center text-white"></div>
                 </div>
 
-                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">4. Burocrazia e Spese Fisse</h3>
+                <h3 class="text-xl font-bold text-emerald-500 mb-4 border-b border-gray-700 pb-2">4. Fisco, Burocrazia e Macro-Economia</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-900 p-5 rounded-xl border border-gray-700 shadow-inner">
-                    <div><label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€) <span class="text-xs text-gray-500">- Per stima tasse</span></label><input type="number" id="rendita" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500"></div>
-                    <div><label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-300 mb-2">Profilo Fiscale (Tasse d'Acquisto)</label>
+                        <select id="profilo_fiscale" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                            <option value="privato_seconda">👤 Privato - Seconda Casa / Investimento (9% sul Catastale)</option>
+                            <option value="privato_prima">🏠 Privato - Prima Casa (2% sul Catastale)</option>
+                            <option value="societa_asta">🏛️ Società o Asta (9% sul Prezzo d'Acquisto)</option>
+                            <option value="societa_trading">💼 Società di Trading / Flipper (Imposte Fisse: 600€ totali)</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm text-gray-400 mb-2">Rendita Catastale (€)</label><input type="number" id="rendita" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500"></div>
                     <div><label class="block text-sm text-gray-400 mb-2">Parcella Notaio Stimata (€)</label><input type="number" id="notaio" value="2500" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                    <div><label class="block text-sm text-gray-400 mb-2">Provvigione Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
                     <div><label class="block text-sm text-gray-400 mb-2">Spese Condominiali Mensili (€)</label><input type="number" id="condominio" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
-                    <div class="md:col-span-2"><label class="block text-sm text-gray-400 mb-2">Spese Extra Impreviste (€) <span class="text-xs text-gray-500">- Es. Sanatorie, sgombero</span></label><input type="number" id="spese_extra" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                    <div><label class="block text-sm text-gray-400 mb-2">Spese Extra Impreviste (€)</label><input type="number" id="spese_extra" value="0" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                    <div><label class="block text-sm font-bold text-blue-400 mb-2">Crescita Mercato Immobiliare (% annua)</label><input type="number" id="apprezzamento" value="2" step="0.5" class="w-full bg-gray-800 border border-blue-500 rounded-lg p-3 text-white"></div>
                 </div>
 
                 <h3 class="text-xl font-bold text-purple-400 mb-4 border-b border-gray-700 pb-2 flex items-center gap-2">🏦 5. Leva Finanziaria (Banca)</h3>
@@ -116,7 +124,7 @@
                             <label class="block text-sm text-purple-200 mb-2 font-bold">Capitale Proprio Disponibile (€)</label>
                             <input type="number" id="capitale_proprio" value="30000" class="w-full bg-gray-800 border border-purple-500 rounded-lg p-3 text-white">
                         </div>
-                        <div><label class="block text-sm text-gray-300 mb-2">Tasso Annuo (%)</label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
+                        <div><label class="block text-sm text-gray-300 mb-2">Tasso Annuo (%) <span class="text-xs text-gray-500">Metti 0 per tasso zero</span></label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
                         <div><label class="block text-sm text-gray-300 mb-2">Durata (Anni)</label><input type="number" id="anni_mutuo" value="20" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white"></div>
                     </div>
                 </div>
@@ -126,7 +134,6 @@
                 </button>
             </form>
 
-            <!-- SEZIONE RISULTATI (Aggiornata con il Grafico) -->
             <div id="risultati" class="hidden mt-12 bg-gray-900 border border-gray-600 rounded-2xl p-6 md:p-8">
                 <h3 class="text-3xl font-black text-white border-b border-gray-700 pb-4 mb-6">Analisi Finanziaria</h3>
                 
@@ -152,7 +159,7 @@
                     <div class="flex flex-col justify-between">
                         <div id="box_rendimento_dettagli" class="bg-emerald-900 bg-opacity-20 p-5 rounded-xl border border-emerald-500 mb-4">
                             <h4 class="text-emerald-400 font-bold mb-4 uppercase text-sm tracking-wide">Rendimento</h4>
-                            <p id="riga_lordo" class="flex justify-between text-gray-300 border-b border-gray-700 pb-2 mb-2"><span id="label_rivendita">Rivendita Lorda:</span> <strong id="out_rivendita" class="text-white"></strong></p>
+                            <p id="riga_lordo" class="flex justify-between text-gray-300 border-b border-gray-700 pb-2 mb-2"><span id="label_rivendita">Valore Mercato Stimato:</span> <strong id="out_rivendita" class="text-white"></strong></p>
                             <p id="riga_mista_cashflow" class="hidden flex justify-between text-blue-300 border-b border-gray-700 pb-2 mb-2">Cashflow Netto Annuo: <strong id="out_mista_cashflow" class="text-blue-400"></strong></p>
                             <p id="riga_mista_debito" class="hidden flex justify-between text-red-300 border-b border-gray-700 pb-2 mb-2">Debito Banca al Rogito: <strong id="out_mista_debito" class="text-red-400"></strong></p>
                             <p class="flex justify-between text-xl text-white font-black pt-2"><span id="label_utile">Utile Netto Finale:</span> <strong id="out_utile" class="text-emerald-400"></strong></p>
@@ -166,9 +173,8 @@
                     </div>
                 </div>
 
-                <!-- BOX DEL GRAFICO (Nuovo) -->
                 <div id="box_grafico" class="hidden mb-8 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-inner">
-                    <h4 class="text-lg font-bold text-blue-400 mb-4 text-center">📈 Proiezione Valore vs Debito</h4>
+                    <h4 class="text-lg font-bold text-blue-400 mb-4 text-center">📈 Proiezione Crescita: Valore vs Debito</h4>
                     <canvas id="graficoAmmortamento"></canvas>
                 </div>
 
@@ -191,7 +197,7 @@
 
     <script>
         let ultimoDealCalcolato = null;
-        let chartInstance = null; // Variabile globale per il grafico
+        let chartInstance = null; 
 
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -238,23 +244,19 @@
                 pVendita.classList.remove('hidden'); pAffitto.classList.add('hidden');
                 document.getElementById('box_mesi_cantiere').classList.remove('hidden');
                 document.getElementById('box_anni_affitto').classList.add('hidden');
-                document.getElementById('rivendita').required = true;
             } else if (strat === 'Affitto') {
                 pVendita.classList.add('hidden'); pAffitto.classList.remove('hidden');
-                document.getElementById('rivendita').required = false;
             } else if (strat === 'Mista') {
                 pVendita.classList.remove('hidden'); pAffitto.classList.remove('hidden');
                 document.getElementById('box_mesi_cantiere').classList.add('hidden');
                 document.getElementById('box_anni_affitto').classList.remove('hidden');
-                document.getElementById('rivendita').required = true;
             }
         }
 
         function mostraCalcolatore() { document.getElementById('vistaCalcolatore').classList.remove('hidden'); document.getElementById('vistaDashboard').classList.add('hidden'); }
         function mostraDashboard() { document.getElementById('vistaCalcolatore').classList.add('hidden'); document.getElementById('vistaDashboard').classList.remove('hidden'); window.scrollTo(0, 0); caricaDeals(); }
 
-        // --- FUNZIONE PER DISEGNARE IL GRAFICO ---
-        function disegnaGrafico(datiMutuo, datiProgetto, tasso, anni) {
+        function disegnaGrafico(datiProgetto) {
             const ctx = document.getElementById('graficoAmmortamento').getContext('2d');
             if (chartInstance) chartInstance.destroy();
 
@@ -262,17 +264,18 @@
             let valoreImmobileData = [];
             let debitoMutuoData = [];
             
-            let valoreAttuale = datiProgetto.costo_totale_progetto;
+            // Il grafico parte dal VERO valore di mercato
+            let valoreAttuale = datiProgetto.valore_mercato_iniziale;
             let debitoAttuale = datiProgetto.importo_mutuo || 0;
-            let tassoMensile = (tasso / 100) / 12;
-            let anniRappresentati = debitoAttuale > 0 ? anni : 15;
+            let tassoMensile = (datiProgetto.usa_mutuo ? parseFloat(document.getElementById('tasso_mutuo').value) / 100 : 0) / 12;
+            let anniRappresentati = debitoAttuale > 0 ? parseInt(document.getElementById('anni_mutuo').value) : 15;
 
             for(let a=0; a<=anniRappresentati; a++) {
                 labels.push('Anno ' + a);
                 valoreImmobileData.push(Math.round(valoreAttuale));
                 debitoMutuoData.push(Math.round(debitoAttuale > 0 ? debitoAttuale : 0));
 
-                valoreAttuale = valoreAttuale * 1.02; // Apprezzamento stimato 2%
+                valoreAttuale = valoreAttuale * (1 + (datiProgetto.apprezzamento_annuo / 100)); 
                 
                 if(debitoAttuale > 0) {
                     for(let m=0; m<12; m++) {
@@ -288,7 +291,7 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Valore Immobile Stimato (+2%/anno)', data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
+                        { label: `Valore Immobile (+${datiProgetto.apprezzamento_annuo}%/anno)`, data: valoreImmobileData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 },
                         { label: 'Debito Residuo Banca', data: debitoMutuoData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }
                     ]
                 },
@@ -303,10 +306,13 @@
             const strat = document.getElementById('strategia').value;
 
             const payload = {
-                prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
+                prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat,
+                profilo_fiscale: document.getElementById('profilo_fiscale').value,
+                rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
                 spese_condominio_mensili: getVal('condominio'), spese_extra: getVal('spese_extra'), costo_lavori_totale: getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi'), 
-                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_operazione: getVal('mesi') || 6, stima_rivendita: getVal('rivendita'), canone_mensile: getVal('canone_mensile'),
-                cedolare_secca_perc: getVal('cedolare'), imu_annua: getVal('imu'), costo_wifi: getVal('val_wifi'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'),
+                imprevisti_perc: getVal('imprevisti_perc') || 10, mesi_operazione: getVal('mesi') || 6, 
+                stima_rivendita: getVal('rivendita'), apprezzamento_annuo: getVal('apprezzamento'),
+                canone_mensile: getVal('canone_mensile'), cedolare_secca_perc: getVal('cedolare'), imu_annua: getVal('imu'), costo_wifi: getVal('val_wifi'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'),
                 costo_acqua_tari: getVal('val_acqua'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
                 anni_messa_a_reddito: getVal('anni_affitto') || 5,
                 usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo')
@@ -337,7 +343,7 @@
                 document.getElementById('riga_mista_debito').classList.add('hidden');
 
                 if(data.strategia === "Vendita") {
-                    document.getElementById('label_rivendita').textContent = "Rivendita Stimata:"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                    document.getElementById('label_rivendita').textContent = "Valore di Mercato (Rivendita):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
                     document.getElementById('label_utile').textContent = "Utile Netto (Guadagno Puro):"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
                     document.getElementById('label_roi_text').textContent = data.usa_mutuo ? "Cash-on-Cash Return" : "R.O.I. Operazione";
                     document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
@@ -351,7 +357,7 @@
                         document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                         if(data.utile_netto > 0) { document.getElementById('out_payback').textContent = `⏱️ Rientro del Capitale in ${(data.capitale_proprio / data.utile_netto).toFixed(1)} anni`; document.getElementById('out_payback').classList.remove('hidden'); } else { document.getElementById('out_payback').classList.add('hidden'); }
                     } else if (data.strategia === "Mista") {
-                        document.getElementById('label_rivendita').textContent = "Rivendita Stimata (Anno "+payload.anni_messa_a_reddito+"):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
+                        document.getElementById('label_rivendita').textContent = "Valore Immobile Stimato (Anno "+payload.anni_messa_a_reddito+"):"; document.getElementById('out_rivendita').textContent = "€ " + data.metrica_lorda.toLocaleString();
                         document.getElementById('riga_mista_cashflow').classList.remove('hidden'); document.getElementById('out_mista_cashflow').textContent = "€ " + data.cashflow_annuo.toLocaleString();
                         if(data.usa_mutuo && data.debito_residuo > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "€ " + data.debito_residuo.toLocaleString(); }
                         document.getElementById('label_utile').textContent = "UTILE TOTALE FINALE:"; document.getElementById('out_utile').textContent = "€ " + data.utile_netto.toLocaleString();
@@ -359,12 +365,15 @@
                         document.getElementById('out_roi').textContent = data.roi_percentuale + " %";
                         document.getElementById('out_payback').textContent = `📈 Rendimento Medio: ${data.roi_annuo_medio} % Annuo`; document.getElementById('out_payback').classList.remove('hidden');
                     }
-                    // Disegna il grafico per Affitto o Mista
-                    disegnaGrafico(payload, data, payload.tasso_mutuo, payload.anni_mutuo);
+                    disegnaGrafico(data);
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
-            } catch (e) { alert("Errore Server. Controlla che il backend sia aggiornato."); }
+                document.getElementById('btnSalvaDeal').disabled = false;
+                document.getElementById('btnSalvaDeal').textContent = "💾 Salva nel Garage";
+                document.getElementById('btnSalvaDeal').className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
+
+            } catch (e) { alert("Errore di calcolo dal server. Controlla di aver compilato bene i dati."); console.error(e); }
         });
 
         async function caricaDeals() {
@@ -422,11 +431,14 @@
                 const data = await response.json();
                 if(data.successo) {
                     this.textContent = "✅ " + data.messaggio;
-                    this.classList.replace('bg-blue-600', 'bg-emerald-600');
-                    this.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
+                    this.className = "w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
                     this.disabled = true;
+                    caricaDeals(); // Aggiorna il DB in background
+                } else {
+                    this.textContent = "❌ Errore: " + data.errore;
+                    this.className = "w-full bg-red-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-300 text-lg";
                 }
-            } catch (error) { this.textContent = "❌ Errore Database"; }
+            } catch (error) { this.textContent = "❌ Errore di Rete"; }
         });
     </script>
 </body>
