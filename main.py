@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro - Institutional", version="11.1")
+app = FastAPI(title="Deal Analyzer Pro - Corporate", version="12.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +56,7 @@ class InputDeal(BaseModel):
     apprezzamento_annuo: float = 2.0 
     
     canone_mensile: float = 0.0
+    tasso_sfitto_perc: float = 5.0 # NUOVO: Sfitto
     cedolare_secca_perc: float = 21.0
     imu_annua: float = 0.0 
     gestione_property_perc: float = 0.0
@@ -70,6 +71,11 @@ class InputDeal(BaseModel):
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
     anni_mutuo: float = 20.0
+    
+    # NUOVO: Joint Venture
+    usa_socio: bool = False
+    quota_socio_capitale: float = 100.0
+    quota_socio_utile: float = 50.0
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -83,7 +89,6 @@ class DealDaSalvare(BaseModel):
 def calcola_roi(dati: InputDeal):
     
     agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
-    
     imposte_stato = 0
     if dati.profilo_fiscale == "privato_prima":
         base_imponibile = (dati.rendita_catastale * 115.5) if dati.rendita_catastale > 0 else dati.prezzo_acquisto
@@ -116,6 +121,13 @@ def calcola_roi(dati: InputDeal):
         elif dati.tasso_mutuo == 0 and dati.anni_mutuo > 0:
             rata_mensile_mutuo = importo_mutuo / (dati.anni_mutuo * 12)
 
+    # JV ALLOCATION
+    tuo_capitale = capitale_investito_reale
+    capitale_socio = 0
+    if dati.usa_socio:
+        capitale_socio = capitale_investito_reale * (dati.quota_socio_capitale / 100)
+        tuo_capitale = capitale_investito_reale - capitale_socio
+
     valore_mercato_iniziale = dati.stima_rivendita if dati.stima_rivendita > 0 else costo_totale_progetto
     timeline_cashflow = [-capitale_investito_reale]
 
@@ -123,108 +135,112 @@ def calcola_roi(dati: InputDeal):
         "strategia": dati.strategia, "tasse_e_notaio": round(tasse_e_notaio, 2), "agenzia": round(agenzia, 2),
         "costo_lavori": round(costo_lavori, 2), "costo_totale_progetto": round(costo_totale_progetto, 2),
         "usa_mutuo": dati.usa_mutuo, "importo_mutuo": round(importo_mutuo, 2), "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
-        "capitale_proprio": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
-        "incasso_mensile_lordo": round(dati.canone_mensile, 2)
+        "capitale_proprio_totale": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
+        "tuo_capitale": round(tuo_capitale, 2), "capitale_socio": round(capitale_socio, 2), "usa_socio": dati.usa_socio
     }
 
     def calcola_tasse_vendita(prezzo_vendita):
         if dati.profilo_fiscale in ["privato_prima", "privato_seconda"]:
-            plusvalenza = max(0, prezzo_vendita - costo_totale_progetto)
-            return plusvalenza * 0.26
+            return max(0, prezzo_vendita - costo_totale_progetto) * 0.26
         return 0
 
+    # STRATEGIE
     if dati.strategia == "Vendita":
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori
         if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
         
         tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale)
-        utile_netto = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza)
-        timeline_cashflow.append(utile_netto + capitale_investito_reale) 
+        utile_totale = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza)
+        timeline_cashflow.append(utile_totale + capitale_investito_reale) 
         
-        risultato.update({
-            "costi_mantenimento": round(costi_mantenimento, 2), "metrica_lorda": round(valore_mercato_iniziale, 2),
-            "tasse_plusvalenza": round(tasse_plusvalenza, 2), "utile_netto": round(utile_netto, 2),
-            "roi_percentuale": round((utile_netto / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
-            "timeline": timeline_cashflow, "cashflow_mensile_netto": 0
-        })
+        # STRESS TEST (-10% Prezzo, +3 Mesi Lavori)
+        costi_mant_stress = dati.spese_condominio_mensili * (dati.mesi_lavori + 3)
+        if dati.usa_mutuo: costi_mant_stress += importo_mutuo * (dati.tasso_mutuo / 100) * ((dati.mesi_lavori + 3) / 12)
+        valore_stress = valore_mercato_iniziale * 0.90
+        utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress))
 
     else:
-        metrica_lorda = dati.canone_mensile * 12 
+        # Applica Tasso di Sfitto all'incasso
+        metrica_lorda = (dati.canone_mensile * 12) * (1 - (dati.tasso_sfitto_perc / 100))
         spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
         spese_fisse_annue = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + dati.imu_annua + dati.assicurazione_annua
         if dati.usa_mutuo: spese_fisse_annue += (rata_mensile_mutuo * 12)
 
         tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
         cashflow_annuo_pieno = metrica_lorda - spese_fisse_annue - tasse_affitto
-        cashflow_mensile_netto = cashflow_annuo_pieno / 12
         
         mesi_affitto_anno_1 = max(0, 12 - dati.mesi_lavori)
-        incasso_anno_1 = dati.canone_mensile * mesi_affitto_anno_1
+        incasso_anno_1 = dati.canone_mensile * mesi_affitto_anno_1 * (1 - (dati.tasso_sfitto_perc / 100))
         cashflow_anno_1 = incasso_anno_1 - spese_fisse_annue - ((incasso_anno_1 * dati.cedolare_secca_perc)/100)
         
         if dati.strategia == "Affitto":
             timeline_cashflow.append(cashflow_anno_1)
             for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) 
+            utile_totale = cashflow_annuo_pieno
             
-            risultato.update({
-                "costi_mantenimento": round(spese_fisse_annue, 2), "metrica_lorda": round(metrica_lorda, 2),
-                "utile_netto": round(cashflow_annuo_pieno, 2), "timeline": timeline_cashflow,
-                "cashflow_mensile_netto": round(cashflow_mensile_netto, 2),
-                "roi_percentuale": round((cashflow_annuo_pieno / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0
-            })
+            # Stress Test (-10% Affitto, Sfitto raddoppiato)
+            metrica_lorda_stress = (dati.canone_mensile * 12 * 0.90) * (1 - ((dati.tasso_sfitto_perc * 2) / 100))
+            utile_stress = metrica_lorda_stress - spese_fisse_annue - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100)
 
         elif dati.strategia == "Mista":
             valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
             debito_residuo = 0
-            
             if dati.usa_mutuo and dati.anni_mutuo > 0:
-                mesi_totali = dati.anni_mutuo * 12
                 mesi_pagati = dati.anni_messa_a_reddito * 12
-                if mesi_pagati < mesi_totali:
+                if mesi_pagati < dati.anni_mutuo * 12:
                     if dati.tasso_mutuo > 0:
                         r = (dati.tasso_mutuo / 100) / 12
-                        debito_residuo = importo_mutuo * (((1 + r)**mesi_totali - (1 + r)**mesi_pagati) / ((1 + r)**mesi_totali - 1))
+                        debito_residuo = importo_mutuo * (((1 + r)**(dati.anni_mutuo * 12) - (1 + r)**mesi_pagati) / ((1 + r)**(dati.anni_mutuo * 12) - 1))
                     else:
                         debito_residuo = importo_mutuo - (rata_mensile_mutuo * mesi_pagati)
             
             tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile) if dati.anni_messa_a_reddito <= 5 else 0
             incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
             
-            totale_cashflow_accumulato = 0
+            tot_cf = cashflow_anno_1 + (cashflow_annuo_pieno * (dati.anni_messa_a_reddito - 1))
+            utile_totale = tot_cf + incasso_netto_vendita - capitale_investito_reale
+            
             for anno in range(1, int(dati.anni_messa_a_reddito) + 1):
-                cf_anno = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
-                totale_cashflow_accumulato += cf_anno
-                if anno == int(dati.anni_messa_a_reddito):
-                    timeline_cashflow.append(cf_anno + incasso_netto_vendita)
-                else:
-                    timeline_cashflow.append(cf_anno)
+                cf = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
+                timeline_cashflow.append(cf + incasso_netto_vendita if anno == int(dati.anni_messa_a_reddito) else cf)
 
-            utile_totale = totale_cashflow_accumulato + incasso_netto_vendita - capitale_investito_reale
+            # Stress Test (-10% vendita)
+            valore_stress = valore_futuro_immobile * 0.90
+            incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress)
+            utile_stress = tot_cf + incasso_stress - capitale_investito_reale
 
-            risultato.update({
-                "costi_mantenimento": round(spese_fisse_annue, 2), "metrica_lorda": round(valore_futuro_immobile, 2),
-                "utile_netto": round(utile_totale, 2), "cashflow_annuo": round(cashflow_annuo_pieno, 2),
-                "cashflow_mensile_netto": round(cashflow_mensile_netto, 2),
-                "debito_residuo": round(debito_residuo, 2), "tasse_plusvalenza": round(tasse_plusvalenza, 2),
-                "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
-                "timeline": timeline_cashflow
-            })
+    # SPLIT UTILI JV
+    tuo_utile = utile_totale
+    utile_socio = 0
+    if dati.usa_socio:
+        utile_socio = utile_totale * (dati.quota_socio_utile / 100)
+        tuo_utile = utile_totale - utile_socio
+
+    tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0 # 999 = Infinito (Zero soldi messi)
+    roi_stress = (utile_stress / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
+
+    risultato.update({
+        "metrica_lorda": round(valore_mercato_iniziale if dati.strategia == "Vendita" else (metrica_lorda if dati.strategia=="Affitto" else valore_futuro_immobile), 2),
+        "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(utile_socio, 2),
+        "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
+        "tuo_roi": round(tuo_roi, 2), "utile_stress": round(utile_stress, 2), "roi_stress": round(roi_stress, 2),
+        "timeline": timeline_cashflow, "incasso_mensile_lordo": round(dati.canone_mensile * (1 - dati.tasso_sfitto_perc/100), 2),
+        "cashflow_mensile_netto": round(cashflow_annuo_pieno / 12 if dati.strategia != "Vendita" else 0, 2),
+        "tasse_plusvalenza": round(tasse_plusvalenza if 'tasse_plusvalenza' in locals() else 0, 2),
+        "debito_residuo": round(debito_residuo if 'debito_residuo' in locals() else 0, 2)
+    })
 
     return risultato
 
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
-    try:
-        conn = sqlite3.connect('deals.db')
-        c = conn.cursor()
-        data_odierna = datetime.now().strftime("%d/%m/%Y %H:%M")
-        c.execute("INSERT INTO deals (data_salvataggio, strategia, prezzo_acquisto, mq, investimento_totale, utile_netto, roi_percentuale) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                  (data_odierna, deal.strategia, deal.prezzo_acquisto, deal.mq, deal.investimento_totale, deal.utile_netto, deal.roi_percentuale))
-        conn.commit()
-        conn.close()
-        return {"successo": True, "messaggio": "Deal salvato nel DB!"}
-    except Exception as e:
-        return {"successo": False, "errore": str(e)}
+    conn = sqlite3.connect('deals.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO deals (data_salvataggio, strategia, prezzo_acquisto, mq, investimento_totale, utile_netto, roi_percentuale) VALUES (?, ?, ?, ?, ?, ?, ?)",
+              (datetime.now().strftime("%d/%m/%Y %H:%M"), deal.strategia, deal.prezzo_acquisto, deal.mq, deal.investimento_totale, deal.utile_netto, deal.roi_percentuale))
+    conn.commit()
+    conn.close()
+    return {"successo": True}
 
 @app.get("/api/get-deals")
 def get_deals():
