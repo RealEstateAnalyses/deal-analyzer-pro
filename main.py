@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro - Corporate", version="12.0")
+app = FastAPI(title="Deal Analyzer Pro", version="13.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,7 +56,7 @@ class InputDeal(BaseModel):
     apprezzamento_annuo: float = 2.0 
     
     canone_mensile: float = 0.0
-    tasso_sfitto_perc: float = 5.0 # NUOVO: Sfitto
+    tasso_sfitto_perc: float = 5.0
     cedolare_secca_perc: float = 21.0
     imu_annua: float = 0.0 
     gestione_property_perc: float = 0.0
@@ -72,7 +72,6 @@ class InputDeal(BaseModel):
     tasso_mutuo: float = 3.5
     anni_mutuo: float = 20.0
     
-    # NUOVO: Joint Venture
     usa_socio: bool = False
     quota_socio_capitale: float = 100.0
     quota_socio_utile: float = 50.0
@@ -121,7 +120,6 @@ def calcola_roi(dati: InputDeal):
         elif dati.tasso_mutuo == 0 and dati.anni_mutuo > 0:
             rata_mensile_mutuo = importo_mutuo / (dati.anni_mutuo * 12)
 
-    # JV ALLOCATION
     tuo_capitale = capitale_investito_reale
     capitale_socio = 0
     if dati.usa_socio:
@@ -144,7 +142,6 @@ def calcola_roi(dati: InputDeal):
             return max(0, prezzo_vendita - costo_totale_progetto) * 0.26
         return 0
 
-    # STRATEGIE
     if dati.strategia == "Vendita":
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori
         if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
@@ -153,14 +150,13 @@ def calcola_roi(dati: InputDeal):
         utile_totale = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza)
         timeline_cashflow.append(utile_totale + capitale_investito_reale) 
         
-        # STRESS TEST (-10% Prezzo, +3 Mesi Lavori)
         costi_mant_stress = dati.spese_condominio_mensili * (dati.mesi_lavori + 3)
         if dati.usa_mutuo: costi_mant_stress += importo_mutuo * (dati.tasso_mutuo / 100) * ((dati.mesi_lavori + 3) / 12)
         valore_stress = valore_mercato_iniziale * 0.90
         utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress))
+        cashflow_annuo_pieno = 0
 
     else:
-        # Applica Tasso di Sfitto all'incasso
         metrica_lorda = (dati.canone_mensile * 12) * (1 - (dati.tasso_sfitto_perc / 100))
         spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
         spese_fisse_annue = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + dati.imu_annua + dati.assicurazione_annua
@@ -178,7 +174,6 @@ def calcola_roi(dati: InputDeal):
             for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) 
             utile_totale = cashflow_annuo_pieno
             
-            # Stress Test (-10% Affitto, Sfitto raddoppiato)
             metrica_lorda_stress = (dati.canone_mensile * 12 * 0.90) * (1 - ((dati.tasso_sfitto_perc * 2) / 100))
             utile_stress = metrica_lorda_stress - spese_fisse_annue - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100)
 
@@ -204,19 +199,17 @@ def calcola_roi(dati: InputDeal):
                 cf = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
                 timeline_cashflow.append(cf + incasso_netto_vendita if anno == int(dati.anni_messa_a_reddito) else cf)
 
-            # Stress Test (-10% vendita)
             valore_stress = valore_futuro_immobile * 0.90
             incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress)
             utile_stress = tot_cf + incasso_stress - capitale_investito_reale
 
-    # SPLIT UTILI JV
     tuo_utile = utile_totale
     utile_socio = 0
     if dati.usa_socio:
         utile_socio = utile_totale * (dati.quota_socio_utile / 100)
         tuo_utile = utile_totale - utile_socio
 
-    tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0 # 999 = Infinito (Zero soldi messi)
+    tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0
     roi_stress = (utile_stress / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
 
     risultato.update({
@@ -224,8 +217,10 @@ def calcola_roi(dati: InputDeal):
         "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(utile_socio, 2),
         "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
         "tuo_roi": round(tuo_roi, 2), "utile_stress": round(utile_stress, 2), "roi_stress": round(roi_stress, 2),
-        "timeline": timeline_cashflow, "incasso_mensile_lordo": round(dati.canone_mensile * (1 - dati.tasso_sfitto_perc/100), 2),
+        "timeline": timeline_cashflow, 
+        "incasso_mensile_lordo": round(dati.canone_mensile * (1 - dati.tasso_sfitto_perc/100), 2),
         "cashflow_mensile_netto": round(cashflow_annuo_pieno / 12 if dati.strategia != "Vendita" else 0, 2),
+        "cashflow_annuo": round(cashflow_annuo_pieno if dati.strategia != "Vendita" else 0, 2),
         "tasse_plusvalenza": round(tasse_plusvalenza if 'tasse_plusvalenza' in locals() else 0, 2),
         "debito_residuo": round(debito_residuo if 'debito_residuo' in locals() else 0, 2)
     })
