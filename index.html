@@ -3,68 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Analyzer | Institutional Dark</title>
+    <title>Deal Analyzer | Cyber Finance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .hidden { display: none !important; }
         
-        /* Institutional Dark Theme styles */
-        .card { background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .section-title { font-size: 0.85rem; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.15em; border-bottom: 2px solid #27272a; padding-bottom: 0.75rem; margin-bottom: 2rem; display: flex; justify-content: center; align-items: center;}
-        .label-sm { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        .card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .section-title { font-size: 0.85rem; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.15em; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem; margin-bottom: 2rem; display: flex; justify-content: center; align-items: center;}
+        .label-sm { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; }
         
-        .input-field { width: 100%; background-color: #09090b; border: 1px solid #3f3f46; border-radius: 6px; padding: 0.75rem; color: #f8fafc; font-size: 0.875rem; transition: all 0.2s ease; text-align: center; }
-        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); background-color: #18181b;}
-        .input-field:disabled { background-color: #27272a; color: #52525b; border-color: #3f3f46; opacity: 0.6;}
+        .input-field { width: 100%; background-color: #020617; border: 1px solid #334155; border-radius: 6px; padding: 0.75rem; color: #f8fafc; font-size: 0.875rem; transition: all 0.2s ease; text-align: center; }
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); background-color: #0f172a;}
+        .input-field:disabled { background-color: #1e293b; color: #475569; border-color: #334155;}
         
-        input[type="checkbox"] { appearance: none; background-color: #09090b; margin: 0; width: 1.25em; height: 1.25em; border: 1px solid #52525b; border-radius: 0.25em; display: grid; place-content: center; cursor: pointer; transition: all 0.2s;}
+        input[type="checkbox"] { appearance: none; background-color: #020617; margin: 0; width: 1.25em; height: 1.25em; border: 1px solid #475569; border-radius: 0.25em; display: grid; place-content: center; cursor: pointer; transition: all 0.2s;}
         input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; background-color: #3b82f6; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
         input[type="checkbox"]:checked { border-color: #3b82f6; }
         input[type="checkbox"]:checked::before { transform: scale(1); }
 
-        .btn-primary { background-color: #2563eb; color: #ffffff; font-weight: 700; font-size: 0.875rem; padding: 1rem; border-radius: 8px; transition: all 0.2s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); text-transform: uppercase; letter-spacing: 0.1em;}
-        .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px);}
-        .btn-secondary { background-color: #18181b; border: 1px solid #3f3f46; color: #e2e8f0; font-weight: 600; font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.2s; }
-        .btn-secondary:hover { background-color: #27272a; border-color: #52525b; }
-
-        /* Computo Metrico Toggle (Custom Dark) */
+        .btn-primary { background-color: #2563eb; color: #ffffff; font-weight: 700; font-size: 0.875rem; padding: 1rem; border-radius: 8px; transition: all 0.2s; box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); text-transform: uppercase; letter-spacing: 0.1em;}
+        .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); box-shadow: 0 0 25px rgba(37, 99, 235, 0.5);}
+        
         #toggle_capex:checked + div { background-color: #3b82f6; border-color: #3b82f6;}
         #toggle_capex:checked + div + div { transform: translateX(16px); background-color: #ffffff;}
 
-        /* Scrollbar per modulo Capex scuro */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #18181b; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         @media print {
             body { background-color: white; color: black; font-size: 12px; }
             .no-print, nav, button, #vistaDashboard { display: none !important; }
-            .card { background-color: white; color: black; box-shadow: none; border: 1px solid #E2E8F0; break-inside: avoid; margin-bottom: 20px;}
+            .card { background-color: white; color: black; box-shadow: none; border: 1px solid #ccc; margin-bottom: 20px;}
             #risultati { display: block !important; margin-top: 0 !important; border: none !important; padding-top: 0 !important; }
             .print-header { display: block !important; border-bottom: 2px solid #2563EB; padding-bottom: 10px; margin-bottom: 20px; }
-            .chart-container { height: 250px !important; margin-bottom: 20px; page-break-inside: avoid;}
         }
     </style>
 </head>
-<body class="antialiased selection:bg-blue-900 selection:text-white">
+<body class="antialiased">
 
-    <nav class="bg-[#09090b] border-b border-[#27272a] sticky top-0 z-50 no-print shadow-xl">
+    <!-- NAV CON LOGO INCORPORATO SVG -->
+    <nav class="bg-[#020617] border-b border-[#1e293b] sticky top-0 z-50 no-print shadow-xl">
         <div class="max-w-4xl mx-auto flex justify-between items-center px-4 py-4">
             <div class="flex items-center gap-3">
-                <!-- LOGO SVG INTEGRATO -->
                 <svg class="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 21h18"></path>
-                    <path d="M5 21V7l8-4v18"></path>
-                    <path d="M19 21V11l-6-4"></path>
-                    <path d="M9 9v.01"></path>
-                    <path d="M9 13v.01"></path>
-                    <path d="M9 17v.01"></path>
+                    <path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9v.01"></path><path d="M9 13v.01"></path><path d="M9 17v.01"></path>
                 </svg>
                 <span class="text-lg font-bold text-slate-100 tracking-tight">Deal Analyzer <span class="font-normal text-blue-500">Corporate</span></span>
             </div>
@@ -77,27 +66,22 @@
 
     <div id="vistaCalcolatore" class="max-w-3xl mx-auto px-4 py-10">
         
-        <div class="print-header hidden mb-8">
-            <h1 class="text-2xl font-bold text-slate-900">Report di Analisi Immobiliare</h1>
-            <p class="text-slate-500" id="print_date"></p>
-        </div>
-
         <form id="dealForm" class="space-y-8 no-print">
             
             <div class="card p-6 md:p-8">
-                <h3 class="section-title text-blue-400">1. Asset & Fisco d'Acquisto</h3>
+                <h3 class="section-title text-blue-400">1. Asset & Fisco</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-                    <div><label class="label-sm">Prezzo Acquisto (€)</label><input type="number" id="prezzo" class="input-field font-mono font-bold text-blue-400 border-blue-900/50" required></div>
+                    <div><label class="label-sm">Prezzo Acquisto (€)</label><input type="number" id="prezzo" class="input-field font-mono font-bold text-blue-400 border-blue-900" required></div>
                     <div><label class="label-sm">Superficie (MQ)</label><input type="number" id="mq" class="input-field font-mono" required><p id="live_prezzo_mq" class="text-[10px] text-slate-500 mt-2 font-mono text-center">0 €/mq</p></div>
                     <div><label class="label-sm">Rendita Catastale (€)</label><input type="number" id="rendita" value="0" class="input-field font-mono"></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div class="md:col-span-1">
                         <label class="label-sm">Tassazione Acquisto</label>
-                        <select id="profilo_fiscale" class="input-field">
+                        <select id="profilo_fiscale" class="input-field text-center">
                             <option value="privato_seconda">Privato - 2ª Casa (9%)</option>
                             <option value="privato_prima">Privato - 1ª Casa (2%)</option>
-                            <option value="societa_asta">Società / Asta (9% Prezzo)</option>
+                            <option value="societa_asta">Società / Asta (9% Valore)</option>
                             <option value="societa_trading">Società Trading (Fisse 600€)</option>
                         </select>
                     </div>
@@ -106,42 +90,32 @@
                 </div>
             </div>
 
-            <div class="card p-6 md:p-8 bg-[#131a2b] border-[#1e293b]">
-                <h3 class="section-title text-blue-400">2. Strategia & Timeline Operativa</h3>
+            <div class="card p-6 md:p-8 bg-[#0a0f1c] border-[#1e293b]">
+                <h3 class="section-title text-blue-400">2. Strategia Operativa</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                     <div>
                         <label class="label-sm text-blue-400">Modello di Business</label>
                         <select id="strategia" class="input-field font-bold text-blue-200 border-blue-800 bg-blue-950" onchange="aggiornaVisibilitaModuli()">
                             <option value="Vendita">FLIPPING (Ristruttura e Vendi)</option>
                             <option value="Affitto">BUY & HOLD (Messa a Reddito pura)</option>
-                            <option value="Mista">MIXED (Affitto temporaneo + Vendita)</option>
+                            <option value="Mista">MIXED (Affitto temporaneo + Vendita finale)</option>
                         </select>
                     </div>
-                    <div id="modulo_rivendita"><label class="label-sm text-emerald-400">Valore di Uscita Stimato (€)</label><input type="number" id="rivendita" class="input-field font-mono font-bold text-emerald-400 border-emerald-900/50" required></div>
+                    <div id="modulo_rivendita"><label class="label-sm text-emerald-400">Valore di Uscita Stimato (€)</label><input type="number" id="rivendita" class="input-field font-mono font-bold text-emerald-400 border-emerald-900" required></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                        <label class="label-sm">Mesi di Cantiere / Lavori</label>
-                        <input type="number" id="mesi_lavori" value="6" class="input-field font-mono">
-                    </div>
-                    <div id="modulo_anni_affitto" class="hidden">
-                        <label class="label-sm">Anni a Reddito</label>
-                        <input type="number" id="anni_affitto" value="5" class="input-field font-mono">
-                    </div>
-                    <div id="modulo_apprezzamento">
-                        <label class="label-sm">Apprezzamento Mercato (%/y)</label>
-                        <input type="number" id="apprezzamento" value="2" step="0.5" class="input-field font-mono">
-                    </div>
+                    <div><label class="label-sm">Mesi Lavori / Cantiere</label><input type="number" id="mesi_lavori" value="6" class="input-field font-mono"></div>
+                    <div id="modulo_anni_affitto" class="hidden"><label class="label-sm">Anni a Reddito</label><input type="number" id="anni_affitto" value="5" class="input-field font-mono"></div>
+                    <div id="modulo_apprezzamento"><label class="label-sm">Apprezzamento (% annua)</label><input type="number" id="apprezzamento" value="2" step="0.5" class="input-field font-mono"></div>
                 </div>
             </div>
 
-            <!-- MODULO AFFITTO -->
             <div id="modulo_affitto_ricavi" class="hidden card p-6 md:p-8">
-                <h3 class="section-title text-emerald-400">3. Gestione Affitto (Revenues & Opex)</h3>
+                <h3 class="section-title text-emerald-400">3. Gestione Affitto</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 pb-6 border-b border-slate-800">
-                    <div><label class="label-sm text-emerald-400">Canone Affitto Mensile (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-mono text-lg font-bold border-emerald-900 text-emerald-300"></div>
-                    <div><label class="label-sm">Tasso Sfitto (Vacancy %)</label><input type="number" id="tasso_sfitto" value="5" step="0.1" class="input-field font-mono text-orange-400 font-bold" title="Percentuale di vuoto fisiologico annuo"></div>
-                    <div><label class="label-sm">Tassazione Cedolare</label><select id="cedolare" class="input-field"><option value="21">21% (Libero)</option><option value="10">10% (Concordato)</option><option value="0">0% (Società)</option></select></div>
+                    <div><label class="label-sm text-emerald-400">Canone Mensile Lordo (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-mono text-lg font-bold border-emerald-900 text-emerald-300"></div>
+                    <div><label class="label-sm">Tasso Sfitto (Vacancy %)</label><input type="number" id="tasso_sfitto" value="5" step="0.1" class="input-field font-mono text-orange-400 font-bold" title="Percentuale di vuoto fisiologico"></div>
+                    <div><label class="label-sm">Tassazione Cedolare</label><select id="cedolare" class="input-field text-center"><option value="21">21% (Libero)</option><option value="10">10% (Concordato)</option><option value="0">0% (Lordo/Società)</option></select></div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
@@ -149,24 +123,23 @@
                     <div><label class="label-sm">IMU (€/anno)</label><input type="number" id="imu" value="500" class="input-field font-mono"></div>
                 </div>
                 
-                <h4 class="text-[10px] text-slate-500 uppercase tracking-widest mb-4 mt-6 border-b border-slate-800 pb-2 text-center">Utenze e Spese a carico proprietario</h4>
+                <h4 class="text-[10px] text-slate-500 uppercase tracking-widest mb-4 mt-6 border-b border-slate-800 pb-2 text-center">Utenze & Extra (a carico tuo)</h4>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                     <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_luce" onchange="toggleInput('val_luce', 'chk_luce')"> Elettricità (€/m)</label><input type="number" id="val_luce" value="40" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
-                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas/Riscaldamento (€/m)</label><input type="number" id="val_gas" value="50" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
+                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas/Risc. (€/m)</label><input type="number" id="val_gas" value="50" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
                     <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_acqua" onchange="toggleInput('val_acqua', 'chk_acqua')"> Acqua/Tari (€/m)</label><input type="number" id="val_acqua" value="30" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
                     <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_wifi" onchange="toggleInput('val_wifi', 'chk_wifi')"> Wi-Fi (€/m)</label><input type="number" id="val_wifi" value="25" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
-                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Property Manager (%)</label><input type="number" id="val_gestione" value="20" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
-                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_assicurazione" onchange="toggleInput('val_assicurazione', 'chk_assicurazione')"> Assicurazione (€/anno)</label><input type="number" id="val_assicurazione" value="200" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
+                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_gestione" onchange="toggleInput('val_gestione', 'chk_gestione')"> Property Mgr (%)</label><input type="number" id="val_gestione" value="20" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
+                    <div class="flex justify-between items-center"><label class="text-xs text-slate-400 flex items-center gap-2"><input type="checkbox" id="chk_assicurazione" onchange="toggleInput('val_assicurazione', 'chk_assicurazione')"> Assicuraz. (€/anno)</label><input type="number" id="val_assicurazione" value="200" class="input-field w-20 py-1 text-right font-mono text-xs" disabled></div>
                 </div>
             </div>
 
-            <!-- MODULO CAPEX (Lavori) -->
             <div class="card p-6 md:p-8">
                 <div class="section-title">
                     <span>4. CAPEX (Costi Lavori)</span>
                     <label class="flex items-center cursor-pointer">
-                        <span class="mr-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Computo Avanzato</span>
+                        <span class="mr-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Computo</span>
                         <div class="relative">
                             <input type="checkbox" id="toggle_capex" class="sr-only" onchange="toggleCapexMode()">
                             <div class="block bg-slate-800 w-10 h-6 rounded-full border border-slate-700"></div>
@@ -188,63 +161,63 @@
                     <div class="grid grid-cols-3 gap-2"><label class="text-xs text-slate-400 self-center">Bagni Completi</label><input type="number" id="det_bagni_n" placeholder="N°" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_bagni_eu" placeholder="€/cd" class="input-field py-1 font-mono text-xs calc-det"></div>
                     <div class="grid grid-cols-2 gap-2"><label class="text-xs text-slate-400 self-center">Impianto Elettrico</label><input type="number" id="det_elettrico" placeholder="€ Totale" class="input-field py-1 font-mono text-xs calc-det"></div>
                     <div class="grid grid-cols-3 gap-2"><label class="text-xs text-slate-400 self-center">Infissi / Porte</label><input type="number" id="det_infissi_n" placeholder="N°" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_infissi_eu" placeholder="€/cd" class="input-field py-1 font-mono text-xs calc-det"></div>
-                    <div class="grid grid-cols-3 gap-2"><label class="text-xs text-slate-400 self-center">Pavimenti (Forn. e Posa)</label><input type="number" id="det_pav1_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_pav1_eu" placeholder="€/mq" class="input-field py-1 font-mono text-xs calc-det"></div>
-                    <div class="bg-slate-900 p-2 rounded mt-3 border border-slate-800 text-center"><span class="text-[10px] text-slate-500 uppercase block mb-1">Totale Computo:</span><span class="font-mono text-blue-400 font-bold" id="live_capex_total">€ 0</span></div>
+                    <div class="grid grid-cols-3 gap-2"><label class="text-xs text-slate-400 self-center">Pavimenti</label><input type="number" id="det_pav1_mq" placeholder="MQ" class="input-field py-1 text-center font-mono text-xs calc-det"><input type="number" id="det_pav1_eu" placeholder="€/mq" class="input-field py-1 font-mono text-xs calc-det"></div>
+                    <div class="bg-slate-900 p-2 rounded mt-3 border border-slate-800 text-center"><span class="text-[10px] text-slate-500 uppercase block mb-1">Totale Calcolato:</span><span class="font-mono text-blue-400 font-bold" id="live_capex_total">€ 0</span></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-5 border-t border-slate-800 pt-5">
-                    <div><label class="label-sm mb-0">Imprevisti (%)</label><input type="number" id="imprevisti_perc" value="10" placeholder="%" class="input-field font-mono"></div>
-                    <div><label class="label-sm mb-0">Spese Extra Fisse (€)</label><input type="number" id="spese_extra" value="0" placeholder="€" class="input-field font-mono text-right"></div>
+                <div class="grid grid-cols-2 gap-5 border-t border-slate-800 pt-4">
+                    <div><label class="label-sm mb-0">Imprevisti (%)</label><input type="number" id="imprevisti_perc" value="10" class="input-field font-mono"></div>
+                    <div><label class="label-sm mb-0">Spese Extra Fisse (€)</label><input type="number" id="spese_extra" value="0" class="input-field font-mono text-right"></div>
                 </div>
             </div>
 
-            <div class="card p-6 md:p-8 bg-[#0f1422] border border-blue-900/30 shadow-xl">
+            <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-blue-900/30 shadow-xl">
                 <div class="flex items-center justify-center gap-3 mb-5 border-b border-slate-800 pb-3">
                     <input type="checkbox" id="usa_mutuo" onchange="toggleMutuo()"> 
                     <h3 class="text-sm font-bold text-slate-100 uppercase tracking-widest m-0">5. Leva & Joint Venture (Opzionale)</h3>
                 </div>
                 <div id="pannelloMutuo" class="hidden space-y-5 pt-2">
-                    <div><label class="label-sm text-blue-400">Equity Tua Disponibile (€)</label><input type="number" id="capitale_proprio" value="30000" class="input-field font-mono font-bold bg-slate-950 text-blue-100 border-blue-800 text-center"></div>
+                    <div><label class="label-sm text-blue-400">Equity Tua Disponibile (€)</label><input type="number" id="capitale_proprio" value="30000" class="input-field font-mono font-bold bg-slate-950 text-blue-100 border-blue-800"></div>
                     <div class="grid grid-cols-2 gap-5">
-                        <div><label class="label-sm">Tasso Mutuo (%)</label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="input-field font-mono bg-slate-950 text-center"></div>
-                        <div><label class="label-sm">Durata Mutuo (Anni)</label><input type="number" id="anni_mutuo" value="20" class="input-field font-mono bg-slate-950 text-center"></div>
+                        <div><label class="label-sm">Tasso Mutuo (%)</label><input type="number" id="tasso_mutuo" value="3.5" step="0.1" class="input-field font-mono bg-slate-950"></div>
+                        <div><label class="label-sm">Durata (Anni)</label><input type="number" id="anni_mutuo" value="20" class="input-field font-mono bg-slate-950"></div>
                     </div>
-                    <div class="border-t border-slate-800 pt-5 mt-2">
+                    <div class="border-t border-slate-800 pt-4 mt-2">
                         <label class="flex items-center gap-2 justify-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 cursor-pointer hover:text-blue-400"><input type="checkbox" id="usa_socio" onchange="toggleSocio()"> + Aggiungi Socio Investitore (JV)</label>
-                        <div id="pannelloSocio" class="hidden grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800 shadow-inner">
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Capitale Socio (%)</label><input type="number" id="quota_capitale" value="100" class="input-field font-mono bg-[#09090b] mt-1 border-slate-700"></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Utili al Socio (%)</label><input type="number" id="quota_utile" value="50" class="input-field font-mono bg-[#09090b] mt-1 border-slate-700"></div>
+                        <div id="pannelloSocio" class="hidden grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800">
+                            <div><label class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Capitale Socio (%)</label><input type="number" id="quota_capitale" value="100" class="input-field font-mono border-slate-700 mt-1"></div>
+                            <div><label class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Utili al Socio (%)</label><input type="number" id="quota_utile" value="50" class="input-field font-mono border-slate-700 mt-1"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary w-full text-lg tracking-widest mt-8 shadow-2xl py-5 border border-blue-400/50">GENERA BUSINESS PLAN</button>
+            <button type="submit" class="btn-primary w-full text-lg tracking-widest mt-8 shadow-2xl py-5 border border-blue-500/50 hover:bg-blue-600">GENERA BUSINESS PLAN</button>
         </form>
 
-        <!-- SEZIONE RISULTATI (UI ISTITUZIONALE DARK) -->
+        <!-- RISULTATI -->
         <div id="risultati" class="hidden mt-12 pt-8 border-t border-slate-800">
             <div class="flex justify-between items-end mb-6 no-print">
                 <h2 class="text-2xl font-bold text-slate-100 tracking-tight">Executive Summary</h2>
                 <button onclick="window.print()" class="btn-secondary flex items-center gap-2">📄 Stampa Report</button>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="card p-6 border-slate-800">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 text-center">
+                <div class="card p-6">
                     <h4 class="section-title text-slate-400">Impiego Capitali & Fisco</h4>
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Acquisto Asset</span><span class="font-mono text-slate-100" id="out_prezzo"></span></div>
-                        <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Tasse & Fee (Rogito)</span><span class="font-mono text-slate-100" id="out_tasse_agenzia"></span></div>
-                        <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">CAPEX (Lavori + Imprev.)</span><span class="font-mono text-slate-100" id="out_lavori"></span></div>
-                        <div class="pt-3 mt-3 flex justify-between bg-slate-900 -mx-6 px-6 pb-2 rounded-b-xl">
+                        <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Tasse & Fee</span><span class="font-mono text-slate-100" id="out_tasse_agenzia"></span></div>
+                        <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">CAPEX (Lavori + Extra)</span><span class="font-mono text-slate-100" id="out_lavori"></span></div>
+                        <div class="pt-3 mt-3 flex justify-between bg-slate-900 -mx-6 px-6 pb-2 rounded-b-xl border-t border-blue-900/30">
                             <span class="font-bold text-slate-300 uppercase text-xs">Costo Totale Progetto</span><span class="font-mono font-bold text-blue-400" id="out_investimento"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="card p-6 border-slate-800">
-                    <h4 class="section-title text-slate-400">Copertura Finanziaria & Debito</h4>
-                    <div id="box_no_mutuo" class="text-sm text-slate-500 mt-4 italic text-center">Operazione 100% Equity.</div>
+                <div class="card p-6 text-center">
+                    <h4 class="section-title text-slate-400">Copertura Finanziaria</h4>
+                    <div id="box_no_mutuo" class="text-sm text-slate-500 mt-4 italic">Operazione 100% Equity.</div>
                     <div id="box_mutuo_risultato" class="hidden space-y-3 text-sm">
                         <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Equity Impegnata</span><span class="font-mono font-bold text-slate-100" id="out_capitale_proprio"></span></div>
                         <div class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Debito Banca (LTV)</span><span class="font-mono text-slate-100" id="out_importo_mutuo"></span></div>
@@ -255,31 +228,28 @@
                 </div>
             </div>
 
-            <!-- KPI GIGANTE CENTRALE -->
-            <div class="card p-8 border-t-4 border-t-blue-500 bg-[#0f172a] mb-8 text-center shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 relative z-10">Ritorno Operazione Totale (ROI)</h4>
-                <div id="out_roi" class="text-6xl font-mono font-bold tracking-tighter mb-4 text-slate-100 relative z-10"></div>
-                <div class="relative z-10"><span id="out_utile" class="font-mono text-base font-bold py-2 px-4 rounded bg-slate-900 border border-slate-800"></span></div>
+            <div class="card p-8 border-t-4 border-t-blue-500 bg-[#0a0f1c] mb-8 text-center shadow-2xl relative overflow-hidden">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Ritorno Operazione Totale (ROI)</h4>
+                <div id="out_roi" class="text-6xl font-mono font-bold tracking-tighter mb-4 text-slate-100"></div>
+                <div><span id="out_utile" class="font-mono text-base font-bold py-2 px-4 rounded bg-slate-900 border border-slate-800"></span></div>
                 
-                <div id="box_jv_result" class="hidden mt-8 pt-5 border-t border-slate-800 relative z-10">
+                <div id="box_jv_result" class="hidden mt-8 pt-5 border-t border-slate-800">
                     <p class="font-bold text-blue-500 text-[10px] uppercase tracking-widest mb-4">Split Joint Venture (Socio di Capitale)</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div class="bg-slate-900 border border-slate-800 p-3 rounded-lg"><p class="text-slate-500 text-[10px] uppercase">Tuoi Soldi Mesi</p><p class="font-mono font-bold text-slate-200 mt-1" id="out_jv_tuoi_soldi"></p></div>
                         <div class="bg-emerald-950 border border-emerald-900/50 p-3 rounded-lg"><p class="text-emerald-500 text-[10px] uppercase">Tuo Utile Netto</p><p class="font-mono font-bold text-emerald-400 mt-1" id="out_jv_tuo_utile"></p></div>
-                        <div class="bg-blue-950 border border-blue-800 p-3 rounded-lg shadow-inner"><p class="text-blue-400 text-[10px] uppercase">TUO ROI REALE</p><p class="font-mono font-bold text-blue-400 text-lg mt-1" id="out_jv_tuo_roi"></p></div>
+                        <div class="bg-blue-950 border border-blue-800 p-3 rounded-lg"><p class="text-blue-400 text-[10px] uppercase">TUO ROI REALE</p><p class="font-mono font-bold text-blue-400 text-lg mt-1" id="out_jv_tuo_roi"></p></div>
                     </div>
                 </div>
             </div>
 
-            <!-- TABELLA DATI MENSILI -->
             <div class="card overflow-hidden mb-8 border-slate-800">
                 <table class="w-full text-sm text-left whitespace-nowrap text-center">
-                    <thead class="text-xs text-slate-500 uppercase bg-[#09090b] border-b border-slate-800">
-                        <tr><th class="px-6 py-4 font-semibold text-center tracking-widest">Metrica Finanziaria Dettagliata</th><th class="px-6 py-4 font-semibold text-center tracking-widest">Valore (€)</th></tr>
+                    <thead class="text-xs text-slate-500 uppercase bg-[#020617] border-b border-slate-800">
+                        <tr><th class="px-6 py-4 font-semibold text-center tracking-widest">Dettaglio Finanziario</th><th class="px-6 py-4 font-semibold text-center tracking-widest">Valore (€)</th></tr>
                     </thead>
-                    <tbody class="divide-y border-slate-800 bg-[#18181b]">
-                        <tr id="riga_incasso_mese" class="hidden hover:bg-slate-900"><td class="px-6 py-3 text-slate-400">Incasso Mensile Affitto (Lordo Post-Sfitto)</td><td class="px-6 py-3 text-center font-mono text-slate-200" id="out_incasso_mese"></td></tr>
+                    <tbody class="divide-y border-slate-800 bg-[#0f172a]">
+                        <tr id="riga_incasso_mese" class="hidden hover:bg-slate-900"><td class="px-6 py-3 text-slate-400">Incasso Mensile Affitto (Post-Sfitto)</td><td class="px-6 py-3 text-center font-mono text-slate-200" id="out_incasso_mese"></td></tr>
                         <tr id="riga_cashflow_mese" class="hidden bg-blue-900/20"><td class="px-6 py-4 text-blue-300 font-bold uppercase text-xs">Cashflow Netto Mensile (In tasca)</td><td class="px-6 py-4 text-center font-mono font-bold" id="out_cashflow_mese"></td></tr>
                         <tr id="riga_cashflow_annuo" class="hidden hover:bg-slate-900"><td class="px-6 py-3 text-slate-400">Cashflow Netto Annuo Cumulato</td><td class="px-6 py-3 text-center font-mono text-slate-200" id="out_cashflow_annuo"></td></tr>
                         <tr id="riga_valore_mercato" class="hover:bg-slate-900"><td class="px-6 py-3 text-slate-300 font-semibold" id="label_rivendita_tab">Valore Mercato Uscita</td><td class="px-6 py-3 text-center font-mono text-emerald-400 font-bold" id="out_rivendita"></td></tr>
@@ -305,15 +275,15 @@
                     </div>
                 </div>
 
-                <div id="box_scontrino_capex" class="hidden card p-6 border border-blue-900/50 bg-[#0f172a] shadow-md text-center">
+                <div id="box_scontrino_capex" class="hidden card p-6 border border-blue-900/50 bg-[#0a0f1c] shadow-md text-center">
                     <h4 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 border-b border-blue-900/50 pb-2 justify-center flex">Bill of Quantities (Lavori)</h4>
-                    <div id="scontrino_body" class="space-y-2 text-xs text-slate-300 font-mono"></div>
+                    <div id="scontrino_body" class="space-y-2 text-xs text-slate-300 font-mono text-center"></div>
                 </div>
             </div>
 
             <div id="box_grafici" class="hidden space-y-8 mb-8 no-print">
                 <div id="container_waterfall" class="card p-6 chart-container hidden border-slate-800 shadow-lg">
-                    <h4 class="section-title text-slate-400">Cashflow Mensile (Waterfall)</h4>
+                    <h4 class="section-title text-slate-400">Cashflow Mensile</h4>
                     <div class="relative h-[300px] w-full"><canvas id="graficoCashflow"></canvas></div>
                 </div>
                 <div id="container_timeline" class="card p-6 chart-container hidden border-slate-800 shadow-lg">
@@ -322,7 +292,7 @@
                 </div>
             </div>
 
-            <button id="btnSalvaDeal" class="btn-primary w-full no-print py-5 text-lg uppercase shadow-2xl mb-12 border border-blue-600">SALVA NEL PORTAFOGLIO ASSET</button>
+            <button id="btnSalvaDeal" class="btn-primary w-full no-print py-4 text-lg uppercase shadow-xl mb-12">SALVA NEL PORTAFOGLIO ASSET</button>
         </div>
     </div> 
 
@@ -341,7 +311,7 @@
 
         document.getElementById('print_date').textContent = new Date().toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Helper ultra-sicuro per parsare i numeri ed evitare crash .toLocaleString()
+        // Utility a prova di crash
         const safeNum = (val) => Number(val) || 0;
         const formatEur = (val) => "€ " + safeNum(val).toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 
@@ -375,10 +345,10 @@
             const getValRaw = (id) => parseFloat(document.getElementById(id).value) || 0;
             const container = document.getElementById('scontrino_body');
             container.innerHTML = ''; 
-            const voci = [ { n: "Pratica Edilizia", v: getValRaw('det_pratica') }, { n: `Demolizioni`, v: getValRaw('det_dem_mq')*getValRaw('det_dem_eu') }, { n: `Bagni Completi`, v: getValRaw('det_bagni_n')*getValRaw('det_bagni_eu') }, { n: "Impianto Elettrico", v: getValRaw('det_elettrico') }, { n: `Infissi / Porte`, v: getValRaw('det_infissi_n')*getValRaw('det_infissi_eu') }, { n: `Forn. Posa Pavimenti`, v: getValRaw('det_pav1_mq')*getValRaw('det_pav1_eu') } ];
+            const voci = [ { n: "Pratica Edilizia", v: getValRaw('det_pratica') }, { n: `Demolizioni`, v: getValRaw('det_dem_mq')*getValRaw('det_dem_eu') }, { n: `Bagni Completi`, v: getValRaw('det_bagni_n')*getValRaw('det_bagni_eu') }, { n: "Impianto Elettrico", v: getValRaw('det_elettrico') }, { n: `Infissi / Porte`, v: getValRaw('det_infissi_n')*getValRaw('det_infissi_eu') }, { n: `Pavimenti`, v: getValRaw('det_pav1_mq')*getValRaw('det_pav1_eu') } ];
             let hasItems = false;
             voci.forEach(v => { if (v.v > 0) { hasItems = true; container.innerHTML += `<div class="flex justify-between border-b border-slate-800 pb-1"><span>${v.n}</span><span class="font-bold text-slate-200">€ ${Math.round(v.v).toLocaleString('it-IT')}</span></div>`; } });
-            if(hasItems) { container.innerHTML += `<div class="flex justify-between pt-3 mt-2 border-t-2 border-blue-800 font-bold text-blue-400"><span>TOTALE COMPUTO:</span><span>€ ${Math.round(totaleNetto).toLocaleString('it-IT')}</span></div>`; document.getElementById('box_scontrino_capex').classList.remove('hidden'); } else { document.getElementById('box_scontrino_capex').classList.add('hidden'); }
+            if(hasItems) { container.innerHTML += `<div class="flex justify-between pt-3 mt-2 border-t border-blue-800 font-bold text-blue-400"><span>TOTALE COMPUTO:</span><span>€ ${Math.round(totaleNetto).toLocaleString('it-IT')}</span></div>`; document.getElementById('box_scontrino_capex').classList.remove('hidden'); } else { document.getElementById('box_scontrino_capex').classList.add('hidden'); }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -389,7 +359,7 @@
             document.getElementById('prezzo').addEventListener('input', calcolaPrezzoMq); document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
         });
 
-        // BUG FIX FONDAMENTALE: Se la casella è spenta (disabled), il valore DEVE essere 0 per la matematica
+        // BUGFIX: Se il campo è disabilitato o invisibile, DEVE restituire 0
         function toggleInput(id, checkId) { const i = document.getElementById(id); if(document.getElementById(checkId).checked) { i.disabled = false; } else { i.disabled = true; } }
         function calcolaStimaLavoro(t, c) { toggleInput(`val_${t}`, `chk_${t}`); const i = document.getElementById(`val_${t}`); if(document.getElementById(`chk_${t}`).checked) i.value = (parseFloat(document.getElementById('mq').value)||0)*c; }
         function calcolaStimaFissa(t, c) { toggleInput(`val_${t}`, `chk_${t}`); const i = document.getElementById(`val_${t}`); if(document.getElementById(`chk_${t}`).checked) i.value = c; }
@@ -401,16 +371,16 @@
             const ctx = document.getElementById('graficoCashflow').getContext('2d');
             if (chartBarInstance) chartBarInstance.destroy();
             let incassoMensile = safeNum(dati.incasso_mensile_lordo); let rataBanca = safeNum(dati.rata_mensile_mutuo); let cashflowMensile = safeNum(dati.cashflow_mensile_netto); let altreSpese = incassoMensile - rataBanca - cashflowMensile;
-            chartBarInstance = new Chart(ctx, { type: 'bar', data: { labels: ['Affitto Lordo', 'Rata Banca', 'Tasse/Opex', 'CASHFLOW'], datasets: [{ data: [incassoMensile, -rataBanca, -altreSpese, cashflowMensile], backgroundColor: ['#10b981', '#475569', '#f59e0b', cashflowMensile>=0?'#3b82f6':'#ef4444'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { font: {family: 'JetBrains Mono', weight: 'bold'}, formatter: (val) => '€' + Math.round(val) } }, scales: { y: { grid: { color: '#27272a' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false}, ticks: { font: {weight: 'bold', color: '#94a3b8'} } } } } });
+            chartBarInstance = new Chart(ctx, { type: 'bar', data: { labels: ['Affitto', 'Rata', 'Opex', 'CASHFLOW'], datasets: [{ data: [incassoMensile, -rataBanca, -altreSpese, cashflowMensile], backgroundColor: ['#10b981', '#475569', '#f59e0b', cashflowMensile>=0?'#3b82f6':'#ef4444'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { font: {family: 'JetBrains Mono', weight: 'bold'}, formatter: (val) => '€' + Math.round(val) } }, scales: { y: { grid: { color: '#27272a' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false}, ticks: { font: {weight: 'bold', color: '#94a3b8'} } } } } });
             document.getElementById('container_waterfall').classList.remove('hidden');
         }
 
         function disegnaGraficoTimeline(dati) {
             const ctx = document.getElementById('graficoTimeline').getContext('2d');
             if (chartTimelineInstance) chartTimelineInstance.destroy();
-            if(!dati.timeline) return; // Protezione anti-crash
+            if(!dati.timeline) return;
             let labels = dati.timeline.map((_, i) => i === 0 ? 'T0 (Entry)' : `Anno ${i}`);
-            if (dati.strategia !== 'Affitto') labels[labels.length - 1] = 'T (Exit)';
+            if (dati.strategia !== 'Affitto') labels[labels.length - 1] = 'Exit';
             let colors = dati.timeline.map((val, i) => i === 0 ? '#475569' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10b981' : (val >= 0 ? '#3b82f6' : '#ef4444')));
             chartTimelineInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ data: dati.timeline, backgroundColor: colors, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { color: (ctx) => ctx.dataset.data[ctx.dataIndex] === 0 ? 'transparent' : (ctx.dataset.data[ctx.dataIndex] < 0 && ctx.dataIndex !== 0 ? '#ef4444' : '#FFF'), font: {family: 'JetBrains Mono', size: 10, weight: 'bold'}, anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', offset: 8, formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') } }, scales: { y: { grid: { color: '#27272a' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false}, ticks: { font: {weight: 'bold', color: '#94a3b8'} } } } } });
             document.getElementById('container_timeline').classList.remove('hidden');
@@ -419,7 +389,7 @@
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // LA FUNZIONE SICURA DEFINITIVA: Se la casella è disabilitata (spenta), il valore è 0!
+            // ESTRATTORE VALORI SICURO
             const getVal = (id) => {
                 const el = document.getElementById(id);
                 if (!el) return 0;
@@ -447,12 +417,14 @@
 
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if(!response.ok) throw new Error("Errore Server");
+                if(!response.ok) {
+                    const err = await response.text();
+                    throw new Error("Errore 422 - Il Server Python non è allineato. Attendere riavvio o verificare l'aggiornamento di main.py");
+                }
                 const data = await response.json();
 
                 ultimoDealCalcolato = { strategia: data.strategia, prezzo_acquisto: payload.prezzo_acquisto, mq: payload.mq, investimento_totale: safeNum(data.capitale_proprio_totale), utile_netto: safeNum(data.utile_totale), roi_percentuale: safeNum(data.roi_percentuale) };
 
-                // DATI BASE (Anti-Crash con formatEur)
                 document.getElementById('out_prezzo').textContent = formatEur(payload.prezzo_acquisto); 
                 document.getElementById('out_tasse_agenzia').textContent = formatEur(safeNum(data.tasse_e_notaio) + safeNum(data.agenzia));
                 document.getElementById('out_lavori').textContent = formatEur(data.costo_lavori); 
@@ -468,13 +440,11 @@
 
                 if (isDetailedCapex) { generaScontrino(costo_lavori_finale); } else { document.getElementById('box_scontrino_capex').classList.add('hidden'); }
 
-                // STRESS TEST COLORATO
                 document.getElementById('stress_desc').textContent = data.strategia === 'Vendita' ? "Lavori +3 mesi. Valore Uscita -10%." : "Affitto -10%. Sfitto Raddoppiato.";
                 document.getElementById('out_stress_utile').textContent = formatEur(data.utile_stress);
                 document.getElementById('out_stress_roi').textContent = safeNum(data.roi_stress) + "%";
                 document.getElementById('out_stress_roi').className = safeNum(data.roi_stress) >= 0 ? "font-mono font-bold text-green-500 text-lg" : "font-mono font-bold text-red-500 text-lg";
 
-                // JOINT VENTURE
                 if(data.usa_socio) {
                     document.getElementById('box_jv_result').classList.remove('hidden');
                     document.getElementById('out_jv_tuoi_soldi').textContent = formatEur(data.tuo_capitale);
@@ -482,12 +452,10 @@
                     document.getElementById('out_jv_tuo_roi').textContent = (safeNum(data.tuo_roi) > 998 ? "∞ (No Money Down)" : safeNum(data.tuo_roi) + "%");
                 } else { document.getElementById('box_jv_result').classList.add('hidden'); }
 
-                // RESET RIGHE
                 document.getElementById('riga_incasso_mese').classList.add('hidden'); document.getElementById('riga_cashflow_mese').classList.add('hidden'); document.getElementById('riga_cashflow_annuo').classList.add('hidden');
                 document.getElementById('riga_valore_mercato').classList.add('hidden'); document.getElementById('riga_mista_debito').classList.add('hidden'); document.getElementById('riga_plusvalenza').classList.add('hidden');
                 document.getElementById('box_grafici').classList.add('hidden'); document.getElementById('container_waterfall').classList.add('hidden'); document.getElementById('container_timeline').classList.add('hidden');
 
-                // COLORE DINAMICO UTILE FINALE
                 const cUtile = safeNum(data.utile_totale) >= 0 ? 'text-green-500' : 'text-red-500';
                 const cRoi = safeNum(data.roi_percentuale) >= 0 ? 'text-slate-100' : 'text-red-500';
                 document.getElementById('out_utile').className = `font-mono text-base font-bold py-2 px-4 rounded bg-slate-900 border border-slate-800 ${cUtile}`; 
@@ -514,16 +482,13 @@
                         if(safeNum(data.tasse_plusvalenza) > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- " + formatEur(data.tasse_plusvalenza); } 
                         if(data.usa_mutuo && safeNum(data.debito_residuo) > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "- " + formatEur(data.debito_residuo); } 
                     }
-                    
-                    document.getElementById('box_grafici').classList.remove('hidden'); 
-                    disegnaGraficoCashflow(data, payload); 
-                    disegnaGraficoTimeline(data);
+                    document.getElementById('box_grafici').classList.remove('hidden'); disegnaGraficoCashflow(data, payload); disegnaGraficoTimeline(data);
                 }
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
 
             } catch (e) { 
-                alert("Il server sta aggiornando la matematica (ci mette 3 minuti). Riprova tra un attimo!"); 
+                alert(e.message); 
                 console.error(e); 
             }
         });
