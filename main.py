@@ -6,7 +6,7 @@ import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro", version="13.0")
+app = FastAPI(title="Deal Analyzer Pro", version="14.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,11 +50,9 @@ class InputDeal(BaseModel):
     spese_extra: float = 0.0
     costo_lavori_totale: float = 0.0
     imprevisti_perc: float = 10.0
-    
     mesi_lavori: float = 6.0
     stima_rivendita: float = 0.0 
     apprezzamento_annuo: float = 2.0 
-    
     canone_mensile: float = 0.0
     tasso_sfitto_perc: float = 5.0
     cedolare_secca_perc: float = 21.0
@@ -66,12 +64,10 @@ class InputDeal(BaseModel):
     costo_acqua_tari: float = 0.0
     assicurazione_annua: float = 0.0
     anni_messa_a_reddito: float = 5.0
-
     usa_mutuo: bool = False
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
     anni_mutuo: float = 20.0
-    
     usa_socio: bool = False
     quota_socio_capitale: float = 100.0
     quota_socio_utile: float = 50.0
@@ -87,6 +83,21 @@ class DealDaSalvare(BaseModel):
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     
+    # INIZIALIZZAZIONE SICURA (Evita qualsiasi crash)
+    tasse_plusvalenza = 0.0
+    debito_residuo = 0.0
+    metrica_lorda = 0.0
+    valore_futuro_immobile = 0.0
+    utile_stress = 0.0
+    roi_stress = 0.0
+    cashflow_annuo_pieno = 0.0
+    cashflow_mensile_netto = 0.0
+    incasso_mensile_lordo = 0.0
+    cashflow_anno_1 = 0.0
+    utile_totale = 0.0
+    tuo_utile = 0.0
+    utile_socio = 0.0
+
     agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
     imposte_stato = 0
     if dati.profilo_fiscale == "privato_prima":
@@ -103,7 +114,6 @@ def calcola_roi(dati: InputDeal):
     tasse_e_notaio = imposte_stato + dati.notaio
     fondo_imprevisti = (dati.costo_lavori_totale * dati.imprevisti_perc) / 100
     costo_lavori = dati.costo_lavori_totale + fondo_imprevisti + dati.spese_extra
-
     costo_totale_progetto = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
     capitale_investito_reale = costo_totale_progetto
 
@@ -129,41 +139,35 @@ def calcola_roi(dati: InputDeal):
     valore_mercato_iniziale = dati.stima_rivendita if dati.stima_rivendita > 0 else costo_totale_progetto
     timeline_cashflow = [-capitale_investito_reale]
 
-    risultato = {
-        "strategia": dati.strategia, "tasse_e_notaio": round(tasse_e_notaio, 2), "agenzia": round(agenzia, 2),
-        "costo_lavori": round(costo_lavori, 2), "costo_totale_progetto": round(costo_totale_progetto, 2),
-        "usa_mutuo": dati.usa_mutuo, "importo_mutuo": round(importo_mutuo, 2), "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
-        "capitale_proprio_totale": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
-        "tuo_capitale": round(tuo_capitale, 2), "capitale_socio": round(capitale_socio, 2), "usa_socio": dati.usa_socio
-    }
-
-    def calcola_tasse_vendita(prezzo_vendita):
+    def calcola_tasse_vendita(prezzo_vendita, costo_tot):
         if dati.profilo_fiscale in ["privato_prima", "privato_seconda"]:
-            return max(0, prezzo_vendita - costo_totale_progetto) * 0.26
+            return max(0, prezzo_vendita - costo_tot) * 0.26
         return 0
 
     if dati.strategia == "Vendita":
+        metrica_lorda = valore_mercato_iniziale
         costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori
         if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
         
-        tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale)
+        tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale, costo_totale_progetto)
         utile_totale = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza)
         timeline_cashflow.append(utile_totale + capitale_investito_reale) 
         
         costi_mant_stress = dati.spese_condominio_mensili * (dati.mesi_lavori + 3)
         if dati.usa_mutuo: costi_mant_stress += importo_mutuo * (dati.tasso_mutuo / 100) * ((dati.mesi_lavori + 3) / 12)
         valore_stress = valore_mercato_iniziale * 0.90
-        utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress))
-        cashflow_annuo_pieno = 0
+        utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress, costo_totale_progetto))
 
     else:
-        metrica_lorda = (dati.canone_mensile * 12) * (1 - (dati.tasso_sfitto_perc / 100))
+        incasso_mensile_lordo = dati.canone_mensile * (1 - (dati.tasso_sfitto_perc / 100))
+        metrica_lorda = incasso_mensile_lordo * 12
         spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
         spese_fisse_annue = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + dati.imu_annua + dati.assicurazione_annua
         if dati.usa_mutuo: spese_fisse_annue += (rata_mensile_mutuo * 12)
 
         tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
         cashflow_annuo_pieno = metrica_lorda - spese_fisse_annue - tasse_affitto
+        cashflow_mensile_netto = cashflow_annuo_pieno / 12
         
         mesi_affitto_anno_1 = max(0, 12 - dati.mesi_lavori)
         incasso_anno_1 = dati.canone_mensile * mesi_affitto_anno_1 * (1 - (dati.tasso_sfitto_perc / 100))
@@ -179,6 +183,7 @@ def calcola_roi(dati: InputDeal):
 
         elif dati.strategia == "Mista":
             valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
+            metrica_lorda = valore_futuro_immobile
             debito_residuo = 0
             if dati.usa_mutuo and dati.anni_mutuo > 0:
                 mesi_pagati = dati.anni_messa_a_reddito * 12
@@ -189,7 +194,7 @@ def calcola_roi(dati: InputDeal):
                     else:
                         debito_residuo = importo_mutuo - (rata_mensile_mutuo * mesi_pagati)
             
-            tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile) if dati.anni_messa_a_reddito <= 5 else 0
+            tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile, costo_totale_progetto) if dati.anni_messa_a_reddito <= 5 else 0
             incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
             
             tot_cf = cashflow_anno_1 + (cashflow_annuo_pieno * (dati.anni_messa_a_reddito - 1))
@@ -200,7 +205,7 @@ def calcola_roi(dati: InputDeal):
                 timeline_cashflow.append(cf + incasso_netto_vendita if anno == int(dati.anni_messa_a_reddito) else cf)
 
             valore_stress = valore_futuro_immobile * 0.90
-            incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress)
+            incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress, costo_totale_progetto)
             utile_stress = tot_cf + incasso_stress - capitale_investito_reale
 
     tuo_utile = utile_totale
@@ -212,20 +217,19 @@ def calcola_roi(dati: InputDeal):
     tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0
     roi_stress = (utile_stress / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
 
-    risultato.update({
-        "metrica_lorda": round(valore_mercato_iniziale if dati.strategia == "Vendita" else (metrica_lorda if dati.strategia=="Affitto" else valore_futuro_immobile), 2),
-        "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(utile_socio, 2),
+    return {
+        "strategia": dati.strategia, "tasse_e_notaio": round(tasse_e_notaio, 2), "agenzia": round(agenzia, 2),
+        "costo_lavori": round(costo_lavori, 2), "costo_totale_progetto": round(costo_totale_progetto, 2),
+        "usa_mutuo": dati.usa_mutuo, "importo_mutuo": round(importo_mutuo, 2), "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
+        "capitale_proprio_totale": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
+        "tuo_capitale": round(tuo_capitale, 2), "capitale_socio": round(capitale_socio, 2), "usa_socio": dati.usa_socio,
+        "metrica_lorda": round(metrica_lorda, 2), "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(utile_socio, 2),
         "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
         "tuo_roi": round(tuo_roi, 2), "utile_stress": round(utile_stress, 2), "roi_stress": round(roi_stress, 2),
-        "timeline": timeline_cashflow, 
-        "incasso_mensile_lordo": round(dati.canone_mensile * (1 - dati.tasso_sfitto_perc/100), 2),
-        "cashflow_mensile_netto": round(cashflow_annuo_pieno / 12 if dati.strategia != "Vendita" else 0, 2),
-        "cashflow_annuo": round(cashflow_annuo_pieno if dati.strategia != "Vendita" else 0, 2),
-        "tasse_plusvalenza": round(tasse_plusvalenza if 'tasse_plusvalenza' in locals() else 0, 2),
-        "debito_residuo": round(debito_residuo if 'debito_residuo' in locals() else 0, 2)
-    })
-
-    return risultato
+        "timeline": timeline_cashflow, "incasso_mensile_lordo": round(incasso_mensile_lordo, 2),
+        "cashflow_mensile_netto": round(cashflow_mensile_netto, 2), "cashflow_annuo": round(cashflow_annuo_pieno, 2),
+        "tasse_plusvalenza": round(tasse_plusvalenza, 2), "debito_residuo": round(debito_residuo, 2)
+    }
 
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
