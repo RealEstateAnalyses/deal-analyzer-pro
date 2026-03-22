@@ -38,6 +38,7 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         @media print {
             body { background-color: white; color: black; font-size: 12px; }
@@ -95,14 +96,13 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="md:col-span-1">
-                        <label class="label-sm">Profilo Fiscale (Imposte)</label>
+                        <label class="label-sm">Tassazione (Imposte)</label>
                         <select id="profilo_fiscale" class="input-field text-center font-bold">
                             <option value="privato_seconda">Privato - 2ª Casa (9%)</option>
                             <option value="privato_prima">Privato - 1ª Casa (2%)</option>
                             <option value="societa_asta">Società / Asta (9% Prezzo)</option>
                             <option value="societa_trading">Società Trading (Fisse 600€)</option>
                         </select>
-                        <p class="text-[10px] text-slate-500 mt-2 text-center">Se 'Prima Casa', l'IMU si azzera dopo i lavori.</p>
                     </div>
                     <div><label class="label-sm">Notaio (€)</label><input type="number" id="notaio" value="2500" class="input-field font-mono"></div>
                     <div><label class="label-sm">Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="input-field font-mono"></div>
@@ -127,7 +127,7 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div><label class="label-sm">Mesi Cantiere / Lavori</label><input type="number" id="mesi_lavori" value="6" class="input-field font-mono"></div>
-                    <div id="modulo_anni_affitto" class="hidden"><label class="label-sm">Anni a Reddito prima di vendere</label><input type="number" id="anni_affitto" value="5" class="input-field font-mono"></div>
+                    <div id="modulo_anni_affitto" class="hidden"><label class="label-sm">Anni a Reddito prima di vendita</label><input type="number" id="anni_affitto" value="5" class="input-field font-mono"></div>
                     <div id="modulo_apprezzamento"><label class="label-sm">Apprezzamento (%/y)</label><input type="number" id="apprezzamento" value="2" step="0.5" class="input-field font-mono"></div>
                 </div>
             </div>
@@ -146,7 +146,6 @@
                 </div>
                 
                 <h4 class="text-[10px] text-slate-500 uppercase tracking-widest mb-4 mt-8 border-b border-slate-800 pb-2 text-center">Utenze & Extra (a carico tuo)</h4>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
                     <div class="flex justify-between items-center"><label class="text-xs font-bold text-slate-400 flex items-center gap-3"><input type="checkbox" id="chk_luce" onchange="toggleInput('val_luce', 'chk_luce')"> Elettricità (€/m)</label><input type="number" id="val_luce" value="40" class="input-field w-24 py-2 font-mono text-sm" disabled></div>
                     <div class="flex justify-between items-center"><label class="text-xs font-bold text-slate-400 flex items-center gap-3"><input type="checkbox" id="chk_gas" onchange="toggleInput('val_gas', 'chk_gas')"> Gas/Risc. (€/m)</label><input type="number" id="val_gas" value="50" class="input-field w-24 py-2 font-mono text-sm" disabled></div>
@@ -157,6 +156,7 @@
                 </div>
             </div>
 
+            <!-- SEZIONE 4: CAPEX E BONUS -->
             <div class="card p-6 md:p-8">
                 <div class="section-title">
                     <span>4. CAPEX (Lavori)</span>
@@ -170,9 +170,9 @@
                     </label>
                 </div>
 
-                <div class="mb-6 pb-6 border-b border-slate-800 flex items-center justify-center gap-4 bg-blue-900/10 p-4 rounded-xl border border-blue-900/30">
-                    <input type="checkbox" id="usa_bonus_lavori" class="w-6 h-6 border-blue-500 rounded">
-                    <label for="usa_bonus_lavori" class="text-sm font-bold text-blue-400 uppercase tracking-widest cursor-pointer">Attiva Bonus Ristrutturazione 50% (Recupero IRPEF in 10 anni)</label>
+                <div class="mb-8 pb-8 border-b border-slate-800 flex items-center justify-center gap-4 bg-blue-900/10 p-5 rounded-xl border border-blue-900/30 shadow-inner">
+                    <input type="checkbox" id="usa_bonus_lavori" class="w-7 h-7 border-blue-500 rounded text-blue-500 bg-[#020617] cursor-pointer">
+                    <label for="usa_bonus_lavori" class="text-sm font-black text-blue-400 uppercase tracking-widest cursor-pointer drop-shadow-sm">Attiva Bonus Lavori 50% (Credito IRPEF 10y)</label>
                 </div>
 
                 <div id="capex_rapido" class="space-y-5 mb-8">
@@ -198,6 +198,7 @@
                 </div>
             </div>
 
+            <!-- SEZIONE 5: LEVA E JV -->
             <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-blue-900/30 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="flex items-center justify-center gap-3 mb-6 border-b border-slate-800 pb-4">
@@ -220,9 +221,10 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary w-full mt-10">GENERA BUSINESS PLAN</button>
+            <button type="submit" class="btn-primary w-full mt-10 shadow-2xl">GENERA BUSINESS PLAN</button>
         </form>
 
+        <!-- SEZIONE RISULTATI (UI ISTITUZIONALE) -->
         <div id="risultati" class="hidden mt-16 pt-10 border-t border-slate-800">
             <div class="flex justify-between items-end mb-8 no-print">
                 <h2 class="text-2xl font-black text-slate-100 tracking-tight uppercase">Executive Summary</h2>
@@ -255,6 +257,7 @@
                 </div>
             </div>
 
+            <!-- KPI GIGANTE CENTRALE -->
             <div class="card p-10 border-t-4 border-t-blue-500 bg-[#070b14] mb-10 text-center shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-800/50 pb-3 relative z-10">Ritorno Operazione Totale (ROI)</h4>
@@ -271,7 +274,7 @@
                 </div>
             </div>
 
-            <!-- TABELLA DATI CON CREDITO FISCALE -->
+            <!-- TABELLA DATI E BONUS RISTRUTTURAZIONE -->
             <div class="card overflow-hidden mb-10 border-slate-800 shadow-xl">
                 <table class="w-full text-sm text-left whitespace-nowrap text-center">
                     <thead class="text-xs text-slate-400 uppercase bg-[#020617] border-b border-slate-800">
@@ -283,8 +286,7 @@
                         <tr id="riga_cashflow_annuo" class="hidden hover:bg-slate-900/50 transition"><td class="px-6 py-4 text-slate-400">Cashflow Netto Annuo Cumulato</td><td class="px-6 py-4 font-mono text-slate-200 text-base" id="out_cashflow_annuo"></td></tr>
                         <tr id="riga_valore_mercato" class="hover:bg-slate-900/50 transition"><td class="px-6 py-4 text-slate-300 font-bold" id="label_rivendita_tab">Valore Mercato Uscita</td><td class="px-6 py-4 font-mono text-emerald-400 font-bold text-base" id="out_rivendita"></td></tr>
                         
-                        <!-- Nuova Riga Credito Fiscale -->
-                        <tr id="riga_credito_fiscale" class="hidden bg-emerald-900/10 border-t-2 border-emerald-900/30"><td class="px-6 py-4 text-emerald-400 font-bold">Credito IRPEF Maturato (Recupero Lavori in 10y)</td><td class="px-6 py-4 font-mono text-emerald-400 text-base font-bold" id="out_credito_fiscale"></td></tr>
+                        <tr id="riga_credito_fiscale" class="hidden bg-emerald-900/10 border-t-2 border-emerald-900/30"><td class="px-6 py-4 text-emerald-400 font-bold tracking-widest uppercase text-xs">Credito Fiscale Maturato (+50% Lavori)</td><td class="px-6 py-4 font-mono text-emerald-400 text-lg font-bold" id="out_credito_fiscale"></td></tr>
                         
                         <tr id="riga_mista_debito" class="hidden hover:bg-slate-900/50 transition"><td class="px-6 py-4 text-slate-400">Estinzione Debito Banca al Rogito</td><td class="px-6 py-4 font-mono text-red-400 text-base" id="out_mista_debito"></td></tr>
                         <tr id="riga_plusvalenza" class="hidden hover:bg-slate-900/50 transition"><td class="px-6 py-4 text-slate-400">Tasse Plusvalenza (Capital Gain 26%)</td><td class="px-6 py-4 font-mono text-red-400 text-base" id="out_plusvalenza"></td></tr>
@@ -292,6 +294,7 @@
                 </table>
             </div>
 
+            <!-- SCONTRINO E STRESS TEST -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-center">
                 <div id="box_stress_test" class="card p-8 border border-red-900/40 bg-[#160b0b] shadow-lg relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-24 h-24 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -333,6 +336,7 @@
         </div>
     </div> 
 
+    <!-- DASHBOARD PORTAFOGLIO -->
     <div id="vistaDashboard" class="hidden max-w-5xl mx-auto px-4 py-10">
         <h2 class="text-2xl font-black text-slate-100 mb-8 uppercase tracking-widest">Portafoglio Asset</h2>
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
@@ -389,12 +393,9 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             aggiornaVisibilitaModuli();
-            function popolaCampo(id, param) { const urlParams = new URLSearchParams(window.location.search); if(urlParams.has(param)) { const i = document.getElementById(id); if(i) i.value = urlParams.get(param); } }
-            popolaCampo('prezzo', 'prezzo'); popolaCampo('mq', 'mq');
-            function calcolaPrezzoMq() { const p = parseFloat(document.getElementById('prezzo').value)||0; const m = parseFloat(document.getElementById('mq').value)||0; document.getElementById('live_prezzo_mq').textContent = (p>0 && m>0) ? `${Math.round(p/m).toLocaleString('it-IT')} €/mq` : "0 €/mq"; }
-            document.getElementById('prezzo').addEventListener('input', calcolaPrezzoMq); document.getElementById('mq').addEventListener('input', calcolaPrezzoMq);
         });
 
+        // ESTRATTORE VALORI SICURO
         const getVal = (id) => {
             const el = document.getElementById(id);
             if (!el || el.disabled) return 0; 
@@ -429,6 +430,7 @@
 
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
             const strat = document.getElementById('strategia').value;
             let costo_lavori_finale = isDetailedCapex ? calcolaTotaleDettagliato() : getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi');
 
@@ -447,9 +449,10 @@
             try {
                 const response = await fetch('/api/calcola-roi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if(!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server disallineato. Attendere 2-3 minuti per l'aggiornamento.`);
+                    const errData = await response.text();
+                    throw new Error(`\nErrore HTTP ${response.status}\nDettaglio Server: ${errData}`);
                 }
+                
                 const data = await response.json();
 
                 ultimoDealCalcolato = { strategia: data.strategia, prezzo_acquisto: payload.prezzo_acquisto, mq: payload.mq, investimento_totale: safeNum(data.capitale_proprio_totale), utile_netto: safeNum(data.utile_totale), roi_percentuale: safeNum(data.roi_percentuale) };
@@ -517,10 +520,7 @@
                         if(safeNum(data.tasse_plusvalenza) > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- " + formatEur(data.tasse_plusvalenza); } 
                         if(data.usa_mutuo && safeNum(data.debito_residuo) > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "- " + formatEur(data.debito_residuo); } 
                     }
-                    
-                    document.getElementById('box_grafici').classList.remove('hidden'); 
-                    disegnaGraficoCashflow(data, payload); 
-                    disegnaGraficoTimeline(data);
+                    document.getElementById('box_grafici').classList.remove('hidden'); disegnaGraficoCashflow(data, payload); disegnaGraficoTimeline(data);
                 }
                 
                 const btnSave = document.getElementById('btnSalvaDeal');
@@ -530,7 +530,10 @@
                 
                 document.getElementById('risultati').classList.remove('hidden'); document.getElementById('risultati').scrollIntoView({ behavior: 'smooth' });
 
-            } catch (e) { alert("Attendi l'allineamento del server su Render (circa 2-3 minuti) e riprova. Errore: " + e.message); console.error(e); }
+            } catch (e) { 
+                alert(`⚠️ IMPOSSIBILE CONNETTERSI AL SERVER (RENDER)\n\nIl server Python non sta rispondendo. Causa probabile: il server gratuito di Render si sta accendendo (ci mette 2-3 minuti).\n\nPer favore, aspetta 1 minuto, poi premi "Genera Business Plan" di nuovo senza ricaricare la pagina.\n\nDettagli per il programmatore: ${e.message}`); 
+                console.error(e); 
+            }
         });
 
         document.getElementById('btnSalvaDeal').addEventListener('click', async function() {
