@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel
 import pathlib
 import sqlite3
 from datetime import datetime
 
-app = FastAPI(title="Deal Analyzer Pro - Fiscal Edition", version="15.0")
+app = FastAPI(title="Deal Analyzer Pro - Luxury", version="15.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,8 +71,6 @@ class InputDeal(BaseModel):
     usa_socio: bool = False
     quota_socio_capitale: float = 100.0
     quota_socio_utile: float = 50.0
-    
-    # NUOVO: Bonus Ristrutturazione
     usa_bonus_lavori: bool = False
 
 class DealDaSalvare(BaseModel):
@@ -86,7 +84,6 @@ class DealDaSalvare(BaseModel):
 @app.post("/api/calcola-roi")
 def calcola_roi(dati: InputDeal):
     try:
-        # 1. TASSE ACQUISTO
         agenzia = (dati.prezzo_acquisto * dati.agenzia_percentuale) / 100
         imposte_stato = 0
         if dati.profilo_fiscale == "privato_prima":
@@ -102,23 +99,23 @@ def calcola_roi(dati: InputDeal):
             
         tasse_e_notaio = imposte_stato + dati.notaio
         
-        # 2. CAPEX E BONUS 50%
         fondo_imprevisti = (dati.costo_lavori_totale * dati.imprevisti_perc) / 100
         costo_lavori = dati.costo_lavori_totale + fondo_imprevisti + dati.spese_extra
         
+        # BONUS RISTRUTTURAZIONI
         credito_fiscale_totale = 0.0
         credito_annuo = 0.0
         if dati.usa_bonus_lavori and costo_lavori > 0:
-            base_detraibile = min(costo_lavori, 96000.0) # Tetto massimo legge italiana
+            base_detraibile = min(costo_lavori, 96000.0) 
             credito_fiscale_totale = base_detraibile * 0.50
             credito_annuo = credito_fiscale_totale / 10.0
 
         costo_totale_progetto = dati.prezzo_acquisto + tasse_e_notaio + agenzia + costo_lavori
         capitale_investito_reale = costo_totale_progetto
 
-        # 3. LEVA FINANZIARIA E JV
         importo_mutuo = 0
         rata_mensile_mutuo = 0
+
         if dati.usa_mutuo and dati.capitale_proprio < costo_totale_progetto:
             importo_mutuo = costo_totale_progetto - dati.capitale_proprio
             capitale_investito_reale = dati.capitale_proprio
@@ -135,12 +132,11 @@ def calcola_roi(dati: InputDeal):
             capitale_socio = capitale_investito_reale * (dati.quota_socio_capitale / 100)
             tuo_capitale = capitale_investito_reale - capitale_socio
 
-        # 4. IMU INTELLIGENTE
+        # IMU INTELLIGENTE
         imu_mensile = dati.imu_annua / 12
         imu_anno_1 = dati.imu_annua
         imu_a_regime = dati.imu_annua
         if dati.profilo_fiscale == "privato_prima":
-            # Paghi l'IMU solo finché non prendi la residenza (mesi di cantiere)
             imu_anno_1 = imu_mensile * dati.mesi_lavori
             imu_a_regime = 0.0
 
@@ -152,14 +148,18 @@ def calcola_roi(dati: InputDeal):
                 return max(0, prezzo_vendita - costo_tot) * 0.26
             return 0
 
-        # 5. STRATEGIE OPERATIVE
+        tasse_plusvalenza = 0.0
+        debito_residuo = 0.0
+        cashflow_annuo_pieno = 0.0
+        cashflow_mensile_netto = 0.0
+        incasso_mensile_lordo = 0.0
+
         if dati.strategia == "Vendita":
             metrica_lorda = valore_mercato_iniziale
             costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori + (imu_mensile * dati.mesi_lavori)
             if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
             
             tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale, costo_totale_progetto)
-            # L'utile include il credito d'imposta che ti tieni in IRPEF
             utile_totale = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza) + credito_fiscale_totale
             timeline_cashflow.append(utile_totale + capitale_investito_reale) 
             
@@ -168,28 +168,19 @@ def calcola_roi(dati: InputDeal):
             valore_stress = valore_mercato_iniziale * 0.90
             utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress, costo_totale_progetto)) + credito_fiscale_totale
 
-            cashflow_annuo_pieno = 0.0
-            cashflow_mensile_netto = 0.0
-            incasso_mensile_lordo = 0.0
-            debito_residuo = 0.0
-
         else:
             incasso_mensile_lordo = dati.canone_mensile * (1 - (dati.tasso_sfitto_perc / 100))
             metrica_lorda = incasso_mensile_lordo * 12
+            spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
             
-            spese_fisse_mensili_base = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
-            
-            # Opex Anno 1 (con IMU temporanea se prima casa)
-            spese_fisse_anno_1 = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_anno_1 + dati.assicurazione_annua
+            spese_fisse_anno_1 = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_anno_1 + dati.assicurazione_annua
             if dati.usa_mutuo: spese_fisse_anno_1 += (rata_mensile_mutuo * 12)
             
-            # Opex a Regime (dal 2° anno)
-            spese_fisse_a_regime = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_a_regime + dati.assicurazione_annua
+            spese_fisse_a_regime = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_a_regime + dati.assicurazione_annua
             if dati.usa_mutuo: spese_fisse_a_regime += (rata_mensile_mutuo * 12)
 
             tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
             
-            # Aggiungiamo il Credito d'Imposta al Cashflow Netto
             cashflow_annuo_pieno = metrica_lorda - spese_fisse_a_regime - tasse_affitto + credito_annuo
             cashflow_mensile_netto = cashflow_annuo_pieno / 12
             
@@ -199,14 +190,11 @@ def calcola_roi(dati: InputDeal):
             
             if dati.strategia == "Affitto":
                 timeline_cashflow.append(cashflow_anno_1)
-                for i in range(2, 6): # Proiezione 5 anni
-                    timeline_cashflow.append(cashflow_annuo_pieno) 
+                for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) 
                 utile_totale = cashflow_annuo_pieno
                 
                 metrica_lorda_stress = (dati.canone_mensile * 12 * 0.90) * (1 - ((dati.tasso_sfitto_perc * 2) / 100))
                 utile_stress = metrica_lorda_stress - spese_fisse_a_regime - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100) + credito_annuo
-                debito_residuo = 0.0
-                tasse_plusvalenza = 0.0
 
             elif dati.strategia == "Mista":
                 valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
@@ -224,7 +212,6 @@ def calcola_roi(dati: InputDeal):
                 tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile, costo_totale_progetto) if dati.anni_messa_a_reddito <= 5 else 0
                 incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
                 
-                # Se l'affitto dura meno di 10 anni, incassi il residuo del bonus in fase di vendita (se lo tieni)
                 bonus_residuo = credito_fiscale_totale - (credito_annuo * dati.anni_messa_a_reddito) if dati.anni_messa_a_reddito < 10 else 0
                 
                 tot_cf = cashflow_anno_1 + (cashflow_annuo_pieno * (dati.anni_messa_a_reddito - 1))
@@ -259,11 +246,10 @@ def calcola_roi(dati: InputDeal):
             "timeline": timeline_cashflow, "incasso_mensile_lordo": round(incasso_mensile_lordo, 2),
             "cashflow_mensile_netto": round(cashflow_mensile_netto, 2), "cashflow_annuo": round(cashflow_annuo_pieno, 2),
             "tasse_plusvalenza": round(tasse_plusvalenza, 2), "debito_residuo": round(debito_residuo, 2),
-            "credito_fiscale_totale": round(credito_fiscale_totale, 2), "credito_annuo": round(credito_annuo, 2)
+            "credito_fiscale_totale": round(credito_fiscale_totale, 2)
         }
     except Exception as e:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(status_code=500, content={"detail": f"Errore interno del server Python: {str(e)}"})
+        return JSONResponse(status_code=500, content={"detail": f"Errore Motore Python: {str(e)}"})
 
 @app.post("/api/salva-deal")
 def salva_deal(deal: DealDaSalvare):
