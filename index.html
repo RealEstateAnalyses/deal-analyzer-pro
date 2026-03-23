@@ -393,7 +393,56 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             aggiornaVisibilitaModuli();
+            
+            // 1. RIPRISTINO LETTURA DATI DA IMMOBILIARE/URL
+            const urlParams = new URLSearchParams(window.location.search);
+            function popolaCampo(id, param) { 
+                if(urlParams.has(param)) { 
+                    const el = document.getElementById(id); 
+                    if(el) {
+                        el.value = urlParams.get(param); 
+                        // Colora il campo per far capire che è stato letto in automatico
+                        el.classList.add('border-blue-500', 'bg-blue-900/30', 'text-blue-200'); 
+                    }
+                } 
+            }
+            
+            popolaCampo('prezzo', 'prezzo'); 
+            popolaCampo('mq', 'mq');
+            
+            function calcolaPrezzoMq() { 
+                const p = parseFloat(document.getElementById('prezzo').value)||0; 
+                const m = parseFloat(document.getElementById('mq').value)||0; 
+                const displayEl = document.getElementById('live_prezzo_mq');
+                if(displayEl) displayEl.textContent = (p>0 && m>0) ? `${Math.round(p/m).toLocaleString('it-IT')} €/mq` : "0 €/mq"; 
+            }
+            
+            const inputPrezzo = document.getElementById('prezzo');
+            const inputMq = document.getElementById('mq');
+            if(inputPrezzo) inputPrezzo.addEventListener('input', calcolaPrezzoMq); 
+            if(inputMq) inputMq.addEventListener('input', calcolaPrezzoMq);
+            
+            if(urlParams.has('prezzo') && urlParams.has('mq')) calcolaPrezzoMq();
         });
+
+        // 2. RIPRISTINO TASTO "ESTRAI"
+        const btnEstrai = document.getElementById('btnEstrai');
+        if(btnEstrai) {
+            btnEstrai.addEventListener('click', function() {
+                const url = document.getElementById('urlAnnuncio').value;
+                if(url) {
+                    this.textContent = "Estrazione in corso...";
+                    this.classList.add('opacity-50', 'cursor-wait');
+                    setTimeout(() => { 
+                        this.textContent = "Estrai Dati"; 
+                        this.classList.remove('opacity-50', 'cursor-wait');
+                        alert("Sistema di estrazione pronto. Utilizza l'estensione Chrome per iniettare i dati."); 
+                    }, 1000);
+                } else {
+                    alert("Incolla prima il link dell'annuncio Immobiliare/Idealista!");
+                }
+            });
+        }
 
         // ESTRATTORE VALORI SICURO
         const getVal = (id) => {
