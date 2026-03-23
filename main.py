@@ -225,11 +225,13 @@ def calcola_roi(dati: InputDeal):
                 incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress, costo_totale_progetto)
                 utile_stress = tot_cf + incasso_stress + bonus_residuo - capitale_investito_reale
 
+       # FIX: Inizializza le variabili per evitare crash se non si usa il socio
+        utile_socio = 0.0
+        tuo_utile = utile_totale
+
         if dati.usa_socio:
             utile_socio = utile_totale * (dati.quota_socio_utile / 100)
             tuo_utile = utile_totale - utile_socio
-        else:
-            tuo_utile = utile_totale
 
         tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0
         roi_stress = (utile_stress / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
