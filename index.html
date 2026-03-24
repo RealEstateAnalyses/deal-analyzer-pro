@@ -616,7 +616,8 @@
                     responsive: true, 
                     maintainAspectRatio: false, 
                     layout: {
-                        padding: { top: topPadding, bottom: bottomPadding, left: 10, right: 10 } 
+                        // FIX DEFINITIVO: Molto più spazio in basso (80px) per far stare le lettere Y1, Y2 senza tagliarle
+                        padding: { top: topPadding, bottom: isLungo ? 80 : 40, left: 10, right: 10 } 
                     },
                     plugins: { 
                         legend: { display: false }, 
@@ -640,11 +641,12 @@
                                 maxRotation: isLungo ? -90 : 0, 
                                 minRotation: isLungo ? -90 : 0,
                                 autoSkip: false, 
-                                padding: 8
+                                // FIX: Mettiamo a 0 il padding del tick in modo che usi lo spazio del layout
+                                padding: 0
                             } 
                         } 
                     } 
-                } 
+                }
             });
             document.getElementById('container_timeline').classList.remove('hidden');
         }
