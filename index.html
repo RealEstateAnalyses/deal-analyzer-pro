@@ -672,6 +672,21 @@
                     document.getElementById('out_jv_tuoi_soldi').textContent = formatEur(data.tuo_capitale);
                     document.getElementById('out_jv_tuo_utile').textContent = formatEur(data.tuo_utile);
                     document.getElementById('out_jv_tuo_roi').textContent = (safeNum(data.tuo_roi) > 998 ? "∞ (No Money Down)" : safeNum(data.tuo_roi) + "%");
+                    
+                    // Disegna i box per ogni socio
+                    const containerSoci = document.getElementById('container_dettagli_soci');
+                    containerSoci.innerHTML = ''; // pulisci
+                    if(data.lista_dettagliata_soci) {
+                        data.lista_dettagliata_soci.forEach(soc => {
+                            containerSoci.innerHTML += `
+                                <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-800 text-center">
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">SOCIO ${soc.id} (${soc.percentuale_utile_concordata}% Utili)</p>
+                                    <div class="flex justify-between border-b border-slate-800 pb-1 mb-1"><span class="text-[10px] text-slate-400">Versato:</span><span class="font-mono text-slate-300 text-xs">${formatEur(soc.capitale_investito)}</span></div>
+                                    <div class="flex justify-between"><span class="text-[10px] text-slate-400">Utile:</span><span class="font-mono text-emerald-400 font-bold text-xs">${formatEur(soc.utile_netto)}</span></div>
+                                </div>
+                            `;
+                        });
+                    }
                 } else { document.getElementById('box_jv_result').classList.add('hidden'); }
 
                 document.getElementById('riga_incasso_mese').classList.add('hidden'); document.getElementById('riga_cashflow_mese').classList.add('hidden'); document.getElementById('riga_cashflow_annuo').classList.add('hidden');
