@@ -271,6 +271,15 @@
                     </div>
                 </div>
             </div>
+                <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-emerald-900/30 relative overflow-hidden mt-8">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <h3 class="text-sm font-bold text-slate-100 uppercase tracking-widest mb-2 border-b border-slate-800 pb-4">6. Macchina del Tempo (Eventi Futuri)</h3>
+                <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-widest">Simula imprevisti: "Al 3° Anno faccio 10k di lavori" o "All'8° Anno tengo sfitto per 6 mesi".</p>
+                
+                <div id="lista_eventi_futuri" class="space-y-4 mb-6"></div>
+                
+                <button type="button" onclick="aggiungiEventoFuturo()" class="w-full py-3 border border-dashed border-emerald-700/50 text-emerald-500 text-xs font-bold uppercase tracking-widest rounded-lg hover:border-emerald-400 hover:text-emerald-400 transition bg-emerald-900/10">+ Aggiungi Evento Futuro</button>
+            </div>
 
             <button type="submit" class="btn-primary w-full mt-10 shadow-2xl">GENERA BUSINESS PLAN</button>
         </form>
@@ -617,6 +626,10 @@
                     layout: {
                         padding: { top: topPadding, bottom: bottomPadding, left: 10, right: 10 } 
                     },
+                    layout: {
+                        // FIX: Più spazio in basso per le etichette Y1, Y2
+                        padding: { top: topPadding, bottom: isLungo ? 80 : 40, left: 10, right: 10 } 
+                    },
                     plugins: { 
                         legend: { display: false }, 
                         datalabels: { 
@@ -624,7 +637,8 @@
                             font: {family: 'JetBrains Mono', size: isLungo ? 10 : 11, weight: 'bold'}, 
                             anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
                             align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            offset: 10, 
+                            // FIX: Se negativo, spingi il numero molto più giù (25px) così non copre la riga dell'asse X
+                            offset: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 10 : 25, 
                             rotation: isLungo ? -90 : 0, 
                             formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
                         } 
@@ -689,20 +703,23 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 20, bottom: 10 } },
                     plugins: {
                         legend: { display: false },
-                        datalabels: { display: false } // Spegniamo i numeri per non creare caos, c'è l'asse Y
-                    },
-                    scales: {
-                        y: {
-                            grid: { color: '#1e293b', borderDash: [5, 5] },
-                            border: {display: false},
-                            ticks: {
-                                font: {family: 'JetBrains Mono', size: 10, color: '#94a3b8'},
-                                callback: function(value) { return '€' + value.toLocaleString('it-IT'); }
+                        datalabels: { display: false },
+                        // FIX: Tooltip enormi e professionali al passaggio del mouse
+                        tooltip: {
+                            backgroundColor: 'rgba(2, 6, 23, 0.95)',
+                            titleFont: { size: 14, family: 'Inter', weight: 'bold' },
+                            bodyFont: { size: 18, family: 'JetBrains Mono', weight: 'bold' },
+                            padding: 16,
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) { return 'Equity: € ' + context.parsed.y.toLocaleString('it-IT'); }
                             }
-                        },
+                        }
+                    },
                         x: {
                             grid: { display: false },
                             border: {display: false},
@@ -729,6 +746,15 @@
                 quoteUtile = Array.from(document.querySelectorAll('.socio-utile')).map(el => parseFloat(el.value) || 0);
             }
 
+            // Estrai Eventi Futuri
+            let arrayEventi = [];
+            document.querySelectorAll('.evento-futuro-row').forEach(row => {
+                const anno = parseInt(row.querySelector('.ev-anno').value) || 0;
+                const tipo = row.querySelector('.ev-tipo').value;
+                const valore = parseFloat(row.querySelector('.ev-valore').value) || 0;
+                if(anno > 0 && valore > 0) arrayEventi.push({anno: anno, tipo: tipo, valore: valore});
+            });
+            
             const payload = {
                 prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
@@ -737,6 +763,7 @@
                 canone_mensile: getVal('canone_mensile'), imu_annua: getVal('imu'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'), costo_acqua_tari: getVal('val_acqua'), 
                 costo_wifi: getVal('val_wifi'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
                 anni_messa_a_reddito: getVal('anni_affitto'), usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo'),
+                eventi_futuri: arrayEventi,
 
                 mesi_imu_temporanea: getVal('mesi_imu'),
 
@@ -903,6 +930,25 @@
             } catch (e) { c.innerHTML = '<p class="text-red-500 text-sm">Errore Database.</p>'; }
         }
         async function eliminaDeal(id) { if(confirm("Confermi l'eliminazione permanente dell'asset?")) { await fetch('/api/delete-deal/' + id, { method: 'DELETE' }); caricaDeals(); } }
+        let numEventi = 0;
+        function aggiungiEventoFuturo() {
+            numEventi++;
+            const container = document.getElementById('lista_eventi_futuri');
+            const html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#020617] rounded-lg border border-slate-800 shadow-inner evento-futuro-row">
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">In che Anno?</label><input type="number" placeholder="Es. 3" class="input-field font-mono border-slate-700 mt-1 ev-anno"></div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Tipo di Evento</label>
+                        <select class="input-field font-bold border-slate-700 mt-1 ev-tipo">
+                            <option value="lavori">Lavori / Manutenzione (€)</option>
+                            <option value="sfitto">Sfitto Volontario (Mesi)</option>
+                        </select>
+                    </div>
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">Valore (€ o Mesi)</label><input type="number" placeholder="Es. 10000 o 6" class="input-field font-mono border-slate-700 mt-1 ev-valore"></div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
     </script>
 </body>
 </html>
