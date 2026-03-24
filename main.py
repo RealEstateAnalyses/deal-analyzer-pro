@@ -68,9 +68,11 @@ class InputDeal(BaseModel):
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
     anni_mutuo: float = 20.0
+    # FIX MULTI-SOCI
     usa_socio: bool = False
-    quota_socio_capitale: float = 100.0
-    quota_socio_utile: float = 50.0
+    # Liste di float. Esempio [100.0] se un socio, [50.0, 50.0] se due soci.
+    percentuali_capitale_soci: list[float] = [100.0]
+    percentuali_utile_soci: list[float] = [50.0]
     usa_bonus_lavori: bool = False
 
 class DealDaSalvare(BaseModel):
@@ -126,12 +128,29 @@ def calcola_roi(dati: InputDeal):
             elif dati.tasso_mutuo == 0 and dati.anni_mutuo > 0:
                 rata_mensile_mutuo = importo_mutuo / (dati.anni_mutuo * 12)
 
+       # --- FIX LEVA E MULTI-SOCI (CAPITALE) ---
         tuo_capitale = capitale_investito_reale
-        capitale_socio = 0
-        if dati.usa_socio:
-            capitale_socio = capitale_investito_reale * (dati.quota_socio_capitale / 100)
-            tuo_capitale = capitale_investito_reale - capitale_socio
+        
+        # Dizionario per i risultati dettagliati dei soci
+        soci_dettagli_capitale = [] # Esempio: [ {id: 1, capitale: 50k, utile: 10k}, ... ]
+        totale_capitale_soci = 0.0
 
+        if dati.usa_mutuo and importo_mutuo > 0:
+            # Se c'è il mutuo, il tuo capitale impegnato scende.
+            tuo_capitale = dati.capitale_proprio
+            # capitale_investito_reale (equity) è quello che metti tu.
+            # Se ci sono soci, quell'equity viene spartita.
+            
+        if dati.usa_socio:
+            percentuali_cap = dati.percentuali_capitale_soci or [100.0]
+            for i, perc in enumerate(percentuali_cap):
+                if perc <= 0: continue
+                cap_investito_socio = capitale_investito_reale * (perc / 100)
+                totale_capitale_soci += cap_investito_socio
+                # Il socio si inserisce nel tuo investimento di equity reale
+                # non nel costo totale del progetto (che include mutuo)
+                
+            tuo_capitale = capitale_investito_reale - totale_capitale_soci
         # IMU INTELLIGENTE
         imu_mensile = dati.imu_annua / 12
         imu_anno_1 = dati.imu_annua
@@ -226,12 +245,36 @@ def calcola_roi(dati: InputDeal):
                 utile_stress = tot_cf + incasso_stress + bonus_residuo - capitale_investito_reale
 
        # FIX: Inizializza le variabili per evitare crash se non si usa il socio
-        utile_socio = 0.0
+        # --- FIX MULTI-SOCI (UTILE) ---
+        totale_utile_soci = 0.0
         tuo_utile = utile_totale
+        
+        # Lista finale per inviare dati dettagliati al sito
+        soci_risultati_finali = []
 
         if dati.usa_socio:
-            utile_socio = utile_totale * (dati.quota_socio_utile / 100)
-            tuo_utile = utile_totale - utile_socio
+            percentuali_cap = dati.percentuali_capitale_soci or [100.0]
+            percentuali_uti = dati.percentuali_utile_soci or [50.0]
+            
+            # Scorriamo i soci e calcoliamo i loro risultati individuali
+            for i in range(len(percentuali_cap)):
+                # Se l'array utili è più corto, usiamo l'ultimo valore disponibile
+                perc_utile = percentuali_uti[min(i, len(percentuali_uti)-1)]
+                perc_cap = percentuali_cap[i]
+                
+                utile_netto_socio = utile_totale * (perc_utile / 100)
+                capitale_socio_i = capitale_investito_reale * (perc_cap / 100)
+                
+                totale_utile_soci += utile_netto_socio
+                
+                soci_risultati_finali.append({
+                    "id": i + 1,
+                    "capitale_investito": round(capitale_socio_i, 2),
+                    "utile_netto": round(utile_netto_socio, 2),
+                    "percentuale_utile_concordata": perc_utile
+                })
+            
+            tuo_utile = utile_totale - totale_utile_soci
 
         tuo_roi = (tuo_utile / tuo_capitale) * 100 if tuo_capitale > 0 else 999.0
         roi_stress = (utile_stress / capitale_investito_reale) * 100 if capitale_investito_reale > 0 else 0
@@ -241,8 +284,10 @@ def calcola_roi(dati: InputDeal):
             "costo_lavori": round(costo_lavori, 2), "costo_totale_progetto": round(costo_totale_progetto, 2),
             "usa_mutuo": dati.usa_mutuo, "importo_mutuo": round(importo_mutuo, 2), "rata_mensile_mutuo": round(rata_mensile_mutuo, 2),
             "capitale_proprio_totale": round(capitale_investito_reale, 2), "valore_mercato_iniziale": round(valore_mercato_iniziale, 2),
-            "tuo_capitale": round(tuo_capitale, 2), "capitale_socio": round(capitale_socio, 2), "usa_socio": dati.usa_socio,
-            "metrica_lorda": round(metrica_lorda, 2), "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(utile_socio, 2),
+            # OUTPUT POTENZIATO
+            "tuo_capitale": round(tuo_capitale, 2), "capitale_socio": round(totale_capitale_soci, 2), "usa_socio": dati.usa_socio,
+            "lista_dettagliata_soci": soci_risultati_finali,
+            "metrica_lorda": round(metrica_lorda, 2), "utile_totale": round(utile_totale, 2), "tuo_utile": round(tuo_utile, 2), "utile_socio": round(totale_utile_soci, 2),
             "roi_percentuale": round((utile_totale / capitale_investito_reale) * 100, 2) if capitale_investito_reale > 0 else 0,
             "tuo_roi": round(tuo_roi, 2), "utile_stress": round(utile_stress, 2), "roi_stress": round(roi_stress, 2),
             "timeline": timeline_cashflow, "incasso_mensile_lordo": round(incasso_mensile_lordo, 2),
