@@ -612,6 +612,14 @@
             const strat = document.getElementById('strategia').value;
             let costo_lavori_finale = isDetailedCapex ? calcolaTotaleDettagliato() : getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi');
 
+            // Estrai dati soci
+            let quoteCap = [100];
+            let quoteUtile = [50];
+            if (document.getElementById('usa_socio').checked) {
+                quoteCap = Array.from(document.querySelectorAll('.socio-cap')).map(el => parseFloat(el.value) || 0);
+                quoteUtile = Array.from(document.querySelectorAll('.socio-utile')).map(el => parseFloat(el.value) || 0);
+            }
+
             const payload = {
                 prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
@@ -620,7 +628,11 @@
                 canone_mensile: getVal('canone_mensile'), imu_annua: getVal('imu'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'), costo_acqua_tari: getVal('val_acqua'), 
                 costo_wifi: getVal('val_wifi'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
                 anni_messa_a_reddito: getVal('anni_affitto'), usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo'),
-                usa_socio: document.getElementById('usa_socio').checked, quota_socio_capitale: getVal('quota_capitale'), quota_socio_utile: getVal('quota_utile'),
+                
+                usa_socio: document.getElementById('usa_socio').checked, 
+                percentuali_capitale_soci: quoteCap, 
+                percentuali_utile_soci: quoteUtile,
+                
                 usa_bonus_lavori: document.getElementById('usa_bonus_lavori') ? document.getElementById('usa_bonus_lavori').checked : false
             };
 
