@@ -490,15 +490,25 @@
             if (chartTimelineInstance) chartTimelineInstance.destroy();
             if(!dati.timeline) return;
             
+            // Logica labels migliorata
             let labels = dati.timeline.map((_, i) => i === 0 ? 'T0 (Entry)' : `Anno ${i}`);
-            if (dati.strategia !== 'Affitto') labels[labels.length - 1] = 'T (Exit)';
+            if (dati.strategia !== 'Affitto' && dati.strategia !== 'Mista') labels[labels.length - 1] = 'T (Exit)';
             
             let colors = dati.timeline.map((val, i) => i === 0 ? '#334155' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10b981' : (val >= 0 ? '#3b82f6' : '#ef4444')));
             
-            const offsetValue = dati.timeline[0] < -100000 ? 15 : 8; 
+            // LA MAGIA PER L'ALLINEAMENTO
+            const numAnni = dati.timeline.length;
+            const isLungo = numAnni > 7; 
             
-            // LA MAGIA: Se il piano supera i 7 anni, ruota sia le scritte sotto che i numeri sopra!
-            const isLungo = dati.timeline.length > 7; 
+            // Calcolo padding dinamico sotto per far stare scritte a -90deg
+            let bottomPadding = 20;
+            if (isLungo) {
+                if(numAnni > 20) bottomPadding = 120; // Molto spazio per 30 anni
+                else bottomPadding = 90;
+            }
+
+            // Calcolo padding dinamico sopra per numeri ruotati
+            let topPadding = isLungo ? 70 : 30;
 
             chartTimelineInstance = new Chart(ctx, { 
                 type: 'bar', 
@@ -510,8 +520,8 @@
                     responsive: true, 
                     maintainAspectRatio: false, 
                     layout: {
-                        // Se ci sono i numeri in verticale, aggiunge 40px di spazio sopra per non tagliarli
-                        padding: { top: isLungo ? 50 : 20, bottom: 10 } 
+                        // FIX: Aggiunto spazio chirurgico sopra e sotto per etichette ruotate
+                        padding: { top: topPadding, bottom: bottomPadding, left: 10, right: 10 } 
                     },
                     plugins: { 
                         legend: { display: false }, 
@@ -520,20 +530,26 @@
                             font: {family: 'JetBrains Mono', size: isLungo ? 10 : 11, weight: 'bold'}, 
                             anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
                             align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            offset: offsetValue,
-                            rotation: isLungo ? -90 : 0, // RUOTA I SOLDI IN VERTICALE
+                            offset: 10, // Aumentato offset per non coprire barra
+                            rotation: isLungo ? -90 : 0, // RUOTA SOLDI
                             formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
                         } 
                     }, 
                     scales: { 
-                        y: { grid: { color: '#1e293b' }, border: {display: false} }, 
+                        y: { 
+                            grid: { color: '#1e293b' }, 
+                            border: {display: false},
+                            ticks: { display: false } // Rimuove numeri y per pulizia, usiamo datalabels
+                        }, 
                         x: { 
                             grid: { display: false }, 
                             border: {display: false}, 
                             ticks: { 
-                                font: {weight: 'bold', color: '#94a3b8'},
-                                maxRotation: isLungo ? -90 : 0, // RUOTA GLI ANNI IN VERTICALE STESSO VERSO
-                                minRotation: isLungo ? -90 : 0
+                                font: {weight: 'bold', color: '#94a3b8', size: isLungo ? 10 : 12},
+                                maxRotation: isLungo ? -90 : 0, // RUOTA ANNI
+                                minRotation: isLungo ? -90 : 0,
+                                autoSkip: false, // FIX: Forza la lettura di TUTTI gli anni (no 9 -> 11)
+                                padding: 10 // Spazio tra asse e scritta
                             } 
                         } 
                     } 
