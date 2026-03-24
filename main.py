@@ -74,6 +74,13 @@ class InputDeal(BaseModel):
     percentuali_capitale_soci: list[float] = [100.0]
     percentuali_utile_soci: list[float] = [50.0]
     usa_bonus_lavori: bool = False
+    
+    # NUOVI CAMPI SHORT RENT
+    tipo_affitto: str = "lungo"
+    adr_notte: float = 0.0
+    occupazione_perc: float = 70.0
+    commissioni_piattaforma_perc: float = 15.0
+    pulizie_mensili: float = 0.0
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -188,14 +195,36 @@ def calcola_roi(dati: InputDeal):
             utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress, costo_totale_progetto)) + credito_fiscale_totale
 
         else:
-            incasso_mensile_lordo = dati.canone_mensile * (1 - (dati.tasso_sfitto_perc / 100))
-            metrica_lorda = incasso_mensile_lordo * 12
-            spese_fisse_mensili = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
+            spese_fisse_mensili_base = dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari
+            mesi_affitto_anno_1 = max(0, 12 - dati.mesi_lavori)
             
-            spese_fisse_anno_1 = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_anno_1 + dati.assicurazione_annua
+            if dati.tipo_affitto == "breve":
+                # Calcolo per Airbnb / Booking
+                incasso_mensile_lordo_assoluto = (dati.adr_notte * 30.4) * (dati.occupazione_perc / 100)
+                metrica_lorda = incasso_mensile_lordo_assoluto * 12 # Usato per il calcolo delle tasse
+                
+                fee_piattaforme_annue = metrica_lorda * (dati.commissioni_piattaforma_perc / 100)
+                pulizie_annue = dati.pulizie_mensili * 12
+                
+                spese_fisse_anno_1 = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_anno_1 + dati.assicurazione_annua + fee_piattaforme_annue + pulizie_annue
+                spese_fisse_a_regime = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_a_regime + dati.assicurazione_annua + fee_piattaforme_annue + pulizie_annue
+                
+                # Per la visualizzazione a schermo: Incasso netto piattaforme
+                incasso_mensile_lordo = incasso_mensile_lordo_assoluto - (fee_piattaforme_annue/12) - dati.pulizie_mensili
+                incasso_anno_1_assoluto = incasso_mensile_lordo_assoluto * mesi_affitto_anno_1
+            
+            else:
+                # Calcolo per Affitto Classico (Lungo Termine)
+                incasso_mensile_lordo = dati.canone_mensile * (1 - (dati.tasso_sfitto_perc / 100))
+                metrica_lorda = incasso_mensile_lordo * 12
+                
+                spese_fisse_anno_1 = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_anno_1 + dati.assicurazione_annua
+                spese_fisse_a_regime = (spese_fisse_mensili_base * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_a_regime + dati.assicurazione_annua
+                
+                incasso_anno_1_assoluto = dati.canone_mensile * mesi_affitto_anno_1 * (1 - (dati.tasso_sfitto_perc / 100))
+
+            # Aggiungiamo eventuale mutuo alle spese fisse
             if dati.usa_mutuo: spese_fisse_anno_1 += (rata_mensile_mutuo * 12)
-            
-            spese_fisse_a_regime = (spese_fisse_mensili * 12) + ((metrica_lorda * dati.gestione_property_perc) / 100) + imu_a_regime + dati.assicurazione_annua
             if dati.usa_mutuo: spese_fisse_a_regime += (rata_mensile_mutuo * 12)
 
             tasse_affitto = (metrica_lorda * dati.cedolare_secca_perc) / 100
@@ -203,9 +232,7 @@ def calcola_roi(dati: InputDeal):
             cashflow_annuo_pieno = metrica_lorda - spese_fisse_a_regime - tasse_affitto + credito_annuo
             cashflow_mensile_netto = cashflow_annuo_pieno / 12
             
-            mesi_affitto_anno_1 = max(0, 12 - dati.mesi_lavori)
-            incasso_anno_1 = dati.canone_mensile * mesi_affitto_anno_1 * (1 - (dati.tasso_sfitto_perc / 100))
-            cashflow_anno_1 = incasso_anno_1 - spese_fisse_anno_1 - ((incasso_anno_1 * dati.cedolare_secca_perc)/100) + credito_annuo
+            cashflow_anno_1 = incasso_anno_1_assoluto - spese_fisse_anno_1 - ((incasso_anno_1_assoluto * dati.cedolare_secca_perc)/100) + credito_annuo
             
             if dati.strategia == "Affitto":
                 timeline_cashflow.append(cashflow_anno_1)
