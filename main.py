@@ -73,22 +73,23 @@ class InputDeal(BaseModel):
     capitale_proprio: float = 30000.0
     tasso_mutuo: float = 3.5
     anni_mutuo: float = 20.0
+    
     # FIX MULTI-SOCI
     usa_socio: bool = False
-    # Liste di float. Esempio [100.0] se un socio, [50.0, 50.0] se due soci.
     percentuali_capitale_soci: list[float] = [100.0]
     percentuali_utile_soci: list[float] = [50.0]
     usa_bonus_lavori: bool = False
     
-    # NUOVI CAMPI SHORT RENT
+    # NUOVI CAMPI SHORT RENT E IMU
     tipo_affitto: str = "lungo"
     adr_notte: float = 0.0
     occupazione_perc: float = 70.0
     commissioni_piattaforma_perc: float = 15.0
     pulizie_mensili: float = 0.0
     mesi_imu_temporanea: float = 6.0
-
-eventi_futuri: list[EventoFuturo] = []
+    
+    # LA VARIABILE CHE MANCAVA (CON GLI SPAZI GIUSTI)
+    eventi_futuri: list[EventoFuturo] = []
 
 class DealDaSalvare(BaseModel):
     strategia: str
