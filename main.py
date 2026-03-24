@@ -242,11 +242,18 @@ def calcola_roi(dati: InputDeal):
             
             if dati.strategia == "Affitto":
                 timeline_cashflow.append(cashflow_anno_1)
-                for _ in range(4): timeline_cashflow.append(cashflow_annuo_pieno) 
-                utile_totale = cashflow_annuo_pieno
+                
+                # FIX: Calcolo dinamico sugli anni inseriti dall'utente
+                anni_restanti = max(0, int(dati.anni_messa_a_reddito) - 1)
+                for _ in range(anni_restanti): 
+                    timeline_cashflow.append(cashflow_annuo_pieno) 
+                
+                # FIX: L'utile totale è la somma di tutti gli anni
+                utile_totale = cashflow_anno_1 + (cashflow_annuo_pieno * anni_restanti) - capitale_investito_reale
                 
                 metrica_lorda_stress = (dati.canone_mensile * 12 * 0.90) * (1 - ((dati.tasso_sfitto_perc * 2) / 100))
-                utile_stress = metrica_lorda_stress - spese_fisse_a_regime - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100) + credito_annuo
+                utile_stress_annuo = metrica_lorda_stress - spese_fisse_a_regime - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100) + credito_annuo
+                utile_stress = (utile_stress_annuo * dati.anni_messa_a_reddito) - capitale_investito_reale
 
             elif dati.strategia == "Mista":
                 valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
