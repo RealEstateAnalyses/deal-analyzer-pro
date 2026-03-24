@@ -177,7 +177,7 @@
                 <div class="section-title">
                     <span>4. CAPEX (Lavori)</span>
                     <label class="flex items-center cursor-pointer ml-4">
-                        <span class="mr-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Computo</span>
+                       <span class="mr-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Preventivo Analitico</span>
                         <div class="relative">
                             <input type="checkbox" id="toggle_capex" class="sr-only" onchange="toggleCapexMode()">
                             <div class="block bg-slate-800 w-12 h-7 rounded-full border border-slate-700 transition"></div>
@@ -486,10 +486,50 @@
             const ctx = document.getElementById('graficoTimeline').getContext('2d');
             if (chartTimelineInstance) chartTimelineInstance.destroy();
             if(!dati.timeline) return;
+            
             let labels = dati.timeline.map((_, i) => i === 0 ? 'T0 (Entry)' : `Anno ${i}`);
             if (dati.strategia !== 'Affitto') labels[labels.length - 1] = 'T (Exit)';
+            
             let colors = dati.timeline.map((val, i) => i === 0 ? '#334155' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10b981' : (val >= 0 ? '#3b82f6' : '#ef4444')));
-            chartTimelineInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ data: dati.timeline, backgroundColor: colors, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { color: (ctx) => ctx.dataset.data[ctx.dataIndex] === 0 ? 'transparent' : (ctx.dataset.data[ctx.dataIndex] < 0 && ctx.dataIndex !== 0 ? '#ef4444' : '#FFF'), font: {family: 'JetBrains Mono', size: 11, weight: 'bold'}, anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', offset: 8, formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') } }, scales: { y: { grid: { color: '#1e293b' }, border: {display: false} }, x: { grid: { display: false }, border: {display: false}, ticks: { font: {weight: 'bold', color: '#94a3b8'} } } } } });
+            
+            // Logica per non far sovrapporre l'etichetta del T0
+            const offsetValue = dati.timeline[0] < -100000 ? 15 : 8; 
+
+            chartTimelineInstance = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ data: dati.timeline, backgroundColor: colors, borderRadius: 6 }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        datalabels: { 
+                            color: (ctx) => ctx.dataset.data[ctx.dataIndex] === 0 ? 'transparent' : (ctx.dataset.data[ctx.dataIndex] < 0 && ctx.dataIndex !== 0 ? '#ef4444' : '#FFF'), 
+                            font: {family: 'JetBrains Mono', size: 11, weight: 'bold'}, 
+                            anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
+                            align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
+                            offset: offsetValue, // Offset dinamico per evitare sovrapposizioni
+                            formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
+                        } 
+                    }, 
+                    scales: { 
+                        y: { grid: { color: '#1e293b' }, border: {display: false} }, 
+                        x: { 
+                            grid: { display: false }, 
+                            border: {display: false}, 
+                            ticks: { 
+                                font: {weight: 'bold', color: '#94a3b8'},
+                                // Inclinazione dinamica se gli anni sono molti
+                                maxRotation: dati.timeline.length > 7 ? 45 : 0,
+                                minRotation: dati.timeline.length > 7 ? 45 : 0
+                            } 
+                        } 
+                    } 
+                } 
+            });
             document.getElementById('container_timeline').classList.remove('hidden');
         }
 
