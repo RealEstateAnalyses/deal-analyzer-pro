@@ -81,6 +81,7 @@ class InputDeal(BaseModel):
     occupazione_perc: float = 70.0
     commissioni_piattaforma_perc: float = 15.0
     pulizie_mensili: float = 0.0
+    mesi_imu_temporanea: float = 6.0
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -163,7 +164,7 @@ def calcola_roi(dati: InputDeal):
         imu_anno_1 = dati.imu_annua
         imu_a_regime = dati.imu_annua
         if dati.profilo_fiscale == "privato_prima":
-            imu_anno_1 = imu_mensile * dati.mesi_lavori
+            imu_anno_1 = imu_mensile * dati.mesi_imu_temporanea
             imu_a_regime = 0.0
 
         valore_mercato_iniziale = dati.stima_rivendita if dati.stima_rivendita > 0 else costo_totale_progetto
@@ -182,14 +183,19 @@ def calcola_roi(dati: InputDeal):
 
         if dati.strategia == "Vendita":
             metrica_lorda = valore_mercato_iniziale
-            costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori + (imu_mensile * dati.mesi_lavori)
+            
+            # Calcolo costi mantenimento con IMU Prima Casa corretta
+            imu_totale_vendita = (imu_mensile * dati.mesi_imu_temporanea) if dati.profilo_fiscale == "privato_prima" else (imu_mensile * dati.mesi_lavori)
+            costi_mantenimento = dati.spese_condominio_mensili * dati.mesi_lavori + imu_totale_vendita
+            
             if dati.usa_mutuo: costi_mantenimento += importo_mutuo * (dati.tasso_mutuo / 100) * (dati.mesi_lavori / 12)
             
             tasse_plusvalenza = calcola_tasse_vendita(valore_mercato_iniziale, costo_totale_progetto)
             utile_totale = valore_mercato_iniziale - (costo_totale_progetto + costi_mantenimento + tasse_plusvalenza) + credito_fiscale_totale
             timeline_cashflow.append(utile_totale + capitale_investito_reale) 
             
-            costi_mant_stress = dati.spese_condominio_mensili * (dati.mesi_lavori + 3) + (imu_mensile * (dati.mesi_lavori + 3))
+            imu_stress_vendita = (imu_mensile * dati.mesi_imu_temporanea) if dati.profilo_fiscale == "privato_prima" else (imu_mensile * (dati.mesi_lavori + 3))
+            costi_mant_stress = dati.spese_condominio_mensili * (dati.mesi_lavori + 3) + imu_stress_vendita
             if dati.usa_mutuo: costi_mant_stress += importo_mutuo * (dati.tasso_mutuo / 100) * ((dati.mesi_lavori + 3) / 12)
             valore_stress = valore_mercato_iniziale * 0.90
             utile_stress = valore_stress - (costo_totale_progetto + costi_mant_stress + calcola_tasse_vendita(valore_stress, costo_totale_progetto)) + credito_fiscale_totale
