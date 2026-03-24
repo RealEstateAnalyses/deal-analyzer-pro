@@ -404,6 +404,26 @@
         const safeNum = (val) => Number(val) || 0;
         const formatEur = (val) => "€ " + safeNum(val).toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 
+        // FUNZIONE SWITCH TIPO AFFITTO
+        function setTipoAffitto(tipo) {
+            document.getElementById('tipo_affitto').value = tipo;
+            const btnLungo = document.getElementById('btn_tipo_lungo');
+            const btnBreve = document.getElementById('btn_tipo_breve');
+            const campiLungo = document.getElementById('campi_affitto_lungo');
+            const campiBreve = document.getElementById('campi_affitto_breve');
+            
+            if(tipo === 'lungo') {
+                btnLungo.className = "px-6 py-2 rounded-md bg-emerald-600/20 text-emerald-400 border border-emerald-500/50 text-[10px] font-bold uppercase tracking-widest transition";
+                btnBreve.className = "px-6 py-2 rounded-md text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-widest transition";
+                campiLungo.classList.remove('hidden');
+                campiBreve.classList.add('hidden');
+            } else {
+                btnBreve.className = "px-6 py-2 rounded-md bg-emerald-600/20 text-emerald-400 border border-emerald-500/50 text-[10px] font-bold uppercase tracking-widest transition";
+                btnLungo.className = "px-6 py-2 rounded-md text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-widest transition";
+                campiBreve.classList.remove('hidden');
+                campiLungo.classList.add('hidden');
+            }
+        }
         function aggiornaVisibilitaModuli() {
             const strat = document.getElementById('strategia').value;
             document.getElementById('modulo_anni_affitto').classList.toggle('hidden', strat === 'Vendita');
@@ -647,12 +667,18 @@
                 canone_mensile: getVal('canone_mensile'), imu_annua: getVal('imu'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'), costo_acqua_tari: getVal('val_acqua'), 
                 costo_wifi: getVal('val_wifi'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
                 anni_messa_a_reddito: getVal('anni_affitto'), usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo'),
-                
+
                 usa_socio: document.getElementById('usa_socio').checked, 
                 percentuali_capitale_soci: quoteCap, 
                 percentuali_utile_soci: quoteUtile,
                 
                 usa_bonus_lavori: document.getElementById('usa_bonus_lavori') ? document.getElementById('usa_bonus_lavori').checked : false
+                    
+                tipo_affitto: document.getElementById('tipo_affitto').value,
+                adr_notte: getVal('adr_notte'),
+                occupazione_perc: getVal('occupazione_perc'),
+                commissioni_piattaforma_perc: getVal('commissioni_piattaforma_perc'),
+                pulizie_mensili: getVal('pulizie_mensili'),
             };
 
             try {
