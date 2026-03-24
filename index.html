@@ -130,6 +130,7 @@
                     <div><label class="label-sm">Notaio (€)</label><input type="number" id="notaio" value="2500" class="input-field font-mono"></div>
                     <div><label class="label-sm">Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="input-field font-mono"></div>
                 </div>
+            </div>
 
             <div class="card p-6 md:p-8 bg-[#0a0f1c] border-[#1e293b]">
                 <h3 class="section-title text-indigo-400">2. Modello Operativo</h3>
@@ -157,7 +158,6 @@
             <div id="modulo_affitto_ricavi" class="hidden card p-6 md:p-8">
                 <h3 class="section-title text-emerald-400">3. Gestione Affitto (Revenues)</h3>
                 
-                <!-- Interruttore Tipo Affitto -->
                 <div class="flex justify-center mb-8">
                     <div class="bg-[#020617] p-1 rounded-lg inline-flex border border-slate-800 shadow-inner">
                         <button type="button" id="btn_tipo_lungo" onclick="setTipoAffitto('lungo')" class="px-6 py-2 rounded-md bg-emerald-600/20 text-emerald-400 border border-emerald-500/50 text-[10px] font-bold uppercase tracking-widest transition">Lungo Termine</button>
@@ -166,13 +166,11 @@
                     <input type="hidden" id="tipo_affitto" value="lungo">
                 </div>
 
-                <!-- CAMPI LUNGO TERMINE -->
                 <div id="campi_affitto_lungo" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800/80">
                     <div><label class="label-sm text-emerald-400">Canone Mensile (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-mono border-emerald-800 text-emerald-300 bg-emerald-950/20"></div>
                     <div><label class="label-sm">Tasso Sfitto (Vacancy %)</label><input type="number" id="tasso_sfitto" value="5" step="0.1" class="input-field font-mono text-orange-400"></div>
                 </div>
 
-                <!-- CAMPI SHORT RENT -->
                 <div id="campi_affitto_breve" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 pb-8 border-b border-slate-800/80">
                     <div><label class="label-sm text-emerald-400" title="Average Daily Rate">ADR (€/Notte)</label><input type="number" id="adr_notte" value="80" class="input-field font-mono border-emerald-800 text-emerald-300 bg-emerald-950/20"></div>
                     <div><label class="label-sm">Occupazione (%)</label><input type="number" id="occupazione_perc" value="70" class="input-field font-mono text-orange-400"></div>
@@ -197,7 +195,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE 4: CAPEX E BONUS -->
             <div class="card p-6 md:p-8">
                 <div class="section-title">
                     <span>4. CAPEX (Lavori)</span>
@@ -243,7 +240,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE 5: LEVA E JV -->
             <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-blue-900/30 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="flex items-center justify-center gap-3 mb-6 border-b border-slate-800 pb-4">
@@ -271,7 +267,8 @@
                     </div>
                 </div>
             </div>
-                <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-emerald-900/30 relative overflow-hidden mt-8">
+            
+            <div class="card p-6 md:p-8 bg-[#0a0f1c] border border-emerald-900/30 relative overflow-hidden mt-8">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <h3 class="text-sm font-bold text-slate-100 uppercase tracking-widest mb-2 border-b border-slate-800 pb-4">6. Macchina del Tempo (Eventi Futuri)</h3>
                 <p class="text-[10px] text-slate-400 mb-6 uppercase tracking-widest">Simula imprevisti: "Al 3° Anno faccio 10k di lavori" o "All'8° Anno tengo sfitto per 6 mesi".</p>
@@ -284,7 +281,6 @@
             <button type="submit" class="btn-primary w-full mt-10 shadow-2xl">GENERA BUSINESS PLAN</button>
         </form>
 
-        <!-- SEZIONE RISULTATI (UI ISTITUZIONALE) -->
         <div id="risultati" class="hidden mt-16 pt-10 border-t border-slate-800">
             <div class="flex justify-between items-end mb-8 no-print">
                 <h2 class="text-2xl font-black text-slate-100 tracking-tight uppercase">Executive Summary</h2>
@@ -317,7 +313,6 @@
                 </div>
             </div>
 
-            <!-- KPI GIGANTE CENTRALE -->
             <div class="card p-10 border-t-4 border-t-blue-500 bg-[#070b14] mb-10 text-center shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-800/50 pb-3 relative z-10">Ritorno Operazione Totale (ROI)</h4>
@@ -335,7 +330,6 @@
                 </div>
             </div>
 
-            <!-- TABELLA DATI E BONUS RISTRUTTURAZIONE -->
             <div class="card overflow-hidden mb-10 border-slate-800 shadow-xl">
                 <table class="w-full text-sm text-left whitespace-nowrap text-center">
                     <thead class="text-xs text-slate-400 uppercase bg-[#020617] border-b border-slate-800">
@@ -355,7 +349,6 @@
                 </table>
             </div>
 
-            <!-- SCONTRINO E STRESS TEST -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-center">
                 <div id="box_stress_test" class="card p-8 border border-red-900/40 bg-[#160b0b] shadow-lg relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-24 h-24 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -380,7 +373,6 @@
             </div>
 
             <div id="box_grafici" class="hidden space-y-10 mb-10 no-print">
-                <!-- Nuovo Grafico Cumulativo (Stile Borsa) -->
                 <div id="container_cumulativo" class="card p-8 chart-container hidden border-slate-800 shadow-2xl bg-gradient-to-b from-[#0f172a] to-[#020617]">
                     <h4 class="section-title text-blue-400">Crescita del Capitale (Equity Line)</h4>
                     <div class="relative h-[350px] w-full"><canvas id="graficoCumulativo"></canvas></div>
@@ -404,7 +396,6 @@
         </div>
     </div> 
 
-    <!-- DASHBOARD PORTAFOGLIO -->
     <div id="vistaDashboard" class="hidden max-w-5xl mx-auto px-4 py-10">
         <h2 class="text-2xl font-black text-slate-100 mb-8 uppercase tracking-widest">Portafoglio Asset</h2>
         <div id="tabellaDeals" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
@@ -480,7 +471,7 @@
         }
         document.querySelectorAll('.calc-det').forEach(el => { el.addEventListener('input', calcolaTotaleDettagliato); });
 
-        // --- NUOVE FUNZIONI PER VOCI DINAMICHE ---
+        // --- NUOVE FUNZIONI PER VOCI DINAMICHE E SOCI ---
         let numSoci = 1;
         function aggiungiSocio() {
             if(numSoci >= 3) { alert("Puoi aggiungere al massimo 3 soci."); return; }
@@ -511,6 +502,27 @@
             // Riaggancia il calcolatore live
             document.querySelectorAll('.calc-det-dyn').forEach(el => { el.addEventListener('input', calcolaTotaleDettagliato); });
         }
+        
+        let numEventi = 0;
+        function aggiungiEventoFuturo() {
+            numEventi++;
+            const container = document.getElementById('lista_eventi_futuri');
+            const html = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#020617] rounded-lg border border-slate-800 shadow-inner evento-futuro-row">
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">In che Anno?</label><input type="number" placeholder="Es. 3" class="input-field font-mono border-slate-700 mt-1 ev-anno"></div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Tipo di Evento</label>
+                        <select class="input-field font-bold border-slate-700 mt-1 ev-tipo">
+                            <option value="lavori">Lavori / Manutenzione (€)</option>
+                            <option value="sfitto">Sfitto Volontario (Mesi)</option>
+                        </select>
+                    </div>
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">Valore (€ o Mesi)</label><input type="number" placeholder="Es. 10000 o 6" class="input-field font-mono border-slate-700 mt-1 ev-valore"></div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
         function generaScontrino(totaleNetto) {
             const getValRaw = (id) => parseFloat(document.getElementById(id).value) || 0;
             const container = document.getElementById('scontrino_body');
@@ -556,25 +568,6 @@
             if(urlParams.has('prezzo') && urlParams.has('mq')) calcolaPrezzoMq();
         });
 
-        // 2. RIPRISTINO TASTO "ESTRAI"
-        const btnEstrai = document.getElementById('btnEstrai');
-        if(btnEstrai) {
-            btnEstrai.addEventListener('click', function() {
-                const url = document.getElementById('urlAnnuncio').value;
-                if(url) {
-                    this.textContent = "Estrazione in corso...";
-                    this.classList.add('opacity-50', 'cursor-wait');
-                    setTimeout(() => { 
-                        this.textContent = "Estrai Dati"; 
-                        this.classList.remove('opacity-50', 'cursor-wait');
-                        alert("Sistema di estrazione pronto. Utilizza l'estensione Chrome per iniettare i dati."); 
-                    }, 1000);
-                } else {
-                    alert("Incolla prima il link dell'annuncio Immobiliare/Idealista!");
-                }
-            });
-        }
-
         // ESTRATTORE VALORI SICURO
         const getVal = (id) => {
             const el = document.getElementById(id);
@@ -610,8 +603,7 @@
             const numAnni = dati.timeline.length;
             const isLungo = numAnni > 7; 
             
-            // FIX: Padding inferiore aumentato a dismisura per non tagliare i numeri in verticale
-            let bottomPadding = isLungo ? 60 : 20;
+            let bottomPadding = isLungo ? 30 : 10;
             let topPadding = isLungo ? 60 : 30;
 
             chartTimelineInstance = new Chart(ctx, { 
@@ -626,10 +618,6 @@
                     layout: {
                         padding: { top: topPadding, bottom: bottomPadding, left: 10, right: 10 } 
                     },
-                    layout: {
-                        // FIX: Più spazio in basso per le etichette Y1, Y2
-                        padding: { top: topPadding, bottom: isLungo ? 80 : 40, left: 10, right: 10 } 
-                    },
                     plugins: { 
                         legend: { display: false }, 
                         datalabels: { 
@@ -637,7 +625,6 @@
                             font: {family: 'JetBrains Mono', size: isLungo ? 10 : 11, weight: 'bold'}, 
                             anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
                             align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            // FIX: Se negativo, spingi il numero molto più giù (25px) così non copre la riga dell'asse X
                             offset: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 10 : 25, 
                             rotation: isLungo ? -90 : 0, 
                             formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
@@ -649,11 +636,11 @@
                             grid: { display: false }, 
                             border: {display: false}, 
                             ticks: { 
-                                font: {weight: 'bold', color: '#94a3b8', size: 10},
+                                font: {weight: 'bold', color: '#94a3b8', size: isLungo ? 10 : 12},
                                 maxRotation: isLungo ? -90 : 0, 
                                 minRotation: isLungo ? -90 : 0,
                                 autoSkip: false, 
-                                padding: 10
+                                padding: 8
                             } 
                         } 
                     } 
@@ -662,7 +649,6 @@
             document.getElementById('container_timeline').classList.remove('hidden');
         }
 
-        // NUOVO: Grafico Linea Cumulativa (Stile App Trading)
         function disegnaGraficoCumulativo(dati) {
             const ctx = document.getElementById('graficoCumulativo').getContext('2d');
             if (chartCumulativoInstance) chartCumulativoInstance.destroy();
@@ -677,7 +663,6 @@
                 return cumulative;
             });
 
-            // Colore linea: verde se chiudi in positivo, rosso se in perdita
             let isProfitable = cumulative >= 0;
             let lineColor = isProfitable ? '#10b981' : '#ef4444';
             let gradColor = isProfitable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
@@ -694,19 +679,19 @@
                         pointBackgroundColor: '#020617',
                         pointBorderColor: lineColor,
                         pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
                         fill: true,
-                        tension: 0.3 // Rende la linea curva e morbida
+                        tension: 0.3 
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { top: 20, bottom: 10 } },
                     plugins: {
                         legend: { display: false },
                         datalabels: { display: false },
-                        // FIX: Tooltip enormi e professionali al passaggio del mouse
                         tooltip: {
                             backgroundColor: 'rgba(2, 6, 23, 0.95)',
                             titleFont: { size: 14, family: 'Inter', weight: 'bold' },
@@ -720,6 +705,15 @@
                             }
                         }
                     },
+                    scales: {
+                        y: {
+                            grid: { color: '#1e293b', borderDash: [5, 5] },
+                            border: {display: false},
+                            ticks: {
+                                font: {family: 'JetBrains Mono', size: 10, color: '#94a3b8'},
+                                callback: function(value) { return '€' + value.toLocaleString('it-IT'); }
+                            }
+                        },
                         x: {
                             grid: { display: false },
                             border: {display: false},
@@ -738,7 +732,6 @@
             const strat = document.getElementById('strategia').value;
             let costo_lavori_finale = isDetailedCapex ? calcolaTotaleDettagliato() : getVal('val_demolizioni')+getVal('val_impianti')+getVal('val_pavimenti')+getVal('val_infissi');
 
-            // Estrai dati soci
             let quoteCap = [100];
             let quoteUtile = [50];
             if (document.getElementById('usa_socio').checked) {
@@ -746,7 +739,6 @@
                 quoteUtile = Array.from(document.querySelectorAll('.socio-utile')).map(el => parseFloat(el.value) || 0);
             }
 
-            // Estrai Eventi Futuri
             let arrayEventi = [];
             document.querySelectorAll('.evento-futuro-row').forEach(row => {
                 const anno = parseInt(row.querySelector('.ev-anno').value) || 0;
@@ -817,9 +809,8 @@
                     document.getElementById('out_jv_tuo_utile').textContent = formatEur(data.tuo_utile);
                     document.getElementById('out_jv_tuo_roi').textContent = (safeNum(data.tuo_roi) > 998 ? "∞ (No Money Down)" : safeNum(data.tuo_roi) + "%");
                     
-                    // Disegna i box per ogni socio
                     const containerSoci = document.getElementById('container_dettagli_soci');
-                    containerSoci.innerHTML = ''; // pulisci
+                    containerSoci.innerHTML = ''; 
                     if(data.lista_dettagliata_soci) {
                         data.lista_dettagliata_soci.forEach(soc => {
                             containerSoci.innerHTML += `
@@ -856,7 +847,7 @@
                     
                     document.getElementById('box_grafici').classList.remove('hidden'); 
                     disegnaGraficoTimeline(data);
-                    disegnaGraficoCumulativo(data); // <--- ECCO IL NUOVO GRAFICO ACCESO
+                    disegnaGraficoCumulativo(data);
                 } else {
                     document.getElementById('riga_incasso_mese').classList.remove('hidden'); document.getElementById('out_incasso_mese').textContent = formatEur(data.incasso_mensile_lordo);
                     document.getElementById('riga_cashflow_mese').classList.remove('hidden'); 
@@ -876,7 +867,7 @@
                     document.getElementById('box_grafici').classList.remove('hidden'); 
                     disegnaGraficoCashflow(data, payload); 
                     disegnaGraficoTimeline(data);
-                    disegnaGraficoCumulativo(data); // <--- ECCO IL NUOVO GRAFICO ACCESO
+                    disegnaGraficoCumulativo(data); 
                 }
                 
                 const btnSave = document.getElementById('btnSalvaDeal');
@@ -930,25 +921,6 @@
             } catch (e) { c.innerHTML = '<p class="text-red-500 text-sm">Errore Database.</p>'; }
         }
         async function eliminaDeal(id) { if(confirm("Confermi l'eliminazione permanente dell'asset?")) { await fetch('/api/delete-deal/' + id, { method: 'DELETE' }); caricaDeals(); } }
-        let numEventi = 0;
-        function aggiungiEventoFuturo() {
-            numEventi++;
-            const container = document.getElementById('lista_eventi_futuri');
-            const html = `
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#020617] rounded-lg border border-slate-800 shadow-inner evento-futuro-row">
-                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">In che Anno?</label><input type="number" placeholder="Es. 3" class="input-field font-mono border-slate-700 mt-1 ev-anno"></div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Tipo di Evento</label>
-                        <select class="input-field font-bold border-slate-700 mt-1 ev-tipo">
-                            <option value="lavori">Lavori / Manutenzione (€)</option>
-                            <option value="sfitto">Sfitto Volontario (Mesi)</option>
-                        </select>
-                    </div>
-                    <div><label class="text-[10px] font-bold text-slate-500 uppercase">Valore (€ o Mesi)</label><input type="number" placeholder="Es. 10000 o 6" class="input-field font-mono border-slate-700 mt-1 ev-valore"></div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-        }
     </script>
 </body>
 </html>
