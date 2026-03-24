@@ -38,6 +38,11 @@ def mostra_sito():
     html_content = pathlib.Path("index.html").read_text(encoding="utf-8")
     return HTMLResponse(content=html_content)
 
+class EventoFuturo(BaseModel):
+    anno: int
+    tipo: str # 'lavori' o 'sfitto'
+    valore: float
+    
 class InputDeal(BaseModel):
     prezzo_acquisto: float = 0.0
     mq: float = 0.0
@@ -82,6 +87,8 @@ class InputDeal(BaseModel):
     commissioni_piattaforma_perc: float = 15.0
     pulizie_mensili: float = 0.0
     mesi_imu_temporanea: float = 6.0
+
+eventi_futuri: list[EventoFuturo] = []
 
 class DealDaSalvare(BaseModel):
     strategia: str
@@ -240,49 +247,53 @@ def calcola_roi(dati: InputDeal):
             
             cashflow_anno_1 = incasso_anno_1_assoluto - spese_fisse_anno_1 - ((incasso_anno_1_assoluto * dati.cedolare_secca_perc)/100) + credito_annuo
             
-            if dati.strategia == "Affitto":
-                timeline_cashflow.append(cashflow_anno_1)
+           # --- MOTORE MACCHINA DEL TEMPO (EVENTI FUTURI) ---
+            if dati.strategia in ["Affitto", "Mista"]:
+                utile_totale = 0.0
+                totale_anni = int(dati.anni_messa_a_reddito) if dati.strategia == "Mista" else 5
                 
-                # FIX: Calcolo dinamico sugli anni inseriti dall'utente
-                anni_restanti = max(0, int(dati.anni_messa_a_reddito) - 1)
-                for _ in range(anni_restanti): 
-                    timeline_cashflow.append(cashflow_annuo_pieno) 
+                for anno in range(1, totale_anni + 1):
+                    # Base cashflow
+                    cf_anno = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
+                    
+                    # Cerca eventi futuri per questo anno
+                    for ev in dati.eventi_futuri:
+                        if ev.anno == anno:
+                            if ev.tipo == "lavori":
+                                cf_anno -= ev.valore
+                            elif ev.tipo == "sfitto":
+                                # valore = mesi di sfitto (perdi incasso lordo mensile)
+                                cf_anno -= (incasso_mensile_lordo_assoluto if dati.tipo_affitto == "breve" else incasso_mensile_lordo / 12) * ev.valore
+                    
+                    # Se è mista e siamo all'ultimo anno, aggiungiamo la vendita
+                    if dati.strategia == "Mista" and anno == totale_anni:
+                        valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** totale_anni)
+                        metrica_lorda = valore_futuro_immobile
+                        
+                        debito_residuo = 0
+                        if dati.usa_mutuo and dati.anni_mutuo > 0:
+                            mesi_pagati = totale_anni * 12
+                            if mesi_pagati < dati.anni_mutuo * 12:
+                                r = (dati.tasso_mutuo / 100) / 12 if dati.tasso_mutuo > 0 else 0
+                                if r > 0: debito_residuo = importo_mutuo * (((1 + r)**(dati.anni_mutuo * 12) - (1 + r)**mesi_pagati) / ((1 + r)**(dati.anni_mutuo * 12) - 1))
+                                else: debito_residuo = importo_mutuo - (rata_mensile_mutuo * mesi_pagati)
+                        
+                        tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile, costo_totale_progetto) if totale_anni <= 5 else 0
+                        incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
+                        bonus_residuo = credito_fiscale_totale - (credito_annuo * totale_anni) if totale_anni < 10 else 0
+                        
+                        cf_anno += incasso_netto_vendita + bonus_residuo
+                    
+                    timeline_cashflow.append(cf_anno)
+                    utile_totale += cf_anno
                 
-                # FIX: L'utile totale è la somma di tutti gli anni
-                utile_totale = cashflow_anno_1 + (cashflow_annuo_pieno * anni_restanti) - capitale_investito_reale
-                
+                # Sottraiamo il capitale iniziale per l'utile netto finale
+                utile_totale -= capitale_investito_reale
+
+                # Stress Test Semplificato per Buy&Hold / Mista
                 metrica_lorda_stress = (dati.canone_mensile * 12 * 0.90) * (1 - ((dati.tasso_sfitto_perc * 2) / 100))
                 utile_stress_annuo = metrica_lorda_stress - spese_fisse_a_regime - ((metrica_lorda_stress * dati.cedolare_secca_perc) / 100) + credito_annuo
-                utile_stress = (utile_stress_annuo * dati.anni_messa_a_reddito) - capitale_investito_reale
-
-            elif dati.strategia == "Mista":
-                valore_futuro_immobile = valore_mercato_iniziale * ((1 + (dati.apprezzamento_annuo / 100)) ** dati.anni_messa_a_reddito)
-                metrica_lorda = valore_futuro_immobile
-                debito_residuo = 0
-                if dati.usa_mutuo and dati.anni_mutuo > 0:
-                    mesi_pagati = dati.anni_messa_a_reddito * 12
-                    if mesi_pagati < dati.anni_mutuo * 12:
-                        if dati.tasso_mutuo > 0:
-                            r = (dati.tasso_mutuo / 100) / 12
-                            debito_residuo = importo_mutuo * (((1 + r)**(dati.anni_mutuo * 12) - (1 + r)**mesi_pagati) / ((1 + r)**(dati.anni_mutuo * 12) - 1))
-                        else:
-                            debito_residuo = importo_mutuo - (rata_mensile_mutuo * mesi_pagati)
-                
-                tasse_plusvalenza = calcola_tasse_vendita(valore_futuro_immobile, costo_totale_progetto) if dati.anni_messa_a_reddito <= 5 else 0
-                incasso_netto_vendita = valore_futuro_immobile - debito_residuo - tasse_plusvalenza
-                
-                bonus_residuo = credito_fiscale_totale - (credito_annuo * dati.anni_messa_a_reddito) if dati.anni_messa_a_reddito < 10 else 0
-                
-                tot_cf = cashflow_anno_1 + (cashflow_annuo_pieno * (dati.anni_messa_a_reddito - 1))
-                utile_totale = tot_cf + incasso_netto_vendita + bonus_residuo - capitale_investito_reale
-                
-                for anno in range(1, int(dati.anni_messa_a_reddito) + 1):
-                    cf = cashflow_anno_1 if anno == 1 else cashflow_annuo_pieno
-                    timeline_cashflow.append(cf + incasso_netto_vendita + bonus_residuo if anno == int(dati.anni_messa_a_reddito) else cf)
-
-                valore_stress = valore_futuro_immobile * 0.90
-                incasso_stress = valore_stress - debito_residuo - calcola_tasse_vendita(valore_stress, costo_totale_progetto)
-                utile_stress = tot_cf + incasso_stress + bonus_residuo - capitale_investito_reale
+                utile_stress = (utile_stress_annuo * totale_anni) - capitale_investito_reale
 
        # FIX: Inizializza le variabili per evitare crash se non si usa il socio
         # --- FIX MULTI-SOCI (UTILE) ---
