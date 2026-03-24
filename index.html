@@ -113,20 +113,23 @@
                         <input type="number" id="rendita" value="0" class="input-field font-mono">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                     <div class="md:col-span-1">
-                        <label class="label-sm">Tassazione (Imposte)</label>
-                        <select id="profilo_fiscale" class="input-field text-center font-bold">
+                        <label class="label-sm">Profilo Fiscale (Imposte)</label>
+                        <select id="profilo_fiscale" class="input-field text-center font-bold text-sm" onchange="checkPrimaCasa()">
                             <option value="privato_seconda">Privato - 2ª Casa (9%)</option>
                             <option value="privato_prima">Privato - 1ª Casa (2%)</option>
-                            <option value="societa_asta">Società / Asta (9% Prezzo)</option>
+                            <option value="societa_asta">Società / Asta (9% Valore)</option>
                             <option value="societa_trading">Società Trading (Fisse 600€)</option>
                         </select>
+                    </div>
+                    <div id="box_mesi_imu" class="hidden">
+                        <label class="label-sm text-blue-400" title="Quanti mesi paghi l'IMU prima di trasferire la residenza?">Mesi Pre-Residenza</label>
+                        <input type="number" id="mesi_imu" value="6" class="input-field font-mono border-blue-900/50 bg-blue-950/20">
                     </div>
                     <div><label class="label-sm">Notaio (€)</label><input type="number" id="notaio" value="2500" class="input-field font-mono"></div>
                     <div><label class="label-sm">Agenzia (%)</label><input type="number" id="agenzia" value="3" step="0.1" class="input-field font-mono"></div>
                 </div>
-            </div>
 
             <div class="card p-6 md:p-8 bg-[#0a0f1c] border-[#1e293b]">
                 <h3 class="section-title text-indigo-400">2. Modello Operativo</h3>
@@ -404,6 +407,11 @@
         const safeNum = (val) => Number(val) || 0;
         const formatEur = (val) => "€ " + safeNum(val).toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 2});
 
+        function checkPrimaCasa() {
+            const isPrima = document.getElementById('profilo_fiscale').value === 'privato_prima';
+            document.getElementById('box_mesi_imu').classList.toggle('hidden', !isPrima);
+        }
+        
         // FUNZIONE SWITCH TIPO AFFITTO
         function setTipoAffitto(tipo) {
             document.getElementById('tipo_affitto').value = tipo;
@@ -499,6 +507,7 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             aggiornaVisibilitaModuli();
+            checkPrimaCasa();
             
             // 1. RIPRISTINO LETTURA DATI DA IMMOBILIARE/URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -577,25 +586,18 @@
             if (chartTimelineInstance) chartTimelineInstance.destroy();
             if(!dati.timeline) return;
             
-            // Logica labels migliorata
-            let labels = dati.timeline.map((_, i) => i === 0 ? 'T0 (Entry)' : `Anno ${i}`);
-            if (dati.strategia !== 'Affitto' && dati.strategia !== 'Mista') labels[labels.length - 1] = 'T (Exit)';
+            // Etichette Ultra-Minimal: T0, Y1, Y2, Exit
+            let labels = dati.timeline.map((_, i) => i === 0 ? 'T0' : `Y${i}`);
+            if (dati.strategia !== 'Affitto' && dati.strategia !== 'Mista') labels[labels.length - 1] = 'Exit';
             
             let colors = dati.timeline.map((val, i) => i === 0 ? '#334155' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10b981' : (val >= 0 ? '#3b82f6' : '#ef4444')));
             
-            // LA MAGIA PER L'ALLINEAMENTO
             const numAnni = dati.timeline.length;
             const isLungo = numAnni > 7; 
             
-            // Calcolo padding dinamico sotto per far stare scritte a -90deg
-            let bottomPadding = 20;
-            if (isLungo) {
-                if(numAnni > 20) bottomPadding = 120; // Molto spazio per 30 anni
-                else bottomPadding = 90;
-            }
-
-            // Calcolo padding dinamico sopra per numeri ruotati
-            let topPadding = isLungo ? 70 : 30;
+            // Essendo le scritte Y1, Y2 corte, ci basta pochissimo padding
+            let bottomPadding = isLungo ? 30 : 10;
+            let topPadding = isLungo ? 60 : 30;
 
             chartTimelineInstance = new Chart(ctx, { 
                 type: 'bar', 
@@ -607,7 +609,6 @@
                     responsive: true, 
                     maintainAspectRatio: false, 
                     layout: {
-                        // FIX: Aggiunto spazio chirurgico sopra e sotto per etichette ruotate
                         padding: { top: topPadding, bottom: bottomPadding, left: 10, right: 10 } 
                     },
                     plugins: { 
@@ -617,26 +618,22 @@
                             font: {family: 'JetBrains Mono', size: isLungo ? 10 : 11, weight: 'bold'}, 
                             anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
                             align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            offset: 10, // Aumentato offset per non coprire barra
-                            rotation: isLungo ? -90 : 0, // RUOTA SOLDI
+                            offset: 10, 
+                            rotation: isLungo ? -90 : 0, 
                             formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
                         } 
                     }, 
                     scales: { 
-                        y: { 
-                            grid: { color: '#1e293b' }, 
-                            border: {display: false},
-                            ticks: { display: false } // Rimuove numeri y per pulizia, usiamo datalabels
-                        }, 
+                        y: { grid: { color: '#1e293b' }, border: {display: false}, ticks: { display: false } }, 
                         x: { 
                             grid: { display: false }, 
                             border: {display: false}, 
                             ticks: { 
                                 font: {weight: 'bold', color: '#94a3b8', size: isLungo ? 10 : 12},
-                                maxRotation: isLungo ? -90 : 0, // RUOTA ANNI
+                                maxRotation: isLungo ? -90 : 0, 
                                 minRotation: isLungo ? -90 : 0,
-                                autoSkip: false, // FIX: Forza la lettura di TUTTI gli anni (no 9 -> 11)
-                                padding: 10 // Spazio tra asse e scritta
+                                autoSkip: false, 
+                                padding: 8
                             } 
                         } 
                     } 
@@ -667,6 +664,8 @@
                 canone_mensile: getVal('canone_mensile'), imu_annua: getVal('imu'), costo_luce: getVal('val_luce'), costo_gas: getVal('val_gas'), costo_acqua_tari: getVal('val_acqua'), 
                 costo_wifi: getVal('val_wifi'), assicurazione_annua: getVal('val_assicurazione'), gestione_property_perc: getVal('val_gestione'),
                 anni_messa_a_reddito: getVal('anni_affitto'), usa_mutuo: document.getElementById('usa_mutuo').checked, capitale_proprio: getVal('capitale_proprio'), tasso_mutuo: getVal('tasso_mutuo'), anni_mutuo: getVal('anni_mutuo'),
+
+                mesi_imu_temporanea: getVal('mesi_imu'),
 
                 usa_socio: document.getElementById('usa_socio').checked, 
                 percentuali_capitale_soci: quoteCap, 
