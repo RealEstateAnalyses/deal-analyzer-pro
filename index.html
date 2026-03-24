@@ -153,14 +153,33 @@
 
             <div id="modulo_affitto_ricavi" class="hidden card p-6 md:p-8">
                 <h3 class="section-title text-emerald-400">3. Gestione Affitto (Revenues)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 pb-8 border-b border-slate-800/80">
+                
+                <!-- Interruttore Tipo Affitto -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-[#020617] p-1 rounded-lg inline-flex border border-slate-800 shadow-inner">
+                        <button type="button" id="btn_tipo_lungo" onclick="setTipoAffitto('lungo')" class="px-6 py-2 rounded-md bg-emerald-600/20 text-emerald-400 border border-emerald-500/50 text-[10px] font-bold uppercase tracking-widest transition">Lungo Termine</button>
+                        <button type="button" id="btn_tipo_breve" onclick="setTipoAffitto('breve')" class="px-6 py-2 rounded-md text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase tracking-widest transition">Short Rent (Airbnb)</button>
+                    </div>
+                    <input type="hidden" id="tipo_affitto" value="lungo">
+                </div>
+
+                <!-- CAMPI LUNGO TERMINE -->
+                <div id="campi_affitto_lungo" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-slate-800/80">
                     <div><label class="label-sm text-emerald-400">Canone Mensile (€)</label><input type="number" id="canone_mensile" value="0" class="input-field font-mono border-emerald-800 text-emerald-300 bg-emerald-950/20"></div>
                     <div><label class="label-sm">Tasso Sfitto (Vacancy %)</label><input type="number" id="tasso_sfitto" value="5" step="0.1" class="input-field font-mono text-orange-400"></div>
-                    <div><label class="label-sm">Tasse (Cedolare)</label><select id="cedolare" class="input-field text-center"><option value="21">21% (Libero)</option><option value="10">10% (Concordato)</option><option value="0">0% (Società)</option></select></div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div><label class="label-sm">Spese Condominio (€/mese)</label><input type="number" id="condominio" value="0" class="input-field font-mono"></div>
+
+                <!-- CAMPI SHORT RENT -->
+                <div id="campi_affitto_breve" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 pb-8 border-b border-slate-800/80">
+                    <div><label class="label-sm text-emerald-400" title="Average Daily Rate">ADR (€/Notte)</label><input type="number" id="adr_notte" value="80" class="input-field font-mono border-emerald-800 text-emerald-300 bg-emerald-950/20"></div>
+                    <div><label class="label-sm">Occupazione (%)</label><input type="number" id="occupazione_perc" value="70" class="input-field font-mono text-orange-400"></div>
+                    <div><label class="label-sm">Fee Piattaforma (%)</label><input type="number" id="commissioni_piattaforma_perc" value="15" class="input-field font-mono text-red-400"></div>
+                    <div><label class="label-sm">Pulizie (€/mese)</label><input type="number" id="pulizie_mensili" value="150" class="input-field font-mono text-red-400"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div><label class="label-sm">Tassazione Affitto</label><select id="cedolare" class="input-field text-center font-bold text-emerald-400"><option value="21">21% (Cedolare Secca)</option><option value="10">10% (Concordato)</option><option value="0">0% (Lordo/Società)</option></select></div>
+                    <div><label class="label-sm">Spese Condominio (€/m)</label><input type="number" id="condominio" value="0" class="input-field font-mono"></div>
                     <div><label class="label-sm">IMU (€/anno)</label><input type="number" id="imu" value="500" class="input-field font-mono"></div>
                 </div>
                 
