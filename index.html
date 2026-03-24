@@ -371,13 +371,20 @@
             </div>
 
             <div id="box_grafici" class="hidden space-y-10 mb-10 no-print">
+                <!-- Nuovo Grafico Cumulativo (Stile Borsa) -->
+                <div id="container_cumulativo" class="card p-8 chart-container hidden border-slate-800 shadow-2xl bg-gradient-to-b from-[#0f172a] to-[#020617]">
+                    <h4 class="section-title text-blue-400">Crescita del Capitale (Equity Line)</h4>
+                    <div class="relative h-[350px] w-full"><canvas id="graficoCumulativo"></canvas></div>
+                </div>
+                
+                <div id="container_timeline" class="card p-8 chart-container hidden border-slate-800 shadow-2xl">
+                    <h4 class="section-title text-slate-400">Lifecycle Asset (Proiezione Singoli Anni)</h4>
+                    <div class="relative h-[350px] w-full"><canvas id="graficoTimeline"></canvas></div>
+                </div>
+
                 <div id="container_waterfall" class="card p-8 chart-container hidden border-slate-800 shadow-2xl">
                     <h4 class="section-title text-slate-400">Cashflow Mensile Operativo</h4>
                     <div class="relative h-[350px] w-full"><canvas id="graficoCashflow"></canvas></div>
-                </div>
-                <div id="container_timeline" class="card p-8 chart-container hidden border-slate-800 shadow-2xl">
-                    <h4 class="section-title text-slate-400">Lifecycle Asset (Proiezione di Cassa)</h4>
-                    <div class="relative h-[350px] w-full"><canvas id="graficoTimeline"></canvas></div>
                 </div>
             </div>
 
@@ -400,7 +407,7 @@
         Chart.defaults.font.family = 'Inter';
         Chart.defaults.plugins.datalabels.color = '#f8fafc';
         
-        let ultimoDealCalcolato = null; let chartTimelineInstance = null; let chartBarInstance = null; let isDetailedCapex = false;
+        let ultimoDealCalcolato = null; let chartTimelineInstance = null; let chartCumulativoInstance = null; let chartBarInstance = null; let isDetailedCapex = false;
 
         document.getElementById('print_date').textContent = new Date().toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -586,7 +593,6 @@
             if (chartTimelineInstance) chartTimelineInstance.destroy();
             if(!dati.timeline) return;
             
-            // Etichette Ultra-Minimal: T0, Y1, Y2, Exit
             let labels = dati.timeline.map((_, i) => i === 0 ? 'T0' : `Y${i}`);
             if (dati.strategia !== 'Affitto' && dati.strategia !== 'Mista') labels[labels.length - 1] = 'Exit';
             
@@ -595,8 +601,8 @@
             const numAnni = dati.timeline.length;
             const isLungo = numAnni > 7; 
             
-            // Essendo le scritte Y1, Y2 corte, ci basta pochissimo padding
-            let bottomPadding = isLungo ? 30 : 10;
+            // FIX: Padding inferiore aumentato a dismisura per non tagliare i numeri in verticale
+            let bottomPadding = isLungo ? 60 : 20;
             let topPadding = isLungo ? 60 : 30;
 
             chartTimelineInstance = new Chart(ctx, { 
@@ -629,17 +635,84 @@
                             grid: { display: false }, 
                             border: {display: false}, 
                             ticks: { 
-                                font: {weight: 'bold', color: '#94a3b8', size: isLungo ? 10 : 12},
+                                font: {weight: 'bold', color: '#94a3b8', size: 10},
                                 maxRotation: isLungo ? -90 : 0, 
                                 minRotation: isLungo ? -90 : 0,
                                 autoSkip: false, 
-                                padding: 8
+                                padding: 10
                             } 
                         } 
                     } 
                 } 
             });
             document.getElementById('container_timeline').classList.remove('hidden');
+        }
+
+        // NUOVO: Grafico Linea Cumulativa (Stile App Trading)
+        function disegnaGraficoCumulativo(dati) {
+            const ctx = document.getElementById('graficoCumulativo').getContext('2d');
+            if (chartCumulativoInstance) chartCumulativoInstance.destroy();
+            if(!dati.timeline) return;
+
+            let labels = dati.timeline.map((_, i) => i === 0 ? 'T0' : `Y${i}`);
+            if (dati.strategia !== 'Affitto' && dati.strategia !== 'Mista') labels[labels.length - 1] = 'Exit';
+
+            let cumulative = 0;
+            let dataCumulativa = dati.timeline.map(val => {
+                cumulative += val;
+                return cumulative;
+            });
+
+            // Colore linea: verde se chiudi in positivo, rosso se in perdita
+            let isProfitable = cumulative >= 0;
+            let lineColor = isProfitable ? '#10b981' : '#ef4444';
+            let gradColor = isProfitable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+
+            chartCumulativoInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataCumulativa,
+                        borderColor: lineColor,
+                        backgroundColor: gradColor,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#020617',
+                        pointBorderColor: lineColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3 // Rende la linea curva e morbida
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 20, bottom: 10 } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false } // Spegniamo i numeri per non creare caos, c'è l'asse Y
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#1e293b', borderDash: [5, 5] },
+                            border: {display: false},
+                            ticks: {
+                                font: {family: 'JetBrains Mono', size: 10, color: '#94a3b8'},
+                                callback: function(value) { return '€' + value.toLocaleString('it-IT'); }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: {display: false},
+                            ticks: { font: {weight: 'bold', color: '#94a3b8', size: 10} }
+                        }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+            document.getElementById('container_cumulativo').classList.remove('hidden');
         }
 
         document.getElementById('dealForm').addEventListener('submit', async function(e) {
@@ -753,7 +826,10 @@
                 if(data.strategia === "Vendita") {
                     document.getElementById('riga_valore_mercato').classList.remove('hidden'); document.getElementById('label_rivendita_tab').textContent = "Valore Vendita Rogito"; document.getElementById('out_rivendita').textContent = formatEur(data.metrica_lorda);
                     if(safeNum(data.tasse_plusvalenza) > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- " + formatEur(data.tasse_plusvalenza); }
-                    document.getElementById('box_grafici').classList.remove('hidden'); disegnaGraficoTimeline(data);
+                    
+                    document.getElementById('box_grafici').classList.remove('hidden'); 
+                    disegnaGraficoTimeline(data);
+                    disegnaGraficoCumulativo(data); // <--- ECCO IL NUOVO GRAFICO ACCESO
                 } else {
                     document.getElementById('riga_incasso_mese').classList.remove('hidden'); document.getElementById('out_incasso_mese').textContent = formatEur(data.incasso_mensile_lordo);
                     document.getElementById('riga_cashflow_mese').classList.remove('hidden'); 
@@ -769,7 +845,11 @@
                         if(safeNum(data.tasse_plusvalenza) > 0) { document.getElementById('riga_plusvalenza').classList.remove('hidden'); document.getElementById('out_plusvalenza').textContent = "- " + formatEur(data.tasse_plusvalenza); } 
                         if(data.usa_mutuo && safeNum(data.debito_residuo) > 0) { document.getElementById('riga_mista_debito').classList.remove('hidden'); document.getElementById('out_mista_debito').textContent = "- " + formatEur(data.debito_residuo); } 
                     }
-                    document.getElementById('box_grafici').classList.remove('hidden'); disegnaGraficoCashflow(data, payload); disegnaGraficoTimeline(data);
+                    
+                    document.getElementById('box_grafici').classList.remove('hidden'); 
+                    disegnaGraficoCashflow(data, payload); 
+                    disegnaGraficoTimeline(data);
+                    disegnaGraficoCumulativo(data); // <--- ECCO IL NUOVO GRAFICO ACCESO
                 }
                 
                 const btnSave = document.getElementById('btnSalvaDeal');
