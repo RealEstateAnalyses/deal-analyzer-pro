@@ -48,6 +48,22 @@
             .print-header { display: block !important; border-bottom: 2px solid #2563EB; padding-bottom: 10px; margin-bottom: 20px; }
             .chart-container { height: 250px !important; margin-bottom: 20px; page-break-inside: avoid;}
         }
+        /* 1. Nasconde le freccette dei numeri (Spinners) */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        
+        /* 2. Forza le select ad avere la stessa altezza esatta degli input testuali */
+        select.input-field {
+            height: 3.1rem; 
+            padding-top: 0;
+            padding-bottom: 0;
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-blue-900 selection:text-white">
