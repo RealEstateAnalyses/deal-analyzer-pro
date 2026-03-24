@@ -58,11 +58,14 @@
             -moz-appearance: textfield; /* Firefox */
         }
         
-        /* 2. Forza le select ad avere la stessa altezza esatta degli input testuali */
+        /* 2. Forza le select e gli input ad avere altezze identiche */
+        .input-field {
+            height: 54px; /* Altezza fissa chirurgica per tutto */
+        }
         select.input-field {
-            height: 3.1rem; 
             padding-top: 0;
             padding-bottom: 0;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -492,8 +495,10 @@
             
             let colors = dati.timeline.map((val, i) => i === 0 ? '#334155' : (i === dati.timeline.length-1 && dati.strategia !== 'Affitto' ? '#10b981' : (val >= 0 ? '#3b82f6' : '#ef4444')));
             
-            // Logica per non far sovrapporre l'etichetta del T0
             const offsetValue = dati.timeline[0] < -100000 ? 15 : 8; 
+            
+            // LA MAGIA: Se il piano supera i 7 anni, ruota sia le scritte sotto che i numeri sopra!
+            const isLungo = dati.timeline.length > 7; 
 
             chartTimelineInstance = new Chart(ctx, { 
                 type: 'bar', 
@@ -504,14 +509,19 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
+                    layout: {
+                        // Se ci sono i numeri in verticale, aggiunge 40px di spazio sopra per non tagliarli
+                        padding: { top: isLungo ? 50 : 20, bottom: 10 } 
+                    },
                     plugins: { 
                         legend: { display: false }, 
                         datalabels: { 
                             color: (ctx) => ctx.dataset.data[ctx.dataIndex] === 0 ? 'transparent' : (ctx.dataset.data[ctx.dataIndex] < 0 && ctx.dataIndex !== 0 ? '#ef4444' : '#FFF'), 
-                            font: {family: 'JetBrains Mono', size: 11, weight: 'bold'}, 
+                            font: {family: 'JetBrains Mono', size: isLungo ? 10 : 11, weight: 'bold'}, 
                             anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start', 
                             align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom', 
-                            offset: offsetValue, // Offset dinamico per evitare sovrapposizioni
+                            offset: offsetValue,
+                            rotation: isLungo ? -90 : 0, // RUOTA I SOLDI IN VERTICALE
                             formatter: (val) => '€' + Math.round(val).toLocaleString('it-IT') 
                         } 
                     }, 
@@ -522,9 +532,8 @@
                             border: {display: false}, 
                             ticks: { 
                                 font: {weight: 'bold', color: '#94a3b8'},
-                                // Inclinazione dinamica se gli anni sono molti
-                                maxRotation: dati.timeline.length > 7 ? 45 : 0,
-                                minRotation: dati.timeline.length > 7 ? 45 : 0
+                                maxRotation: isLungo ? -90 : 0, // RUOTA GLI ANNI IN VERTICALE STESSO VERSO
+                                minRotation: isLungo ? -90 : 0
                             } 
                         } 
                     } 
