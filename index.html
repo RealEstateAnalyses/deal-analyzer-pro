@@ -746,14 +746,7 @@
                 const valore = parseFloat(row.querySelector('.ev-valore').value) || 0;
                 if(anno > 0 && valore > 0) arrayEventi.push({anno: anno, tipo: tipo, valore: valore});
             });
-            // --- RACCOLTA DATI DINAMICI ---
-            let quoteCap = Array.from(document.querySelectorAll('.socio-cap')).map(el => parseFloat(el.value) || 0);
-            let quoteUtile = Array.from(document.querySelectorAll('.socio-utile')).map(el => parseFloat(el.value) || 0);
-            let arrayEventi = [];
-            document.querySelectorAll('.evento-futuro-row').forEach(row => {
-                const anno = parseInt(row.querySelector('.ev-anno').value)||0, tipo = row.querySelector('.ev-tipo').value, valore = parseFloat(row.querySelector('.ev-valore').value)||0;
-                if(anno>0 && valore>0) arrayEventi.push({anno, tipo, valore});
-            });
+            // LE RIGHE DUPLICATE SONO STATE ELIMINATE QUI
             const payload = {
                 prezzo_acquisto: getVal('prezzo'), mq: getVal('mq'), strategia: strat, profilo_fiscale: document.getElementById('profilo_fiscale').value,
                 rendita_catastale: getVal('rendita'), agenzia_percentuale: getVal('agenzia'), notaio: getVal('notaio'), 
@@ -928,39 +921,7 @@
             } catch (e) { c.innerHTML = '<p class="text-red-500 text-sm">Errore Database.</p>'; }
         }
         async function eliminaDeal(id) { if(confirm("Confermi l'eliminazione permanente dell'asset?")) { await fetch('/api/delete-deal/' + id, { method: 'DELETE' }); caricaDeals(); } }
-        // --- FUNZIONI DINAMICHE PER SOCI, CAPEX ED EVENTI ---
-        function aggiungiSocio() {
-            const container = document.getElementById('lista_soci');
-            const n = container.querySelectorAll('.grid').length + 1;
-            if(n > 3) { alert("Massimo 3 soci consentiti."); return; }
-            const html = `<div class="grid grid-cols-2 gap-6 pb-4 border-b border-slate-800/50 pt-2">
-                <div class="absolute left-4 mt-12 text-[10px] text-slate-600 font-bold -rotate-90 origin-left">SOCIO ${n}</div>
-                <input type="number" value="0" placeholder="Cap %" class="input-field font-mono border-slate-700 mt-1 socio-cap">
-                <input type="number" value="0" placeholder="Utili %" class="input-field font-mono border-slate-700 mt-1 socio-utile">
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            if(n === 3) document.getElementById('btn_add_socio').classList.add('hidden');
-        }
-
-        function aggiungiVoceCapex() {
-            const container = document.getElementById('voci_capex_extra');
-            const html = `<div class="grid grid-cols-2 gap-3 relative">
-                <input type="text" placeholder="Es. Scavo Piscina" class="input-field h-10 py-1 text-sm font-bold text-slate-300 calc-nome-dyn">
-                <input type="number" placeholder="€ Costo" class="input-field h-10 py-1 font-mono text-sm calc-det-dyn">
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            document.querySelectorAll('.calc-det-dyn').forEach(el => el.addEventListener('input', calcolaTotaleDettagliato));
-        }
-
-        function aggiungiEventoFuturo() {
-            const container = document.getElementById('lista_eventi_futuri');
-            const html = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#020617] rounded-lg border border-slate-800 shadow-inner evento-futuro-row">
-                <div><label class="text-[10px] font-bold text-slate-500 uppercase">Anno?</label><input type="number" placeholder="Es. 3" class="input-field h-10 py-1 font-mono ev-anno"></div>
-                <div><label class="text-[10px] font-bold text-slate-500 uppercase">Tipo</label><select class="input-field h-10 py-0 font-bold text-xs ev-tipo"><option value="lavori">Lavori Extra (€)</option><option value="sfitto">Sfitto (Mesi)</option></select></div>
-                <div><label class="text-[10px] font-bold text-slate-500 uppercase">Valore</label><input type="number" placeholder="Es. 5000" class="input-field h-10 py-1 font-mono ev-valore"></div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-        }
+       
     </script>
 </body>
 </html>
