@@ -227,7 +227,7 @@ def calcola_roi(dati: InputDeal):
             valore_stress = valore_mercato_iniziale * 0.90
             mesi_lavori_stress = dati.mesi_lavori + 3
             
-            imu_ stress_vendita = (imu_mensile * dati.mesi_imu_temporanea) if dati.profilo_fiscale == "privato_prima" else (imu_mensile * mesi_lavori_stress)
+            imu_stress_vendita = (imu_mensile * dati.mesi_imu_temporanea) if dati.profilo_fiscale == "privato_prima" else (imu_mensile * mesi_lavori_stress)
             
             costi_mantenimento_stress = dati.spese_condominio_mensili * mesi_lavori_stress + imu_stress_vendita
             if dati.usa_mutuo: costi_mantenimento_stress += importo_mutuo * (dati.tasso_mutuo / 100) * (mesi_lavori_stress / 12)
