@@ -239,7 +239,7 @@ def calcola_roi(dati: InputDeal):
             utile_totale = 0.0
             timeline_cashflow = [-capitale_investito_reale]
             
-            spese_fisse_mensili_proprietario_base = (dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari)
+            spese_fisse_mensili_base = (dati.spese_condominio_mensili + dati.costo_wifi + dati.costo_luce + dati.costo_gas + dati.costo_acqua_tari)
             
             # Calcolo Revenue & Opex Mensile Assoluto (A REGIME)
             if dati.tipo_affitto == "breve":
