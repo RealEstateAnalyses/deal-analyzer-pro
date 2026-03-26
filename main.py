@@ -314,9 +314,13 @@ def calcola_roi(dati: InputDeal):
                         mesi_tot_mutuo = dati.anni_mutuo * 12
                         
                         if mesi_passati < mesi_tot_mutuo:
-                            # Formula Standard Debito Residuo Mutuo Ammortamento Francese
-                            r = (dati.tasso_mutuo / 100) / 12
-                            debito_residuo_visualizzazione = importo_mutuo * ( ((1+r)**mesi_tot_mutuo) - ((1+r)**mesi_passati) ) / ( ((1+r)**mesi_tot_mutuo) - 1 )
+                            # Formula Standard Debito Residuo Mutuo Ammortamento Francese (con check anti-crash)
+                            if dati.tasso_mutuo > 0:
+                                r = (dati.tasso_mutuo / 100) / 12
+                                debito_residuo_visualizzazione = importo_mutuo * ( ((1+r)**mesi_tot_mutuo) - ((1+r)**mesi_passati) ) / ( ((1+r)**mesi_tot_mutuo) - 1 )
+                            else:
+                                # Se il tasso è zero, si sottrae semplicemente il capitale già rimborsato
+                                debito_residuo_visualizzazione = max(0, importo_mutuo - (rata_mensile_mutuo * mesi_passati))
                         else:
                             debito_residuo_visualizzazione = 0.0 # Mutuo finito
                     
